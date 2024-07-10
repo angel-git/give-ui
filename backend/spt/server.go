@@ -89,7 +89,7 @@ func getRawBytes(url string) ([]byte, error) {
 
 func ConnectToSptServer(host string, port string) (r *ServerInfo, e error) {
 	serverInfo := &ServerInfo{}
-	err := getJson(fmt.Sprintf("http://%s:%s/tarkov-stash/server", host, port), serverInfo)
+	err := getJson(fmt.Sprintf("http://%s:%s/give-ui/server", host, port), serverInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func ConnectToSptServer(host string, port string) (r *ServerInfo, e error) {
 }
 
 func LoadProfiles(host string, port string) (r []SPTProfileInfo, e error) {
-	profiles, err := getRawBytes(fmt.Sprintf("http://%s:%s/tarkov-stash/profiles", host, port))
+	profiles, err := getRawBytes(fmt.Sprintf("http://%s:%s/give-ui/profiles", host, port))
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func LoadProfiles(host string, port string) (r []SPTProfileInfo, e error) {
 }
 
 func LoadItems(host string, port string) (r *AllItems, e error) {
-	itemsBytes, err := getRawBytes(fmt.Sprintf("http://%s:%s/tarkov-stash/items", host, port))
+	itemsBytes, err := getRawBytes(fmt.Sprintf("http://%s:%s/give-ui/items", host, port))
 	if err != nil {
 		return nil, err
 	}
