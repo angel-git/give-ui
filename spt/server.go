@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
+	"sort"
+	"strings"
 	"time"
 )
 
@@ -26,11 +29,13 @@ type SPTProfile struct {
 type BSGItem struct {
 	Id     string       `json:"_id"`
 	Parent string       `json:"_parent"`
+	Type   string       `json:"_type"`
 	Props  BSGItemProps `json:"_props"`
 }
 
 type BSGItemProps struct {
-	StackMaxSize int `json:"StackMaxSize"`
+	StackMaxSize int  `json:"StackMaxSize"`
+	IsUnbuyable  bool `json:"IsUnbuyable"`
 }
 
 type Locales struct {
@@ -40,8 +45,16 @@ type Locales struct {
 type ViewItem struct {
 	Id          string
 	Name        string
+	Type        string
 	Description string
+	Category    string
 	MaxStock    int
+}
+
+type AllItems struct {
+	Categories []string
+	Items      []ViewItem
+	Presets    []ViewItem
 }
 
 var myClient = &http.Client{Timeout: 10 * time.Second}
@@ -93,7 +106,6 @@ func LoadProfiles(host string, port string) (r []SPTProfileInfo, e error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("sessionsMap", sessionsMap)
 	var sessions []SPTProfileInfo
 	for _, v := range sessionsMap {
 		sessions = append(sessions, v.Info)
@@ -101,7 +113,7 @@ func LoadProfiles(host string, port string) (r []SPTProfileInfo, e error) {
 	return sessions, nil
 }
 
-func LoadItems(host string, port string) (r map[string]ViewItem, e error) {
+func LoadItems(host string, port string) (r *AllItems, e error) {
 	itemsBytes, err := getRawBytes(fmt.Sprintf("http://%s:%s/tarkov-stash/items", host, port))
 	if err != nil {
 		return nil, err
@@ -122,20 +134,59 @@ func LoadItems(host string, port string) (r map[string]ViewItem, e error) {
 		return nil, err
 	}
 
-	viewItemsMap := make(map[string]ViewItem)
-	for key, bsgItem := range itemsMap {
+	allItems := AllItems{
+		Categories: []string{},
+		Items:      []ViewItem{},
+		Presets:    []ViewItem{},
+	}
+	for _, bsgItem := range itemsMap {
+		if bsgItem.Type == "Node" || bsgItem.Props.IsUnbuyable {
+			continue
+		}
+		var category string
+		var parent = locales.Data[fmt.Sprintf("%s Name", bsgItem.Parent)]
+		var parentParent = locales.Data[fmt.Sprintf("%s Name", itemsMap[bsgItem.Parent].Parent)]
+		if parent != "" {
+			category = parent
+		} else if parentParent != "" {
+			category = parentParent
+		} else {
+			continue
+		}
+		// filter out useless categories
+		if strings.Contains(category, "Stash") ||
+			strings.Contains(category, "Searchable item") ||
+			strings.Contains(category, "Compound item") ||
+			strings.Contains(category, "Info") ||
+			strings.Contains(category, "Inventory") {
+			continue
+		}
 		name := locales.Data[fmt.Sprintf("%s Name", bsgItem.Id)]
 		description := locales.Data[fmt.Sprintf("%s Description", bsgItem.Id)]
+		// filter out useless items
+		if strings.Contains(name, "DO_NOT_USE") || name == "" {
+			continue
+		}
+
 		viewItem := ViewItem{
 			Id:          bsgItem.Id,
 			Name:        name,
+			Type:        bsgItem.Type,
 			Description: description,
+			Category:    category,
 			MaxStock:    bsgItem.Props.StackMaxSize,
 		}
-		viewItemsMap[key] = viewItem
-
+		allItems.Items = append(allItems.Items, viewItem)
+		if !slices.Contains(allItems.Categories, category) {
+			allItems.Categories = append(allItems.Categories, category)
+		}
 	}
-	return viewItemsMap, nil
+	sort.Strings(allItems.Categories)
+	sort.SliceStable(allItems.Items, func(i, j int) bool {
+		return allItems.Items[i].Name < allItems.Items[j].Name
+	})
+
+	return &allItems, nil
 }
 
 func LoadPresets() {

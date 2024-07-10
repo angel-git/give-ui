@@ -2,7 +2,11 @@
 module.exports = {
   content: ["./dist/index.html","../components/*.go","./src/**/*.{vue,html,js,ts,jsx,tsx,svelte}",],
   theme: {
-    extend: {},
+    extend: {
+      flex: {
+        '2': '0 0 33%'
+      }
+    },
   },
   plugins: [require("daisyui")],
   daisyui: {

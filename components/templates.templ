@@ -28,15 +28,23 @@ templ ProfileList(profiles []SPT.SPTProfileInfo) {
     </div>
 }
 
-templ ItemsList(viewItems  map[string]SPT.ViewItem) {
-    <div>
-        <h2>Items</h2>
-        <ul class="flex flex-col gap-1">
-            for _, i := range viewItems {
-                <li class="flex flex-row items-center justify-between gap-2"><div>{ i.Name }</div></li>
-            }
-        </ul>
-        <progress id="item-loader" class="progress w-56 htmx-indicator"></progress>
+templ ItemsList(allItems *SPT.AllItems) {
+    <div class="overflow-y-auto">
+        <h1>Items</h1>
+        for _, cat := range allItems.Categories {
+           <section class="flex flex-col">
+             <div class="flex-2 sticky top-0 bg-base-100">
+               <h2>{ cat }</h2>
+             </div>
+             <ul>
+                 for _, i := range allItems.Items {
+                        if i.Category == cat {
+                            <li><div>{ i.Name }</div></li>
+                        }
+                 }
+             </ul>
+           </section>
+        }
     </div>
 
 }
