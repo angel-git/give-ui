@@ -1,6 +1,7 @@
 package spt
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -57,7 +58,28 @@ type AllItems struct {
 	Presets    []ViewItem
 }
 
+type AddItemRequest struct {
+	ItemId string `json:"itemId"`
+	Amount int    `json:"amount"`
+}
+
 var myClient = &http.Client{Timeout: 10 * time.Second}
+
+func doPost(url string, sessionId string, body interface{}) (*http.Response, error) {
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", url, bytes.NewReader(jsonBody))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("responsecompressed", "0")
+	req.Header.Set("requestcompressed", "0")
+	req.Header.Set("Cookie", fmt.Sprintf("PHPSESSID=%s", sessionId))
+	return myClient.Do(req)
+}
 
 func doGet(url string) (*http.Response, error) {
 	req, _ := http.NewRequest("GET", url, nil)
@@ -191,6 +213,14 @@ func LoadItems(host string, port string) (r *AllItems, e error) {
 
 func LoadPresets() {
 	// TODO maybe we should merge both into LoadItems
+}
+
+func AddItem(host string, port string, sessionId string, itemId string, amount int) {
+	request := AddItemRequest{
+		ItemId: itemId,
+		Amount: amount,
+	}
+	doPost(fmt.Sprintf("http://%s:%s/give-ui/give", host, port), sessionId, request)
 }
 
 func parseByteResponse(profiles []byte, target interface{}) error {

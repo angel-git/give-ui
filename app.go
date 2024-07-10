@@ -75,7 +75,20 @@ func NewChiRouter(app *App) *chi.Mux {
 			// TODO create new type of error template
 			templ.Handler(components.ErrorConnection(err.Error())).ServeHTTP(w, r)
 		}
+		app.ctx = context.WithValue(app.ctx, "allItems", allItems)
 		templ.Handler(components.ItemsList(allItems)).ServeHTTP(w, r)
+	})
+
+	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
+		host := app.ctx.Value("host").(string)
+		port := app.ctx.Value("port").(string)
+		sessionId := app.ctx.Value("sessionId").(string)
+
+		itemId := chi.URLParam(r, "id")
+		spt.AddItem(host, port, sessionId, itemId, 1)
+
+		//allItems := app.ctx.Value("allItems").(spt.AllItems)
+		//slices.
 	})
 
 	return r

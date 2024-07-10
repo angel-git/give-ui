@@ -39,7 +39,7 @@ templ ItemsList(allItems *SPT.AllItems) {
              <ul>
                  for _, i := range allItems.Items {
                         if i.Category == cat {
-                            <li><div>{ i.Name }</div></li>
+                            <li hx-get={ fmt.Sprintf("/item/%s",i.Id) } hx-trigger="click"><div>{ i.Name }</div></li>
                         }
                  }
              </ul>
