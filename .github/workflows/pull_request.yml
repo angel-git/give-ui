@@ -1,0 +1,31 @@
+name: PR Verification
+
+on:
+  pull_request:
+
+jobs:
+  verification:
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ windows-latest ]
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: setup bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Build wails
+        uses: dAppServer/wails-build-action@v2.2
+        id: build
+        with:
+          package: false
+          go-version: '1.22.1'
+          build-name: spt-give-ui.exe
+          build-platform: windows/amd64
