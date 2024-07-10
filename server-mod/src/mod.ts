@@ -68,11 +68,10 @@ class GiveUI implements IPreSptLoadMod {
                         const message: ISendMessageRequest = {
                             dialogId: sessionId,
                             type: MessageType.SYSTEM_MESSAGE,
-                            text: `SPT GIVE ${info.itemId} ${info.amount}`,
+                            text: `spt give ${info.itemId} ${info.amount}`,
                             replyTo: undefined,
                         };
                         const response = commando.handleMessage(sessionId, message);
-                        logger.log(`[give-ui] Giving response ${response}`, LogTextColor.GREEN);
                         return Promise.resolve(JSON.stringify({response}));
                     },
                 },
