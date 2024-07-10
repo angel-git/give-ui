@@ -6,8 +6,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
+	"spt-give-ui/backend/spt"
 	"spt-give-ui/components"
-	"spt-give-ui/spt"
 )
 
 // App struct
