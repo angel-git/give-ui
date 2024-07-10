@@ -1,10 +1,49 @@
 package components
 
-import "net/http"
+import "fmt"
+import SPT "spt-give-ui/spt"
 
-templ Button(classes string, hxUrl string, hxTarget string, hxSwap string,method string,label string) {
+templ ErrorConnection(e string) {
+    <div class="card mx-auto bg-base-100 w-full max-w-sm shadow-2xl">
+        <div class="card-body">
+            <h2>Connection Error</h2>
+            <div>Please check SPT Server is running, the connection details are correct and the mod is installed in your user folder</div>
+            <div>Details: { e }</div>
+            <button class="btn btn-primary btn-outline" onclick="location.reload()">Go back</button>
+        </div>
+    </div>
+}
+
+templ ProfileList(profiles []SPT.SPTProfileInfo) {
+    <div>
+        <h2>Select profile</h2>
+        <fieldset id="profile-fieldset">
+            <ul class="flex flex-col gap-1">
+                for _, i := range profiles {
+                    <li class="flex flex-row items-center justify-between gap-2"><div>{ i.Username } ({ i.Id })</div>@Button("btn-primary btn-sm", fmt.Sprintf("/session/%s",i.Id), "#main", "innerHTML", "get", "SELECT", "#profile-loader", "#profile-fieldset")</li>
+                }
+            </ul>
+        </fieldset>
+        <progress id="profile-loader" class="progress w-56 htmx-indicator"></progress>
+    </div>
+}
+
+templ ItemsList(viewItems  map[string]SPT.ViewItem) {
+    <div>
+        <h2>Items</h2>
+        <ul class="flex flex-col gap-1">
+            for _, i := range viewItems {
+                <li class="flex flex-row items-center justify-between gap-2"><div>{ i.Name }</div></li>
+            }
+        </ul>
+        <progress id="item-loader" class="progress w-56 htmx-indicator"></progress>
+    </div>
+
+}
+
+templ Button(classes string, hxUrl string, hxTarget string, hxSwap string,method string,label string, hxIndicator string, hxDisabledElt string) {
 	<button
- 		class="btn { classes }"
+ 		class={ fmt.Sprintf("btn %s",classes) }
  		type="submit"
  		hx-target={ hxTarget }
  		hx-trigger="click"
@@ -15,73 +54,13 @@ templ Button(classes string, hxUrl string, hxTarget string, hxSwap string,method
  		if method == "post" {
 			hx-post={ hxUrl }
 		}
+		if hxIndicator != "" {
+            hx-indicator={ hxIndicator }
+        }
+        if hxDisabledElt != "" {
+            hx-disabled-elt={ hxDisabledElt }
+        }
 	>{ label }</button>
 }
 
-templ TextInput(name string, placeholder string, method string,endpoint string,hxTrigger string) {
-	<input
- 		type="text"
- 		name={ name }
- 		placeholder={ placeholder }
- 		hx-target="#result"
- 		if method == "get" {
-			hx-get={ endpoint }
-		}
- 		if method == "post" {
-			hx-post={ endpoint }
-		}
- 		hx-trigger={ hxTrigger }
- 		class={ "input join-item input-bordered input-primary w-full max-w-xs px-4 py-3 my-8" }
-	/>
-}
 
-templ VersionComponent(Version string, UpdateText string) {
-	<div class="stats shadow mt-auto">
-		<div class="stat">
-			<div class="stat-title">Current App Version</div>
-			<div class="stat-value">{ Version }</div>
-			<div class="stat-desc">{ UpdateText }</div>
-		</div>
-	</div>
-}
-
-templ GreetForm(endpoint string) {
-	<div class="result" id="result">Please enter your name below 👇</div>
-	@TextInput("name","Enter Name","post",endpoint,"keyup changed delay:100ms")
-}
-
-func Greet(w http.ResponseWriter, r *http.Request) {
-	if r.FormValue("name") != "" {
-		w.Write([]byte("Hello " + r.FormValue("name") + ", It's show time!"))
-		return
-	}
-	w.Write([]byte("Please enter your name below 👇"))
-}
-
-templ Pages(Pages []struct{Path string;Label string}, appVersion struct{Version string;Text string}) {
-	for _, i := range Pages {
-		<li hx-boost hx-get={ i.Path } hx-target="#target-form" hx-swap="innerHTML transition:true">
-			<a
- 				class="font-medium text-2xl"
-			>{ i.Label }</a>
-		</li>
-	}
-	@VersionComponent(appVersion.Version,appVersion.Text)
-}
-
-templ TestPage(target string, hxswap string) {
-	<h1>Test page for components</h1>
-	@Button("","/modal",target,hxswap,"post","Preview Modal")
-}
-
-templ ModalPreview(title string, data string ) {
-	<dialog id="modal" class="modal modal-bottom" open>
-		<div class="modal-box">
-			<h3 class="font-bold text-lg">{ title }</h3>
-			<p class="py-4">{ data }</p>
-		</div>
-		<form method="dialog" class="modal-backdrop">
-			<button>close</button>
-		</form>
-	</dialog>
-}

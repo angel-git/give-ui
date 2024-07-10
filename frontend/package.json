@@ -13,5 +13,6 @@
     "dev": "bun -b --hot vite",
     "build": "bun -b vite build",
     "preview": "bun -b vite preview"
-  }
-,"author":"agavalda"}
+  },
+  "author": "agavalda"
+}

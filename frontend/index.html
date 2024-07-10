@@ -2,35 +2,38 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>spt-give-ui</title>
-  <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-  <link rel="stylesheet" href="src/assets/css/app.css">
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>spt-give-ui</title>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <link rel="stylesheet" href="src/assets/css/app.css">
 </head>
 
 <body>
-  <div id="app">
-    <div class="drawer lg:drawer-open">
-      <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
-      <div class="drawer-content flex flex-col items-center justify-center">
-        <div class="mx-auto w-10/12 py-20 rounded-lg shadow-lg backdrop-blur-sm bg-white/10 backdrop-filter">
-          <form id="target-form" class="main-header space-y-6">
-            <h1 class="text-2xl antialiased">Select an item from the sidebar to get started </h1>
-          </form>
+<div id="app">
+    <div class="container mx-auto h-full flex flex-col items-center justify-center" id="main" >
+        <div class="card align-middle mx-auto bg-base-100 w-full max-w-sm shadow-2xl">
+            <form class="card-body" hx-post="/connect" hx-target="#main" hx-swap="innerHTML">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">SPT Host</span>
+                    </label>
+                    <input type="text" name="host" value="127.0.0.1" class="input input-bordered" required />
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Port</span>
+                    </label>
+                    <input type="number" name="port" value="6969" class="input input-bordered" required />
+                </div>
+                <div class="form-control mt-6">
+                    <button class="btn btn-primary">Connect</button>
+                </div>
+            </form>
         </div>
-        <label for="my-drawer-2" class="btn btn-primary drawer-button lg:hidden">Open drawer</label>
-      </div>
-      <div class="drawer-side">
-        <label for="my-drawer-2" class="drawer-overlay"></label>
-        <ul class="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-          <img id="logo" class="logo max-w-[50%]" src="src/assets/images/logo-universal.png">
-          <div id="initial" hx-get="/initial" hx-trigger="load" hx-target="#initial" hx-swap="outerHTML"></div>
-        </ul>
-      </div>
+<!--        <div id="initial" hx-get="/initial" hx-trigger="load" hx-target="#initial" hx-swap="outerHTML"></div>-->
     </div>
-  </div>
-  </div>
-  <div id="modal"></div>
+
+</div>
 </body>
 </html>

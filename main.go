@@ -23,7 +23,7 @@ var version = "0.0.0"
 func main() {
 	// Create an instance of the app structure and custom Middleware
 	app := NewApp()
-	r := NewChiRouter()
+	r := NewChiRouter(app)
 
 	// Create application with options
 	err := wails.Run(&options.App{
@@ -70,7 +70,7 @@ func main() {
 		// Mac platform specific options
 		Mac: &mac.Options{
 			TitleBar: &mac.TitleBar{
-				TitlebarAppearsTransparent: true,
+				TitlebarAppearsTransparent: false,
 				HideTitle:                  false,
 				HideTitleBar:               false,
 				FullSizeContent:            false,

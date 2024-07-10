@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
-	"spt-give-ui/components"
-
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"net/http"
+	"spt-give-ui/components"
+	"spt-give-ui/spt"
 )
 
 // App struct
@@ -42,25 +43,40 @@ func (a *App) shutdown(ctx context.Context) {
 	// Perform your teardown here
 }
 
-func NewChiRouter() *chi.Mux {
+func NewChiRouter(app *App) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Get("/initial", templ.Handler(components.Pages([]struct {
-		Path  string
-		Label string
-	}{
-		{"/greet", "Greet form"},
-	}, struct {
-		Version string
-		Text    string
-	}{
-		version, "No update available",
-	})).ServeHTTP)
-	r.Get("/greet", templ.Handler(components.GreetForm("/greet")).ServeHTTP)
-	r.Post("/greet", components.Greet)
-	r.Get("/modal", templ.Handler(components.TestPage("#modal", "outerHTML")).ServeHTTP)
-	r.Post("/modal", templ.Handler(components.ModalPreview("Title for the modal", "Sample Data")).ServeHTTP)
+	r.Post("/connect", func(w http.ResponseWriter, r *http.Request) {
+		host := r.FormValue("host")
+		port := r.FormValue("port")
+		serverInfo, err := spt.ConnectToSptServer(host, port)
+		if err != nil {
+			templ.Handler(components.ErrorConnection(err.Error())).ServeHTTP(w, r)
+		}
+		// store initial server info
+		app.ctx = context.WithValue(app.ctx, "serverInfo", serverInfo)
+		app.ctx = context.WithValue(app.ctx, "host", host)
+		app.ctx = context.WithValue(app.ctx, "port", port)
+
+		profiles, err := spt.LoadProfiles(host, port)
+		if err != nil {
+			templ.Handler(components.ErrorConnection(err.Error())).ServeHTTP(w, r)
+		}
+		templ.Handler(components.ProfileList(profiles)).ServeHTTP(w, r)
+	})
+
+	r.Get("/session/{id}", func(w http.ResponseWriter, r *http.Request) {
+		sessionId := chi.URLParam(r, "id")
+		app.ctx = context.WithValue(app.ctx, "sessionId", sessionId)
+		viewItems, err := spt.LoadItems(app.ctx.Value("host").(string), app.ctx.Value("port").(string))
+		if err != nil {
+			// TODO create new type of error template
+			templ.Handler(components.ErrorConnection(err.Error())).ServeHTTP(w, r)
+		}
+		templ.Handler(components.ItemsList(viewItems)).ServeHTTP(w, r)
+	})
+
 	return r
 }
