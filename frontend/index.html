@@ -11,29 +11,7 @@
 
 <body>
 <div id="app">
-    <div class="w-full h-full p-2" id="main">
-        <div class="card align-middle mx-auto bg-base-100 w-full max-w-sm shadow-2xl">
-            <form class="card-body" hx-post="/connect" hx-target="#main" hx-swap="innerHTML">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">SPT Host</span>
-                    </label>
-                    <input type="text" name="host" value="127.0.0.1" class="input input-bordered" required />
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Port</span>
-                    </label>
-                    <input type="number" name="port" value="6969" class="input input-bordered" required />
-                </div>
-                <div class="form-control mt-6">
-                    <button class="btn btn-primary">Connect</button>
-                </div>
-            </form>
-        </div>
-<!--        <div id="initial" hx-get="/initial" hx-trigger="load" hx-target="#initial" hx-swap="outerHTML"></div>-->
-    </div>
-
+    <div id="initial" hx-get="/initial" hx-trigger="load" hx-target="#app" hx-swap="innerHTML"></div>
 </div>
 </body>
 </html>

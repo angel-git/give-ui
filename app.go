@@ -12,6 +12,7 @@ import (
 )
 
 // ctx variables
+const appVersion = "version"
 const contextSessionId = "sessionId"
 const contextHost = "host"
 const contextPort = "port"
@@ -29,9 +30,9 @@ func NewApp() *App {
 }
 
 // startup is called at application startup
-func (a *App) startup(ctx context.Context) {
+func (a *App) startup(ctx context.Context, version string) {
 	// Perform your setup here
-	a.ctx = ctx
+	a.ctx = context.WithValue(ctx, appVersion, version)
 }
 
 // domReady is called after front-end resources have been loaded
@@ -56,12 +57,19 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	r.Get("/initial", func(w http.ResponseWriter, r *http.Request) {
+		version := app.ctx.Value(appVersion).(string)
+		templ.Handler(components.LoginPage(version)).ServeHTTP(w, r)
+	})
+
 	r.Post("/connect", func(w http.ResponseWriter, r *http.Request) {
 		host := r.FormValue(contextHost)
 		port := r.FormValue(contextPort)
+		version := app.ctx.Value(appVersion).(string)
+
 		serverInfo, err := spt.ConnectToSptServer(host, port)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(err.Error())).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
 			return
 		}
 		// store initial server info
@@ -71,19 +79,20 @@ func NewChiRouter(app *App) *chi.Mux {
 
 		profiles, err := spt.LoadProfiles(host, port)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(err.Error())).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
 			return
 		}
-		templ.Handler(components.ProfileList(profiles)).ServeHTTP(w, r)
+		templ.Handler(components.ProfileList(profiles, version)).ServeHTTP(w, r)
 	})
 
 	r.Get("/session/{id}", func(w http.ResponseWriter, r *http.Request) {
+		version := app.ctx.Value(appVersion).(string)
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
 		allItems, err := spt.LoadItems(app.ctx.Value(contextHost).(string), app.ctx.Value(contextPort).(string))
 		if err != nil {
 			// TODO create new type of error template
-			templ.Handler(components.ErrorConnection(err.Error())).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
 			return
 		}
 		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
