@@ -1,7 +1,8 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "spt-give-ui",
-  "outputfilename": "spt-give-ui",
+  "name": "give-ui",
+  "version": "0.1.0",
+  "outputfilename": "give-ui",
   "frontend:install": "bun install",
   "frontend:build": "bun run build",
   "frontend:dev:watcher": "bun run dev",

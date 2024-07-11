@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -18,7 +19,7 @@ var assets embed.FS
 
 //go:embed build/appicon.png
 var icon []byte
-var version = "0.0.0"
+var version = "0.1.0"
 
 func main() {
 	// Create an instance of the app structure and custom Middleware
@@ -27,14 +28,14 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:             "spt-give-ui",
-		Width:             1040,
-		Height:            768,
-		MinWidth:          1040,
-		MinHeight:         768,
-		MaxWidth:          1280,
-		MaxHeight:         800,
-		DisableResize:     false,
+		Title:             "give-ui",
+		Width:             1000,
+		Height:            700,
+		MinWidth:          1000,
+		MinHeight:         700,
+		MaxWidth:          1000,
+		MaxHeight:         700,
+		DisableResize:     true,
 		Fullscreen:        false,
 		Frameless:         false,
 		StartHidden:       false,
@@ -81,8 +82,8 @@ func main() {
 			WebviewIsTransparent: true,
 			WindowIsTranslucent:  true,
 			About: &mac.AboutInfo{
-				Title:   "spt-give-ui",
-				Message: "",
+				Title:   "give-ui",
+				Message: fmt.Sprintf("Version: %s", version),
 				Icon:    icon,
 			},
 		},

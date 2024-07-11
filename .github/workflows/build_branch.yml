@@ -26,6 +26,8 @@ jobs:
         with:
           package: false
           go-version: '1.22.1'
+          build-name: spt-give-ui.exe
+          build-platform: windows/amd64
       - name: Package zip
         run: |
           mkdir "dist/user/mods/give-ui-${{ github.sha }}"
