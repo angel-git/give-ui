@@ -29,32 +29,72 @@ templ ProfileList(profiles []SPT.SPTProfileInfo) {
 }
 
 templ ItemsList(allItems *SPT.AllItems) {
-    <div class="flex w-full h-full">
-        <div class="card p-2 bg-base-300 rounded-box grid overflow-y-auto place-items-center flex-1 basis-2/5">
-            for _, cat := range allItems.Categories {
-               <section class="flex flex-col">
-                 <div class="flex-2 sticky -top-2 bg-base-300 border-b-2 border-white">
-                   <h2>{ cat }</h2>
-                 </div>
-                 <ul>
-                     for _, i := range allItems.Items {
-                            if i.Category == cat {
-                                <li class="cursor-pointer hover:bg-primary" hx-get={ fmt.Sprintf("/item/%s",i.Id) } hx-trigger="click" hx-target="#item-details" hx-swap="innerHTML"><div>{ i.Name }</div></li>
-                            }
-                     }
-                 </ul>
-               </section>
+<script type="text/javascript">
+    function filterItems() {
+          let input = document.getElementById('filter-input');
+          let filter = input.value.toUpperCase();
+          let itemList = document.getElementById("item-list");
+          let li = itemList.getElementsByTagName('li');
+
+          // Loop through all list items, and hide those who don't match the search query
+          for (i = 0; i < li.length; i++) {
+            let txtValue = li[i].textContent || li[i].innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+              li[i].style.display = "";
+            } else {
+              li[i].style.display = "none";
             }
+          }
+
+          let section = itemList.getElementsByTagName('section');
+          for (i = 0; i < section.length; i++) {
+            let innerLis = section[i].getElementsByTagName('li');
+            let anyLiVisible = false;
+            for (j = 0; j < innerLis.length; j++) {
+                if (innerLis[j].style.display === "") {
+                    anyLiVisible = true;
+                    break;
+                }
+            }
+            if (anyLiVisible) {
+                section[i].style.display = "";
+            } else {
+                section[i].style.display = "none";
+            }
+          }
+    }
+  </script>
+    <div class="flex flex-col h-full">
+        <div class="w-full m-2">
+            <input type="text" autocomplete="off" id="filter-input" onkeyup="filterItems()" placeholder="Filter here" class="input input-bordered w-full max-w-xs" />
         </div>
-        <div class="divider divider-horizontal"></div>
-        <div class="card p-2 bg-base-300 rounded-box grid flex-grow place-items-center w-full" id="item-details">
+        <div class="flex w-full h-full min-h-0" id="item-list">
+            <div class="card p-2 bg-base-300 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5">
+                for _, cat := range allItems.Categories {
+                   <section class="flex flex-col w-full">
+                     <div class="flex-2 sticky -top-2 bg-base-300 border-b-2 border-white">
+                       <h2>{ cat }</h2>
+                     </div>
+                     <ul>
+                         for _, i := range allItems.Items {
+                                if i.Category == cat {
+                                    <li class="text-left cursor-pointer hover:bg-primary" hx-get={ fmt.Sprintf("/item/%s",i.Id) } hx-trigger="click" hx-target="#item-details" hx-swap="innerHTML"><div>{ i.Name }</div></li>
+                                }
+                         }
+                     </ul>
+                   </section>
+                }
+            </div>
+            <div class="divider divider-horizontal"></div>
+            <div class="card p-2 bg-base-300 rounded-box grid flex-grow place-items-center w-full" id="item-details">
+            </div>
         </div>
     </div>
 
 }
 
 templ ItemDetail(item SPT.ViewItem) {
-    <div class="card bg-base-300 w-96 shadow-xl">
+    <div class="card w-full">
       <figure>
         <img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png",item.Id) } />
       </figure>
