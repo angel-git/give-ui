@@ -64,7 +64,7 @@ class GiveUI implements IPreSptLoadMod {
                 {
                     url: '/give-ui/give',
                     action: (url, info, sessionId, output) => {
-                        logger.log(`[give-ui] Giving item ${info.itemId}`, LogTextColor.GREEN);
+                        logger.log(`[give-ui] Running command: [SPT GIVE ${info.itemId} ${info.amount}]`, LogTextColor.GREEN);
                         const message: ISendMessageRequest = {
                             dialogId: sessionId,
                             type: MessageType.SYSTEM_MESSAGE,
