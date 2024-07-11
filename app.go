@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -70,6 +71,10 @@ func NewChiRouter(app *App) *chi.Mux {
 		serverInfo, err := spt.ConnectToSptServer(host, port)
 		if err != nil {
 			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
+			return
+		}
+		if serverInfo.ModVersion != version {
+			templ.Handler(components.ErrorConnection(fmt.Sprintf("Wrong server mod version: %s", serverInfo.ModVersion), version)).ServeHTTP(w, r)
 			return
 		}
 		// store initial server info
