@@ -15,7 +15,7 @@ templ ErrorConnection(e string) {
 }
 
 templ ProfileList(profiles []SPT.SPTProfileInfo) {
-    <div>
+    <div class="card mx-auto bg-base-100 w-full max-w-sm shadow-2xl">
         <h2>Select profile</h2>
         <fieldset id="profile-fieldset">
             <ul class="flex flex-col gap-1">
@@ -29,24 +29,43 @@ templ ProfileList(profiles []SPT.SPTProfileInfo) {
 }
 
 templ ItemsList(allItems *SPT.AllItems) {
-    <div class="overflow-y-auto">
-        <h1>Items</h1>
-        for _, cat := range allItems.Categories {
-           <section class="flex flex-col">
-             <div class="flex-2 sticky top-0 bg-base-100">
-               <h2>{ cat }</h2>
-             </div>
-             <ul>
-                 for _, i := range allItems.Items {
-                        if i.Category == cat {
-                            <li hx-get={ fmt.Sprintf("/item/%s",i.Id) } hx-trigger="click"><div>{ i.Name }</div></li>
-                        }
-                 }
-             </ul>
-           </section>
-        }
+    <div class="flex w-full h-full">
+        <div class="card p-2 bg-base-300 rounded-box grid overflow-y-auto place-items-center flex-1 basis-2/5">
+            for _, cat := range allItems.Categories {
+               <section class="flex flex-col">
+                 <div class="flex-2 sticky -top-2 bg-base-300 border-b-2 border-white">
+                   <h2>{ cat }</h2>
+                 </div>
+                 <ul>
+                     for _, i := range allItems.Items {
+                            if i.Category == cat {
+                                <li class="cursor-pointer hover:bg-primary" hx-get={ fmt.Sprintf("/item/%s",i.Id) } hx-trigger="click" hx-target="#item-details" hx-swap="innerHTML"><div>{ i.Name }</div></li>
+                            }
+                     }
+                 </ul>
+               </section>
+            }
+        </div>
+        <div class="divider divider-horizontal"></div>
+        <div class="card p-2 bg-base-300 rounded-box grid flex-grow place-items-center w-full" id="item-details">
+        </div>
     </div>
 
+}
+
+templ ItemDetail(item SPT.ViewItem) {
+    <div class="card bg-base-300 w-96 shadow-xl">
+      <figure>
+        <img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png",item.Id) } />
+      </figure>
+      <div class="card-body">
+        <h2 class="card-title">{ item.Name }</h2>
+        <p class="text-justify">{ item.Description }</p>
+        <div class="card-actions justify-end">
+          <button class="btn btn-primary" hx-post={ fmt.Sprintf("/item/%s",item.Id) } hx-trigger="click" hx-disabled-elt="this">Give</button>
+        </div>
+      </div>
+    </div>
 }
 
 templ Button(classes string, hxUrl string, hxTarget string, hxSwap string,method string,label string, hxIndicator string, hxDisabledElt string) {
