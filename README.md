@@ -1,28 +1,24 @@
-# README
+## GIVE-UI
 
-## About
+Simple UI for the `SPT GIVE` command.
 
-This template uses a unique combination of pure htmx for interactivity plus Go templates for creating components and forms, also included:
-- Built-in added styling to show off some of Tailwind and Daisyui.
-- Uses HTMX for MPA style interactivity on a single page as per SPA.
-- Added custom Chi middleware for handling HTMX calls in an easy to maintain routing configuration.
-- Built-in version display linked to version variable from main which can be updated on app build for CICD and/or during runtime.
-- Scripts configured to use the Bun runtime to launch Vite. (Make sure you have bun installed first)
-- To switch back to npm instead of bun, edit wails.json and package.json (or use NPM under the @npm tag)
-- Also using https://templ.guide/ for components and templates use "templ generate" to update templ files. 
+### How it works
 
-## Initial Setup Instructions
-- Install Bun (or use NPM under the @npm tag)
-- Change go.mod module
-- Change app.go components package import
-- **For Linux build tag webkit2_40 is required e.g -tags webkit2_40**
+1. With the server and preferably with Tarkov running, open the app
+2. Use the form to connect to the server and select your character
+3. Select the item you want to receive. The quantity is always set to the maximum stack size
+4. You will receive a message with the item/s
 
-## Live Development
+### Development
 
-To run in live development mode, run `wails dev` in the project directory. In another terminal, go into the `frontend`
-directory and run `bun run dev`. The frontend dev server will run on http://localhost:34115. Connect to this in your
-browser and connect to your application.
+```shell
+templ generate && wails dev
+```
 
-## Building
+### Release
 
-To build a redistributable, production mode package, use `wails build`.
+- Update version in `wails.json`
+- Update version in `server-mod/src/mod.ts`
+- commit and push (TODO: automate this in future)
+- Create a new release with proper tag
+- Github action will take over and upload the zip
