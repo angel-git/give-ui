@@ -1,17 +1,18 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"fmt"
-	"log"
-	"net/http"
-
+	"github.com/tidwall/gjson"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/logger"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
+	"log"
+	"net/http"
 )
 
 //go:embed all:frontend/dist components
@@ -19,9 +20,12 @@ var assets embed.FS
 
 //go:embed build/appicon.png
 var icon []byte
-var version = "0.1.0"
+
+//go:embed wails.json
+var wailsJson string
 
 func main() {
+	version := gjson.Get(wailsJson, "version").Str
 	// Create an instance of the app structure and custom Middleware
 	app := NewApp()
 	r := NewChiRouter(app)
@@ -48,10 +52,12 @@ func main() {
 				return r
 			},
 		},
-		Menu:             nil,
-		Logger:           nil,
-		LogLevel:         logger.DEBUG,
-		OnStartup:        app.startup,
+		Menu:     nil,
+		Logger:   nil,
+		LogLevel: logger.DEBUG,
+		OnStartup: func(ctx context.Context) {
+			app.startup(ctx, version)
+		},
 		OnDomReady:       app.domReady,
 		OnBeforeClose:    app.beforeClose,
 		OnShutdown:       app.shutdown,

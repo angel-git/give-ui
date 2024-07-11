@@ -3,10 +3,37 @@ package components
 import "fmt"
 import SPT "spt-give-ui/backend/spt"
 
-templ ErrorConnection(e string) {
-    <div class="card mx-auto bg-base-100 w-full max-w-sm shadow-2xl">
+templ LoginPage(version string) {
+    <div id="main" class="w-full h-full p-2">
+        <h1 class="mb-4">GIVE UI - v{ version }</h1>
+        <div class="card align-middle mx-auto bg-base-200 w-full max-w-md shadow-2xl">
+            <form class="card-body" hx-post="/connect" hx-target="#main" hx-swap="innerHTML">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">SPT Host</span>
+                    </label>
+                    <input type="text" name="host" value="127.0.0.1" class="input input-bordered" required />
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Port</span>
+                    </label>
+                    <input type="number" name="port" value="6969" class="input input-bordered" required />
+                </div>
+                <div class="form-control mt-6">
+                    <button class="btn btn-primary">Connect</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+}
+
+templ ErrorConnection(e string, version string) {
+    <h1 class="mb-4">GIVE UI - v{ version }</h1>
+    <div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
         <div class="card-body">
-            <h2>Connection Error</h2>
+            <h2 class="text-error">Connection Error</h2>
             <div>Please check SPT Server is running, the connection details are correct and the mod is installed in your user folder</div>
             <div>Details: { e }</div>
             <button class="btn btn-primary btn-outline" onclick="location.reload()">Go back</button>
@@ -14,17 +41,20 @@ templ ErrorConnection(e string) {
     </div>
 }
 
-templ ProfileList(profiles []SPT.SPTProfileInfo) {
-    <div class="card mx-auto bg-base-100 w-full max-w-sm shadow-2xl">
-        <h2>Select profile</h2>
-        <fieldset id="profile-fieldset">
-            <ul class="flex flex-col gap-1">
-                for _, i := range profiles {
-                    <li class="flex flex-row items-center justify-between gap-2"><div>{ i.Username } ({ i.Id })</div>@Button("btn-primary btn-sm", fmt.Sprintf("/session/%s",i.Id), "#main", "innerHTML", "get", "SELECT", "#profile-loader", "#profile-fieldset")</li>
-                }
-            </ul>
-        </fieldset>
-        <progress id="profile-loader" class="progress w-56 htmx-indicator"></progress>
+templ ProfileList(profiles []SPT.SPTProfileInfo, version string) {
+    <h1 class="mb-4">GIVE UI - v{ version }</h1>
+    <div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
+        <div class="card-body">
+            <h2>Select profile</h2>
+            <fieldset id="profile-fieldset">
+                <ul class="flex flex-col gap-1">
+                    for _, i := range profiles {
+                        <li class="flex flex-row items-center justify-between gap-2"><div>{ i.Username } ({ i.Id })</div>@Button("btn-primary btn-sm", fmt.Sprintf("/session/%s",i.Id), "#main", "innerHTML", "get", "SELECT", "#profile-loader", "#profile-fieldset")</li>
+                    }
+                </ul>
+            </fieldset>
+            <progress id="profile-loader" class="progress w-56 htmx-indicator"></progress>
+        </div>
     </div>
 }
 
@@ -69,10 +99,10 @@ templ ItemsList(allItems *SPT.AllItems) {
             <input type="text" autocomplete="off" id="filter-input" onkeyup="filterItems()" placeholder="Filter here" class="input input-bordered w-full max-w-xs" />
         </div>
         <div class="flex w-full h-full min-h-0" id="item-list">
-            <div class="card p-2 bg-base-300 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5">
+            <div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5">
                 for _, cat := range allItems.Categories {
                    <section class="flex flex-col w-full">
-                     <div class="flex-2 sticky -top-2 bg-base-300 border-b-2 border-white">
+                     <div class="flex-2 sticky -top-2 bg-base-200 border-b-2 border-white">
                        <h2>{ cat }</h2>
                      </div>
                      <ul>
@@ -86,7 +116,7 @@ templ ItemsList(allItems *SPT.AllItems) {
                 }
             </div>
             <div class="divider divider-horizontal"></div>
-            <div class="card p-2 bg-base-300 rounded-box grid flex-grow place-items-center w-full" id="item-details">
+            <div class="card p-2 bg-base-200 rounded-box grid flex-grow place-items-center w-full" id="item-details">
             </div>
         </div>
     </div>
