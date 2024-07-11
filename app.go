@@ -62,6 +62,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		serverInfo, err := spt.ConnectToSptServer(host, port)
 		if err != nil {
 			templ.Handler(components.ErrorConnection(err.Error())).ServeHTTP(w, r)
+			return
 		}
 		// store initial server info
 		app.ctx = context.WithValue(app.ctx, contextServerInfo, serverInfo)
@@ -71,6 +72,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		profiles, err := spt.LoadProfiles(host, port)
 		if err != nil {
 			templ.Handler(components.ErrorConnection(err.Error())).ServeHTTP(w, r)
+			return
 		}
 		templ.Handler(components.ProfileList(profiles)).ServeHTTP(w, r)
 	})
@@ -82,12 +84,24 @@ func NewChiRouter(app *App) *chi.Mux {
 		if err != nil {
 			// TODO create new type of error template
 			templ.Handler(components.ErrorConnection(err.Error())).ServeHTTP(w, r)
+			return
 		}
 		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
 		templ.Handler(components.ItemsList(allItems)).ServeHTTP(w, r)
 	})
 
 	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
+		itemId := chi.URLParam(r, "id")
+		allItems := app.ctx.Value(contextAllItems).(*spt.AllItems)
+		itemIdx := slices.IndexFunc(allItems.Items, func(i spt.ViewItem) bool {
+			return i.Id == itemId
+		})
+		item := allItems.Items[itemIdx]
+		templ.Handler(components.ItemDetail(item)).ServeHTTP(w, r)
+
+	})
+
+	r.Post("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
 		itemId := chi.URLParam(r, "id")
 		host := app.ctx.Value(contextHost).(string)
 		port := app.ctx.Value(contextPort).(string)
