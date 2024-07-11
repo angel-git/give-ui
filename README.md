@@ -2,6 +2,8 @@
 
 Simple UI for the `SPT GIVE` command.
 
+![recording.gif](recording.gif)
+
 ### How it works
 
 1. With the server and preferably with Tarkov running, open the app
