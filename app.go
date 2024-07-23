@@ -8,7 +8,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
 	"slices"
-	"spt-give-ui/backend/spt"
+	"spt-give-ui/backend/api"
+	"spt-give-ui/backend/models"
 	"spt-give-ui/components"
 )
 
@@ -68,7 +69,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		port := r.FormValue(contextPort)
 		version := app.ctx.Value(appVersion).(string)
 
-		serverInfo, err := spt.ConnectToSptServer(host, port)
+		serverInfo, err := api.ConnectToSptServer(host, port)
 		if err != nil {
 			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
 			return
@@ -82,7 +83,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		app.ctx = context.WithValue(app.ctx, contextHost, host)
 		app.ctx = context.WithValue(app.ctx, contextPort, port)
 
-		profiles, err := spt.LoadProfiles(host, port)
+		profiles, err := api.LoadProfiles(host, port)
 		if err != nil {
 			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
 			return
@@ -94,7 +95,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		version := app.ctx.Value(appVersion).(string)
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
-		allItems, err := spt.LoadItems(app.ctx.Value(contextHost).(string), app.ctx.Value(contextPort).(string))
+		allItems, err := api.LoadItems(app.ctx.Value(contextHost).(string), app.ctx.Value(contextPort).(string))
 		if err != nil {
 			// TODO create new type of error template
 			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
@@ -106,8 +107,8 @@ func NewChiRouter(app *App) *chi.Mux {
 
 	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
 		itemId := chi.URLParam(r, "id")
-		allItems := app.ctx.Value(contextAllItems).(*spt.AllItems)
-		itemIdx := slices.IndexFunc(allItems.Items, func(i spt.ViewItem) bool {
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		itemIdx := slices.IndexFunc(allItems.Items, func(i models.ViewItem) bool {
 			return i.Id == itemId
 		})
 		item := allItems.Items[itemIdx]
@@ -120,13 +121,13 @@ func NewChiRouter(app *App) *chi.Mux {
 		host := app.ctx.Value(contextHost).(string)
 		port := app.ctx.Value(contextPort).(string)
 		sessionId := app.ctx.Value(contextSessionId).(string)
-		allItems := app.ctx.Value(contextAllItems).(*spt.AllItems)
-		itemIdx := slices.IndexFunc(allItems.Items, func(i spt.ViewItem) bool {
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		itemIdx := slices.IndexFunc(allItems.Items, func(i models.ViewItem) bool {
 			return i.Id == itemId
 		})
 		amount := allItems.Items[itemIdx].MaxStock
 
-		spt.AddItem(host, port, sessionId, itemId, amount)
+		api.AddItem(host, port, sessionId, itemId, amount)
 	})
 
 	return r

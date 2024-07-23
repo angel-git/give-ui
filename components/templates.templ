@@ -1,7 +1,7 @@
 package components
 
 import "fmt"
-import SPT "spt-give-ui/backend/spt"
+import "spt-give-ui/backend/models"
 
 templ LoginPage(version string) {
     <div id="main" class="w-full h-full p-2">
@@ -41,7 +41,7 @@ templ ErrorConnection(e string, version string) {
     </div>
 }
 
-templ ProfileList(profiles []SPT.SPTProfileInfo, version string) {
+templ ProfileList(profiles []models.SPTProfileInfo, version string) {
     <h1 class="mb-4">GIVE UI - v{ version }</h1>
     <div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
         <div class="card-body">
@@ -58,7 +58,7 @@ templ ProfileList(profiles []SPT.SPTProfileInfo, version string) {
     </div>
 }
 
-templ ItemsList(allItems *SPT.AllItems) {
+templ ItemsList(allItems *models.AllItems) {
 <script type="text/javascript">
     function filterItems() {
           let input = document.getElementById('filter-input');
@@ -123,7 +123,7 @@ templ ItemsList(allItems *SPT.AllItems) {
 
 }
 
-templ ItemDetail(item SPT.ViewItem) {
+templ ItemDetail(item models.ViewItem) {
     <div class="card w-full">
       <figure>
         <img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png",item.Id) } />

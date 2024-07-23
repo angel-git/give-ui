@@ -9,7 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import "fmt"
-import SPT "spt-give-ui/backend/spt"
+import "spt-give-ui/backend/models"
 
 func LoginPage(version string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -102,7 +102,7 @@ func ErrorConnection(e string, version string) templ.Component {
 	})
 }
 
-func ProfileList(profiles []SPT.SPTProfileInfo, version string) templ.Component {
+func ProfileList(profiles []models.SPTProfileInfo, version string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -185,7 +185,7 @@ func ProfileList(profiles []SPT.SPTProfileInfo, version string) templ.Component 
 	})
 }
 
-func ItemsList(allItems *SPT.AllItems) templ.Component {
+func ItemsList(allItems *models.AllItems) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -272,7 +272,7 @@ func ItemsList(allItems *SPT.AllItems) templ.Component {
 	})
 }
 
-func ItemDetail(item SPT.ViewItem) templ.Component {
+func ItemDetail(item models.ViewItem) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
