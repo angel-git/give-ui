@@ -179,6 +179,7 @@ func LoadItems(host string, port string) (r *AllItems, e error) {
 		if strings.Contains(category, "Stash") ||
 			strings.Contains(category, "Searchable item") ||
 			strings.Contains(category, "Compound item") ||
+			strings.Contains(category, "Loot container") ||
 			strings.Contains(category, "Inventory") {
 			continue
 		}
