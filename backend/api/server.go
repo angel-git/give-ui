@@ -1,4 +1,4 @@
-package spt
+package api
 
 import (
 	"fmt"
