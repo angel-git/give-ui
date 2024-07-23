@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
 	"slices"
+	"spt-give-ui/backend/models"
 	"spt-give-ui/backend/spt"
 	"spt-give-ui/components"
 )
@@ -106,8 +107,8 @@ func NewChiRouter(app *App) *chi.Mux {
 
 	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
 		itemId := chi.URLParam(r, "id")
-		allItems := app.ctx.Value(contextAllItems).(*spt.AllItems)
-		itemIdx := slices.IndexFunc(allItems.Items, func(i spt.ViewItem) bool {
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		itemIdx := slices.IndexFunc(allItems.Items, func(i models.ViewItem) bool {
 			return i.Id == itemId
 		})
 		item := allItems.Items[itemIdx]
@@ -120,8 +121,8 @@ func NewChiRouter(app *App) *chi.Mux {
 		host := app.ctx.Value(contextHost).(string)
 		port := app.ctx.Value(contextPort).(string)
 		sessionId := app.ctx.Value(contextSessionId).(string)
-		allItems := app.ctx.Value(contextAllItems).(*spt.AllItems)
-		itemIdx := slices.IndexFunc(allItems.Items, func(i spt.ViewItem) bool {
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		itemIdx := slices.IndexFunc(allItems.Items, func(i models.ViewItem) bool {
 			return i.Id == itemId
 		})
 		amount := allItems.Items[itemIdx].MaxStock
