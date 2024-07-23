@@ -211,10 +211,6 @@ func LoadItems(host string, port string) (r *AllItems, e error) {
 	return &allItems, nil
 }
 
-func LoadPresets() {
-	// TODO maybe we should merge both into LoadItems
-}
-
 func AddItem(host string, port string, sessionId string, itemId string, amount int) {
 	request := AddItemRequest{
 		ItemId: itemId,
