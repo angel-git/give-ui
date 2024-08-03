@@ -7,7 +7,7 @@ templ LoginPage(version string) {
     <div id="main" class="w-full h-full p-2">
         <h1 class="mb-4">GIVE UI - v{ version }</h1>
         <div class="card align-middle mx-auto bg-base-200 w-full max-w-md shadow-2xl">
-            <form class="card-body" hx-post="/connect" hx-target="#main" hx-swap="innerHTML">
+            <form class="card-body" hx-post="/connect" hx-target="#main" hx-swap="innerHTML" hx-indicator="#loader" hx-disabled-elt="find button">
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">SPT Host</span>
@@ -23,6 +23,7 @@ templ LoginPage(version string) {
                 <div class="form-control mt-6">
                     <button class="btn btn-primary">Connect</button>
                 </div>
+                <progress id="loader" class="progress w-full htmx-indicator"></progress>
             </form>
         </div>
     </div>
@@ -49,11 +50,11 @@ templ ProfileList(profiles []models.SPTProfileInfo, version string) {
             <fieldset id="profile-fieldset">
                 <ul class="flex flex-col gap-1">
                     for _, i := range profiles {
-                        <li class="flex flex-row items-center justify-between gap-2"><div>{ i.Username } ({ i.Id })</div>@Button("btn-primary btn-sm", fmt.Sprintf("/session/%s",i.Id), "#main", "innerHTML", "get", "SELECT", "#profile-loader", "#profile-fieldset")</li>
+                        <li class="flex flex-row items-center justify-between gap-2"><div>{ i.Username } ({ i.Id })</div>@Button("btn-primary btn-sm", fmt.Sprintf("/session/%s",i.Id), "#main", "innerHTML", "get", "SELECT", "#loader", "#profile-fieldset")</li>
                     }
                 </ul>
             </fieldset>
-            <progress id="profile-loader" class="progress w-56 htmx-indicator"></progress>
+            <progress id="loader" class="progress w-full htmx-indicator"></progress>
         </div>
     </div>
 }
