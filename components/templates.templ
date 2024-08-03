@@ -63,14 +63,14 @@ templ ItemsList(allItems *models.AllItems) {
 <script type="text/javascript">
     function filterItems() {
           let input = document.getElementById('filter-input');
-          let filter = input.value.toUpperCase();
+          let filter = input.value.toUpperCase().trim();
           let itemList = document.getElementById("item-list");
           let li = itemList.getElementsByTagName('li');
 
           // Loop through all list items, and hide those who don't match the search query
           for (i = 0; i < li.length; i++) {
-            let txtValue = li[i].textContent || li[i].innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            let txtValue = (li[i].textContent || li[i].innerText).toUpperCase().trim();
+            if (txtValue.indexOf(filter) > -1) {
               li[i].style.display = "";
             } else {
               li[i].style.display = "none";
@@ -100,7 +100,7 @@ templ ItemsList(allItems *models.AllItems) {
             <input type="text" autocomplete="off" id="filter-input" onkeyup="filterItems()" placeholder="Filter here" class="input input-bordered w-full max-w-xs" />
         </div>
         <div class="flex w-full h-full min-h-0" id="item-list">
-            <div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5">
+            <div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
                 for _, cat := range allItems.Categories {
                    <section class="flex flex-col w-full">
                      <div class="flex-2 sticky -top-2 bg-base-200 border-b-2 border-white">
