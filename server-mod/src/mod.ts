@@ -55,13 +55,6 @@ class GiveUI implements IPreSptLoadMod {
                     },
                 },
                 {
-                    url: '/give-ui/globals-presets',
-                    action: (url, info, sessionId, output) => {
-                        logger.log(`[give-ui] Loading global presets`, LogTextColor.GREEN);
-                        return Promise.resolve(JSON.stringify(databaseServer.getTables().globals.ItemPresets));
-                    },
-                },
-                {
                     url: '/give-ui/give',
                     action: (url, info, sessionId, output) => {
                         logger.log(`[give-ui] Running command: [SPT GIVE ${info.itemId} ${info.amount}]`, LogTextColor.GREEN);
