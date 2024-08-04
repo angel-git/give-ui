@@ -120,6 +120,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		itemId := chi.URLParam(r, "id")
 		host := app.ctx.Value(contextHost).(string)
 		port := app.ctx.Value(contextPort).(string)
+		version := app.ctx.Value(appVersion).(string)
 		sessionId := app.ctx.Value(contextSessionId).(string)
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
 		itemIdx := slices.IndexFunc(allItems.Items, func(i models.ViewItem) bool {
@@ -127,7 +128,10 @@ func NewChiRouter(app *App) *chi.Mux {
 		})
 		amount := allItems.Items[itemIdx].MaxStock
 
-		api.AddItem(host, port, sessionId, itemId, amount)
+		err := api.AddItem(host, port, sessionId, itemId, amount)
+		if err != nil {
+			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
+		}
 	})
 
 	return r
