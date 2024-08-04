@@ -61,6 +61,8 @@ templ ProfileList(profiles []models.SPTProfileInfo, version string) {
 
 templ ItemsList(allItems *models.AllItems) {
 <script type="text/javascript">
+
+    let previousSelectedItem = null;
     function filterItems() {
           const input = document.getElementById('filter-input');
           const filter = input.value.toUpperCase().trim();
@@ -96,6 +98,15 @@ templ ItemsList(allItems *models.AllItems) {
             }
           }
     }
+
+    function selectItem(element) {
+        const classToToggle = 'text-primary';
+        if (previousSelectedItem) {
+            previousSelectedItem.classList.remove(classToToggle);
+        }
+        element.classList.add(classToToggle);
+        previousSelectedItem = element;
+    }
   </script>
     <div class="flex flex-col h-full">
         <div class="w-full m-2">
@@ -111,7 +122,7 @@ templ ItemsList(allItems *models.AllItems) {
                      <ul data-category={ cat }>
                          for _, i := range allItems.Items {
                                 if i.Category == cat {
-                                    <li class="text-left cursor-pointer hover:bg-primary" hx-get={ fmt.Sprintf("/item/%s",i.Id) } hx-trigger="click" hx-target="#item-details" hx-swap="innerHTML"><div>{ i.Name }</div></li>
+                                    <li class="text-left cursor-pointer hover:bg-primary hover:text-base-content" onclick="selectItem(this)" hx-get={ fmt.Sprintf("/item/%s",i.Id) } hx-trigger="click" hx-target="#item-details" hx-swap="innerHTML"><div>{ i.Name }</div></li>
                                 }
                          }
                      </ul>
