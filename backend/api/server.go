@@ -112,10 +112,11 @@ func LoadItems(host string, port string) (r *models.AllItems, e error) {
 	return &allItems, nil
 }
 
-func AddItem(host string, port string, sessionId string, itemId string, amount int) {
+func AddItem(host string, port string, sessionId string, itemId string, amount int) (e error) {
 	request := models.AddItemRequest{
 		ItemId: itemId,
 		Amount: amount,
 	}
-	http.DoPost(fmt.Sprintf("http://%s:%s/give-ui/give", host, port), sessionId, request)
+	_, err := http.DoPost(fmt.Sprintf("http://%s:%s/give-ui/give", host, port), sessionId, request)
+	return err
 }
