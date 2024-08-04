@@ -146,7 +146,12 @@ templ ItemDetail(item models.ViewItem) {
         <h2 class="card-title">{ item.Name }</h2>
         <p class="text-justify">{ item.Description }</p>
         <div class="card-actions justify-end">
-          <button class="btn btn-primary" hx-post={ fmt.Sprintf("/item/%s",item.Id) } hx-trigger="click" hx-disabled-elt="this">Give</button>
+          <button class="btn btn-primary" hx-post={ fmt.Sprintf("/item/%s",item.Id) } hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
+          <div id="loader" class="button-loader">
+            <span class="loading loading-spinner"></span>
+            <span class="button-hide">Give</span>
+          </div>
+          </button>
         </div>
       </div>
     </div>

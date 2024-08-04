@@ -30,3 +30,19 @@ body {
   text-align: center;
 }
 
+ /* <div id="loader" class="button-loader">
+            <span class="loading loading-spinner"></span>
+            <span class="button-hide">Give</span>
+  </div> */
+.button-loader .loading {
+  display: none;
+}
+.button-loader .button-hide {
+  display: block;
+}
+.htmx-request.button-loader .loading {
+  display: block;
+}
+.htmx-request.button-loader .button-hide {
+  display: none;
+}
