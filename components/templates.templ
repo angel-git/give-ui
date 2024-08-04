@@ -10,15 +10,9 @@ templ LoginPage(version string) {
             <form class="card-body" hx-post="/connect" hx-target="#main" hx-swap="innerHTML" hx-indicator="#loader" hx-disabled-elt="find button">
                 <div class="form-control">
                     <label class="label">
-                        <span class="label-text">SPT Host</span>
+                        <span class="label-text">SPT URL</span>
                     </label>
-                    <input type="text" name="host" value="127.0.0.1" class="input input-bordered" required />
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Port</span>
-                    </label>
-                    <input type="number" name="port" value="6969" class="input input-bordered" required />
+                    <input type="text" name="url" value="http://127.0.0.1:6969" class="input input-bordered" required />
                 </div>
                 <div class="form-control mt-6">
                     <button class="btn btn-primary">Connect</button>

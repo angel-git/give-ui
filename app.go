@@ -16,8 +16,7 @@ import (
 // ctx variables
 const appVersion = "version"
 const contextSessionId = "sessionId"
-const contextHost = "host"
-const contextPort = "port"
+const contextUrl = "url"
 const contextAllItems = "allItems"
 const contextServerInfo = "serverInfo"
 
@@ -65,11 +64,10 @@ func NewChiRouter(app *App) *chi.Mux {
 	})
 
 	r.Post("/connect", func(w http.ResponseWriter, r *http.Request) {
-		host := r.FormValue(contextHost)
-		port := r.FormValue(contextPort)
+		url := r.FormValue(contextUrl)
 		version := app.ctx.Value(appVersion).(string)
 
-		serverInfo, err := api.ConnectToSptServer(host, port)
+		serverInfo, err := api.ConnectToSptServer(url)
 		if err != nil {
 			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
 			return
@@ -80,10 +78,9 @@ func NewChiRouter(app *App) *chi.Mux {
 		}
 		// store initial server info
 		app.ctx = context.WithValue(app.ctx, contextServerInfo, serverInfo)
-		app.ctx = context.WithValue(app.ctx, contextHost, host)
-		app.ctx = context.WithValue(app.ctx, contextPort, port)
+		app.ctx = context.WithValue(app.ctx, contextUrl, url)
 
-		profiles, err := api.LoadProfiles(host, port)
+		profiles, err := api.LoadProfiles(url)
 		if err != nil {
 			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
 			return
@@ -95,7 +92,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		version := app.ctx.Value(appVersion).(string)
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
-		allItems, err := api.LoadItems(app.ctx.Value(contextHost).(string), app.ctx.Value(contextPort).(string))
+		allItems, err := api.LoadItems(app.ctx.Value(contextUrl).(string))
 		if err != nil {
 			// TODO create new type of error template
 			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
@@ -118,8 +115,7 @@ func NewChiRouter(app *App) *chi.Mux {
 
 	r.Post("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
 		itemId := chi.URLParam(r, "id")
-		host := app.ctx.Value(contextHost).(string)
-		port := app.ctx.Value(contextPort).(string)
+		url := app.ctx.Value(contextUrl).(string)
 		version := app.ctx.Value(appVersion).(string)
 		sessionId := app.ctx.Value(contextSessionId).(string)
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
@@ -128,7 +124,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		})
 		amount := allItems.Items[itemIdx].MaxStock
 
-		err := api.AddItem(host, port, sessionId, itemId, amount)
+		err := api.AddItem(url, sessionId, itemId, amount)
 		if err != nil {
 			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
 		}

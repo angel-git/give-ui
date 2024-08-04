@@ -10,17 +10,17 @@ import (
 	"strings"
 )
 
-func ConnectToSptServer(host string, port string) (r *models.ServerInfo, e error) {
+func ConnectToSptServer(url string) (r *models.ServerInfo, e error) {
 	serverInfo := &models.ServerInfo{}
-	err := util.GetJson(fmt.Sprintf("http://%s:%s/give-ui/server", host, port), serverInfo)
+	err := util.GetJson(fmt.Sprintf("%s/give-ui/server", url), serverInfo)
 	if err != nil {
 		return nil, err
 	}
 	return serverInfo, nil
 }
 
-func LoadProfiles(host string, port string) (r []models.SPTProfileInfo, e error) {
-	profiles, err := util.GetRawBytes(fmt.Sprintf("http://%s:%s/give-ui/profiles", host, port))
+func LoadProfiles(url string) (r []models.SPTProfileInfo, e error) {
+	profiles, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/profiles", url))
 	if err != nil {
 		return nil, err
 	}
@@ -36,8 +36,8 @@ func LoadProfiles(host string, port string) (r []models.SPTProfileInfo, e error)
 	return sessions, nil
 }
 
-func LoadItems(host string, port string) (r *models.AllItems, e error) {
-	itemsBytes, err := util.GetRawBytes(fmt.Sprintf("http://%s:%s/give-ui/items", host, port))
+func LoadItems(url string) (r *models.AllItems, e error) {
+	itemsBytes, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/items", url))
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func LoadItems(host string, port string) (r *models.AllItems, e error) {
 		return nil, err
 	}
 	// TODO hardcoded locale en
-	localeBytes, err := util.GetRawBytes(fmt.Sprintf("http://%s:%s/client/locale/en", host, port))
+	localeBytes, err := util.GetRawBytes(fmt.Sprintf("%s/client/locale/en", url))
 	if err != nil {
 		return nil, err
 	}
@@ -112,11 +112,11 @@ func LoadItems(host string, port string) (r *models.AllItems, e error) {
 	return &allItems, nil
 }
 
-func AddItem(host string, port string, sessionId string, itemId string, amount int) (e error) {
+func AddItem(url string, sessionId string, itemId string, amount int) (e error) {
 	request := models.AddItemRequest{
 		ItemId: itemId,
 		Amount: amount,
 	}
-	_, err := http.DoPost(fmt.Sprintf("http://%s:%s/give-ui/give", host, port), sessionId, request)
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/give", url), sessionId, request)
 	return err
 }
