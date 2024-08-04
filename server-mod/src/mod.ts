@@ -30,7 +30,7 @@ class GiveUI implements IPreSptLoadMod {
             [
                 {
                     url: '/give-ui/server',
-                    action: (url, info, sessionId, output) => {
+                    action: (_url, _info, _sessionId, _output) => {
                         logger.log(`[give-ui] Loading server info`, LogTextColor.GREEN);
                         const version = watermark.getVersionTag();
                         const serverPath = path.resolve();
@@ -42,26 +42,27 @@ class GiveUI implements IPreSptLoadMod {
                 },
                 {
                     url: '/give-ui/profiles',
-                    action: (url, info, sessionId, output) => {
+                    action: (_url, _info, _sessionId, _output) => {
                         logger.log(`[give-ui] Loading profiles`, LogTextColor.GREEN);
                         return Promise.resolve(JSON.stringify(saveServer.getProfiles()));
                     },
                 },
                 {
                     url: '/give-ui/items',
-                    action: (url, info, sessionId, output) => {
+                    action: (_url, _info, _sessionId, _output) => {
                         logger.log(`[give-ui] Loading items`, LogTextColor.GREEN);
                         return Promise.resolve(JSON.stringify(databaseServer.getTables().templates.items));
                     },
                 },
                 {
                     url: '/give-ui/give',
-                    action: (url, info, sessionId, output) => {
-                        logger.log(`[give-ui] Running command: [SPT GIVE ${info.itemId} ${info.amount}]`, LogTextColor.GREEN);
+                    action: (_url, request, sessionId, _output) => {
+                        const command = `spt give ${request.itemId} ${request.amount}`;
+                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
                         const message: ISendMessageRequest = {
                             dialogId: sessionId,
                             type: MessageType.SYSTEM_MESSAGE,
-                            text: `spt give ${info.itemId} ${info.amount}`,
+                            text: command,
                             replyTo: undefined,
                         };
                         const response = commando.handleMessage(sessionId, message);
