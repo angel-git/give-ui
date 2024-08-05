@@ -29,8 +29,6 @@ export class GiveUserPresetSptCommand implements ISptCommand {
     }
 
     public performAction(commandHandler: IUserDialogInfo, sessionId: string, request: ISendMessageRequest): string {
-        console.log('performAction', request);
-
         if (!GiveUserPresetSptCommand.commandRegex.test(request.text)) {
             this.mailSendService.sendUserMessageToPlayer(
                 sessionId,
