@@ -100,14 +100,19 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/items/{id}", func(w http.ResponseWriter, r *http.Request) {
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
-		locale := app.convertLocale()
-		allItems, err := api.LoadItems(app.ctx.Value(contextUrl).(string), locale)
-		if err != nil {
-			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
-			return
+		allItems := app.ctx.Value(contextAllItems)
+		err := error(nil)
+		if allItems == nil {
+			locale := app.convertLocale()
+			allItems, err = api.LoadItems(app.ctx.Value(contextUrl).(string), locale)
+			if err != nil {
+				templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
+				return
+			}
 		}
+
 		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
-		templ.Handler(components.ItemsList(allItems, sessionId)).ServeHTTP(w, r)
+		templ.Handler(components.ItemsList(allItems.(*models.AllItems), sessionId)).ServeHTTP(w, r)
 	})
 
 	r.Get("/user-weapons/{id}", func(w http.ResponseWriter, r *http.Request) {
