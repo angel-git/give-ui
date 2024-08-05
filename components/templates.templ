@@ -75,7 +75,7 @@ templ ItemsList(allItems *models.AllItems) {
           }
 
           // hide empty categories
-          const section = itemList.getElementsByTagName('section');
+          const section = itemList.getElementsByTagName('details');
           for (i = 0; i < section.length; i++) {
             const innerLis = section[i].getElementsByTagName('li');
             let anyLiVisible = false;
@@ -109,10 +109,8 @@ templ ItemsList(allItems *models.AllItems) {
         <div class="flex w-full h-full min-h-0" id="item-list">
             <div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
                 for _, cat := range allItems.Categories {
-                   <section class="flex flex-col w-full">
-                     <div class="flex-2 sticky -top-2 bg-base-200 border-b-2 border-white">
-                       <h2>{ cat }</h2>
-                     </div>
+                    <details class="flex flex-col w-full" open>
+                     <summary class="flex items-center justify-center gap-4 flex-row-reverse  flex-2 sticky -top-2 bg-base-200 border-b-2 border-white"><h2>{ cat }</h2></summary>
                      <ul data-category={ cat }>
                          for _, i := range allItems.Items {
                                 if i.Category == cat {
@@ -120,7 +118,7 @@ templ ItemsList(allItems *models.AllItems) {
                                 }
                          }
                      </ul>
-                   </section>
+                   </details>
                 }
             </div>
             <div class="divider divider-horizontal"></div>

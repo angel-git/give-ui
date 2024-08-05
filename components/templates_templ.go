@@ -203,32 +203,32 @@ func ItemsList(allItems *models.AllItems) templ.Component {
 			templ_7745c5c3_Var10 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script type=\"text/javascript\">\n\n    let previousSelectedItem = null;\n    function filterItems() {\n          const input = document.getElementById('filter-input');\n          const filter = input.value.toUpperCase().trim();\n          const itemList = document.getElementById(\"item-list\");\n          const li = itemList.getElementsByTagName('li');\n\n          // Loop through all list items, and hide those who don't match the search query\n          for (i = 0; i < li.length; i++) {\n            const txtValue = (li[i].textContent || li[i].innerText).toUpperCase().trim();\n            const itemCategory = li[i].parentElement.getAttribute('data-category').toUpperCase().trim();\n            if (txtValue.indexOf(filter) > -1 || itemCategory.indexOf(filter) > -1) {\n              li[i].style.display = \"\";\n            } else {\n              li[i].style.display = \"none\";\n            }\n          }\n\n          // hide empty categories\n          const section = itemList.getElementsByTagName('section');\n          for (i = 0; i < section.length; i++) {\n            const innerLis = section[i].getElementsByTagName('li');\n            let anyLiVisible = false;\n            for (j = 0; j < innerLis.length; j++) {\n                if (innerLis[j].style.display === \"\") {\n                    anyLiVisible = true;\n                    break;\n                }\n            }\n            if (anyLiVisible) {\n                section[i].style.display = \"\";\n            } else {\n                section[i].style.display = \"none\";\n            }\n          }\n    }\n\n    function selectItem(element) {\n        const classToToggle = 'text-primary';\n        if (previousSelectedItem) {\n            previousSelectedItem.classList.remove(classToToggle);\n        }\n        element.classList.add(classToToggle);\n        previousSelectedItem = element;\n    }\n  </script><div class=\"flex flex-col h-full\"><div class=\"w-full m-2\"><input type=\"text\" autocomplete=\"off\" id=\"filter-input\" onkeyup=\"filterItems()\" placeholder=\"Filter here\" class=\"input input-bordered w-full max-w-xs\"></div><div class=\"flex w-full h-full min-h-0\" id=\"item-list\"><div class=\"card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script type=\"text/javascript\">\n\n    let previousSelectedItem = null;\n    function filterItems() {\n          const input = document.getElementById('filter-input');\n          const filter = input.value.toUpperCase().trim();\n          const itemList = document.getElementById(\"item-list\");\n          const li = itemList.getElementsByTagName('li');\n\n          // Loop through all list items, and hide those who don't match the search query\n          for (i = 0; i < li.length; i++) {\n            const txtValue = (li[i].textContent || li[i].innerText).toUpperCase().trim();\n            const itemCategory = li[i].parentElement.getAttribute('data-category').toUpperCase().trim();\n            if (txtValue.indexOf(filter) > -1 || itemCategory.indexOf(filter) > -1) {\n              li[i].style.display = \"\";\n            } else {\n              li[i].style.display = \"none\";\n            }\n          }\n\n          // hide empty categories\n          const section = itemList.getElementsByTagName('details');\n          for (i = 0; i < section.length; i++) {\n            const innerLis = section[i].getElementsByTagName('li');\n            let anyLiVisible = false;\n            for (j = 0; j < innerLis.length; j++) {\n                if (innerLis[j].style.display === \"\") {\n                    anyLiVisible = true;\n                    break;\n                }\n            }\n            if (anyLiVisible) {\n                section[i].style.display = \"\";\n            } else {\n                section[i].style.display = \"none\";\n            }\n          }\n    }\n\n    function selectItem(element) {\n        const classToToggle = 'text-primary';\n        if (previousSelectedItem) {\n            previousSelectedItem.classList.remove(classToToggle);\n        }\n        element.classList.add(classToToggle);\n        previousSelectedItem = element;\n    }\n  </script><div class=\"flex flex-col h-full\"><div class=\"w-full m-2\"><input type=\"text\" autocomplete=\"off\" id=\"filter-input\" onkeyup=\"filterItems()\" placeholder=\"Filter here\" class=\"input input-bordered w-full max-w-xs\"></div><div class=\"flex w-full h-full min-h-0\" id=\"item-list\"><div class=\"card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, cat := range allItems.Categories {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<section class=\"flex flex-col w-full\"><div class=\"flex-2 sticky -top-2 bg-base-200 border-b-2 border-white\"><h2>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<details class=\"flex flex-col w-full\" open><summary class=\"flex items-center justify-center gap-4 flex-row-reverse  flex-2 sticky -top-2 bg-base-200 border-b-2 border-white\"><h2>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(cat)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 114, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 113, Col: 161}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h2></div><ul data-category=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h2></summary><ul data-category=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(cat)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 116, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 114, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -247,7 +247,7 @@ func ItemsList(allItems *models.AllItems) templ.Component {
 					var templ_7745c5c3_Var13 string
 					templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/item/%s", i.Id))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 119, Col: 178}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 117, Col: 178}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 					if templ_7745c5c3_Err != nil {
@@ -260,7 +260,7 @@ func ItemsList(allItems *models.AllItems) templ.Component {
 					var templ_7745c5c3_Var14 string
 					templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(i.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 119, Col: 259}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 117, Col: 259}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 					if templ_7745c5c3_Err != nil {
@@ -272,7 +272,7 @@ func ItemsList(allItems *models.AllItems) templ.Component {
 					}
 				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ul></section>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</ul></details>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -310,7 +310,7 @@ func ItemDetail(item models.ViewItem) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 137, Col: 122}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 135, Col: 122}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
@@ -323,7 +323,7 @@ func ItemDetail(item models.ViewItem) templ.Component {
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(item.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 140, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 138, Col: 42}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
@@ -336,7 +336,7 @@ func ItemDetail(item models.ViewItem) templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(item.Description)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 141, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 139, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -349,7 +349,7 @@ func ItemDetail(item models.ViewItem) templ.Component {
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/item/%s", item.Id))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 143, Col: 83}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 141, Col: 83}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
@@ -406,7 +406,7 @@ func Button(classes string, hxUrl string, hxTarget string, hxSwap string, method
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(hxTarget)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 158, Col: 23}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 156, Col: 23}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -424,7 +424,7 @@ func Button(classes string, hxUrl string, hxTarget string, hxSwap string, method
 			var templ_7745c5c3_Var24 string
 			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(hxUrl)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 162, Col: 17}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 160, Col: 17}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 			if templ_7745c5c3_Err != nil {
@@ -443,7 +443,7 @@ func Button(classes string, hxUrl string, hxTarget string, hxSwap string, method
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(hxUrl)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 165, Col: 18}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 163, Col: 18}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 			if templ_7745c5c3_Err != nil {
@@ -462,7 +462,7 @@ func Button(classes string, hxUrl string, hxTarget string, hxSwap string, method
 			var templ_7745c5c3_Var26 string
 			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(hxIndicator)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 168, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 166, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 			if templ_7745c5c3_Err != nil {
@@ -481,7 +481,7 @@ func Button(classes string, hxUrl string, hxTarget string, hxSwap string, method
 			var templ_7745c5c3_Var27 string
 			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(hxDisabledElt)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 171, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 169, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 			if templ_7745c5c3_Err != nil {
@@ -499,7 +499,7 @@ func Button(classes string, hxUrl string, hxTarget string, hxSwap string, method
 		var templ_7745c5c3_Var28 string
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 173, Col: 9}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 171, Col: 9}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
