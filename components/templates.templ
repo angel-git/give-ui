@@ -36,7 +36,7 @@ templ ErrorConnection(e string, version string) {
     </div>
 }
 
-templ ProfileList(profiles []models.SPTProfileInfo, version string) {
+templ ProfileList(profiles []models.SPTProfile, version string) {
     <h1 class="mb-4">GIVE UI - v{ version }</h1>
     <div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
         <div class="card-body">
@@ -44,7 +44,7 @@ templ ProfileList(profiles []models.SPTProfileInfo, version string) {
             <fieldset id="profile-fieldset">
                 <ul class="flex flex-col gap-1">
                     for _, i := range profiles {
-                        <li class="flex flex-row items-center justify-between gap-2"><div>{ i.Username } ({ i.Id })</div>@Button("btn-primary btn-sm", fmt.Sprintf("/session/%s",i.Id), "#main", "innerHTML", "get", "SELECT", "#loader", "#profile-fieldset")</li>
+                        <li class="flex flex-row items-center justify-between gap-2"><div>{ i.Info.Username } ({ i.Info.Id })</div>@Button("btn-primary btn-sm", fmt.Sprintf("/items/%s",i.Info.Id), "#main", "innerHTML", "get", "SELECT", "#loader", "#profile-fieldset")</li>
                     }
                 </ul>
             </fieldset>
@@ -53,7 +53,7 @@ templ ProfileList(profiles []models.SPTProfileInfo, version string) {
     </div>
 }
 
-templ ItemsList(allItems *models.AllItems) {
+templ ItemsList(allItems *models.AllItems, sessionId string) {
 <script type="text/javascript">
 
     let previousSelectedItem = null;
@@ -102,7 +102,12 @@ templ ItemsList(allItems *models.AllItems) {
         previousSelectedItem = element;
     }
   </script>
+
     <div class="flex flex-col h-full">
+        <div role="tablist" class="tabs tabs-bordered">
+            <a role="tab" class="tab tab-active">Items</a>
+            <a role="tab" class="tab" hx-swap="innerHTML" hx-target="#main" hx-get={ fmt.Sprintf("/user-weapons/%s", sessionId) }>User weapons</a>
+        </div>
         <div class="w-full m-2">
             <input type="text" autocomplete="off" id="filter-input" onkeyup="filterItems()" placeholder="Filter here" class="input input-bordered w-full max-w-xs" />
         </div>
@@ -126,6 +131,35 @@ templ ItemsList(allItems *models.AllItems) {
             <div class="divider divider-horizontal"></div>
             <div class="card p-2 bg-base-200 rounded-box grid flex-grow place-items-start w-full" id="item-details">
             </div>
+        </div>
+    </div>
+
+}
+
+templ UserWeaponsList(userBuilds models.UserBuilds, sessionId string) {
+
+    <div class="flex flex-col h-full">
+        <div role="tablist" class="tabs tabs-bordered">
+            <a role="tab" class="tab" hx-swap="innerHTML" hx-target="#main" hx-get={ fmt.Sprintf("/items/%s", sessionId) }>Items</a>
+            <a role="tab" class="tab  tab-active">User weapons</a>
+        </div>
+        <div class="grid gap-1 w-full h-full">
+             for _, weaponBuild := range userBuilds.WeaponBuilds {
+                <div class="card bg-base-200 w-96 h-72 shadow-xl">
+                  <div class="card-body">
+                    <h2 class="card-title">{ weaponBuild.Name }</h2>
+                    <img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", weaponBuild.Items[0].Tpl) } />
+                    <div class="card-actions justify-end">
+                      <button class="btn btn-primary" hx-post={ fmt.Sprintf("/user-weapons/%s", weaponBuild.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
+                        <div id="loader" class="button-loader">
+                          <span class="loading loading-spinner"></span>
+                          <span class="button-hide">Give</span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+             }
         </div>
     </div>
 

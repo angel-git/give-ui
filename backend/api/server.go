@@ -19,7 +19,7 @@ func ConnectToSptServer(url string) (r *models.ServerInfo, e error) {
 	return serverInfo, nil
 }
 
-func LoadProfiles(url string) (r []models.SPTProfileInfo, e error) {
+func LoadProfiles(url string) (r []models.SPTProfile, e error) {
 	profiles, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/profiles", url))
 	if err != nil {
 		return nil, err
@@ -29,9 +29,9 @@ func LoadProfiles(url string) (r []models.SPTProfileInfo, e error) {
 	if err != nil {
 		return nil, err
 	}
-	var sessions []models.SPTProfileInfo
+	var sessions []models.SPTProfile
 	for _, v := range sessionsMap {
-		sessions = append(sessions, v.Info)
+		sessions = append(sessions, v)
 	}
 	return sessions, nil
 }
@@ -57,6 +57,14 @@ func AddItem(url string, sessionId string, itemId string, amount int) (e error) 
 		Amount: amount,
 	}
 	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/give", url), sessionId, request)
+	return err
+}
+
+func AddUserWeapon(url string, sessionId string, presetId string) (e error) {
+	request := models.AddUserWeaponPresetRequest{
+		ItemId: presetId,
+	}
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/give-user-preset", url), sessionId, request)
 	return err
 }
 
