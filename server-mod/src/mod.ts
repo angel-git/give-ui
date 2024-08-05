@@ -11,9 +11,15 @@ import type {ILogger} from '@spt/models/spt/utils/ILogger';
 import type {StaticRouterModService} from '@spt/services/mod/staticRouter/StaticRouterModService';
 import {MessageType} from "@spt/models/enums/MessageType";
 import {ISendMessageRequest} from "@spt/models/eft/dialog/ISendMessageRequest";
+import { SptCommandoCommands } from "@spt/helpers/Dialogue/Commando/SptCommandoCommands";
+import {GiveUserPresetSptCommand} from './GiveUserPresetSptCommand';
 
 class GiveUI implements IPreSptLoadMod {
     public preSptLoad(container: DependencyContainer): void {
+
+        container.register<GiveUserPresetSptCommand>("GiveUserPresetSptCommand", GiveUserPresetSptCommand);
+        container.resolve<SptCommandoCommands>("SptCommandoCommands").registerSptCommandoCommand(container.resolve<GiveUserPresetSptCommand>("GiveUserPresetSptCommand"));
+
         const logger = container.resolve<ILogger>('WinstonLogger');
         const databaseServer = container.resolve<DatabaseServer>('DatabaseServer');
         const saveServer = container.resolve<SaveServer>('SaveServer');
@@ -58,6 +64,21 @@ class GiveUI implements IPreSptLoadMod {
                     url: '/give-ui/give',
                     action: (_url, request, sessionId, _output) => {
                         const command = `spt give ${request.itemId} ${request.amount}`;
+                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
+                        const message: ISendMessageRequest = {
+                            dialogId: sessionId,
+                            type: MessageType.SYSTEM_MESSAGE,
+                            text: command,
+                            replyTo: undefined,
+                        };
+                        const response = commando.handleMessage(sessionId, message);
+                        return Promise.resolve(JSON.stringify({response}));
+                    },
+                },
+                {
+                    url: '/give-ui/give-user-preset',
+                    action: (_url, request, sessionId, _output) => {
+                        const command = `spt give-user-preset ${request.itemId}`;
                         logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
                         const message: ISendMessageRequest = {
                             dialogId: sessionId,
