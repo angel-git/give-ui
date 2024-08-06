@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"slices"
 	"spt-give-ui/backend/models"
 )
 
@@ -64,7 +65,7 @@ templ ItemsList(allItems *models.AllItems, userBuilds models.UserBuilds, session
 		</div>
 		<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="User weapons"/>
 		<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-			@_UserWeapons(userBuilds, sessionId)
+			@_UserWeapons(allItems, userBuilds, sessionId)
 		</div>
 	</div>
 }
@@ -173,7 +174,7 @@ templ _Items(allItems *models.AllItems, sessionId string) {
 	</div>
 }
 
-templ _UserWeapons(userBuilds models.UserBuilds, sessionId string) {
+templ _UserWeapons(allItems *models.AllItems, userBuilds models.UserBuilds, sessionId string) {
 	<script type="text/javascript">
 
         function filterUserWeapons() {
@@ -227,9 +228,19 @@ templ _UserWeapons(userBuilds models.UserBuilds, sessionId string) {
 			</div>
 			<div class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto" id="weapons-list">
 				for _, weaponBuild := range userBuilds.WeaponBuilds {
+					{{ globalIdx := slices.IndexFunc(allItems.GlobalPresets, func(i models.ViewPreset) bool { return weaponBuild.Items[0].Tpl == i.Encyclopedia }) }}
+					{{ maybePresetId := "" }}
+					{{if globalIdx != -1 {
+	maybePresetId = allItems.GlobalPresets[globalIdx].Id
+}
+					}}
 					<div class="card bg-base-200 w-72 max-h-72 shadow-xl card-to-filter">
 						<figure class="bg-base-300">
-							<img alt="item" style="max-height: 80px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", weaponBuild.Items[0].Tpl) }/>
+							if maybePresetId != "" {
+								<img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
+							} else {
+								<img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", weaponBuild.Items[0].Tpl) }/>
+							}
 						</figure>
 						<div class="card-body overflow-y-auto">
 							<h2 class="card-title text-start line-clamp-2" title={ weaponBuild.Name }>{ weaponBuild.Name }</h2>
