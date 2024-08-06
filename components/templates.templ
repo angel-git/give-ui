@@ -1,60 +1,63 @@
 package components
 
-import "fmt"
-import "spt-give-ui/backend/models"
+import (
+	"fmt"
+	"spt-give-ui/backend/models"
+)
 
 templ LoginPage(version string) {
-    <div id="main" class="w-full h-full p-2">
-        <h1 class="mb-4">GIVE UI - v{ version }</h1>
-        <div class="card align-middle mx-auto bg-base-200 w-full max-w-md shadow-2xl">
-            <form class="card-body" hx-post="/connect" hx-target="#main" hx-swap="innerHTML" hx-indicator="#loader" hx-disabled-elt="find button">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">SPT URL</span>
-                    </label>
-                    <input type="text" name="url" value="http://127.0.0.1:6969" class="input input-bordered" required />
-                </div>
-                <div class="form-control mt-6">
-                    <button class="btn btn-primary">Connect</button>
-                </div>
-                <progress id="loader" class="progress w-full htmx-indicator"></progress>
-            </form>
-        </div>
-    </div>
-
+	<div id="main" class="w-full h-full p-2">
+		<h1 class="mb-4">GIVE UI - v{ version }</h1>
+		<div class="card align-middle mx-auto bg-base-200 w-full max-w-md shadow-2xl">
+			<form class="card-body" hx-post="/connect" hx-target="#main" hx-swap="innerHTML" hx-indicator="#loader" hx-disabled-elt="find button">
+				<div class="form-control">
+					<label class="label">
+						<span class="label-text">SPT URL</span>
+					</label>
+					<input type="text" name="url" value="http://127.0.0.1:6969" class="input input-bordered" required/>
+				</div>
+				<div class="form-control mt-6">
+					<button class="btn btn-primary">CONNECT</button>
+				</div>
+				<progress id="loader" class="progress w-full htmx-indicator"></progress>
+			</form>
+		</div>
+	</div>
 }
 
 templ ErrorConnection(e string, version string) {
-    <h1 class="mb-4">GIVE UI - v{ version }</h1>
-    <div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
-        <div class="card-body">
-            <h2 class="text-error">Connection Error</h2>
-            <div>Please check SPT Server is running, the connection details are correct and the mod is installed in your user folder</div>
-            <div>Details: { e }</div>
-            <button class="btn btn-primary btn-outline" onclick="location.reload()">Go back</button>
-        </div>
-    </div>
+	<h1 class="mb-4">GIVE UI - v{ version }</h1>
+	<div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
+		<div class="card-body">
+			<h2 class="text-error">Connection Error</h2>
+			<div>Please check SPT Server is running, the connection details are correct and the mod is installed in your user folder</div>
+			<div>Details: { e }</div>
+			<button class="btn btn-primary btn-outline" onclick="location.reload()">Go back</button>
+		</div>
+	</div>
 }
 
 templ ProfileList(profiles []models.SPTProfileInfo, version string) {
-    <h1 class="mb-4">GIVE UI - v{ version }</h1>
-    <div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
-        <div class="card-body">
-            <h2>Select profile</h2>
-            <fieldset id="profile-fieldset">
-                <ul class="flex flex-col gap-1">
-                    for _, i := range profiles {
-                        <li class="flex flex-row items-center justify-between gap-2"><div>{ i.Username } ({ i.Id })</div>@Button("btn-primary btn-sm", fmt.Sprintf("/session/%s",i.Id), "#main", "innerHTML", "get", "SELECT", "#loader", "#profile-fieldset")</li>
-                    }
-                </ul>
-            </fieldset>
-            <progress id="loader" class="progress w-full htmx-indicator"></progress>
-        </div>
-    </div>
+	<h1 class="mb-4">GIVE UI - v{ version }</h1>
+	<div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
+		<div class="card-body">
+			<h2>Select profile</h2>
+			<fieldset id="profile-fieldset">
+				<ul class="flex flex-col gap-1">
+					for _, i := range profiles {
+						<li class="flex flex-row items-center justify-between gap-2">
+							<div>{ i.Username } ({ i.Id })</div>@Button("btn-primary btn-sm", fmt.Sprintf("/session/%s", i.Id), "#main", "innerHTML", "get", "SELECT", "#loader", "#profile-fieldset")
+						</li>
+					}
+				</ul>
+			</fieldset>
+			<progress id="loader" class="progress w-full htmx-indicator"></progress>
+		</div>
+	</div>
 }
 
 templ ItemsList(allItems *models.AllItems) {
-<script type="text/javascript">
+	<script type="text/javascript">
 
     let previousSelectedItem = null;
     function filterItems() {
@@ -75,7 +78,7 @@ templ ItemsList(allItems *models.AllItems) {
           }
 
           // hide empty categories
-          const section = itemList.getElementsByTagName('section');
+          const section = itemList.getElementsByTagName('details');
           for (i = 0; i < section.length; i++) {
             const innerLis = section[i].getElementsByTagName('li');
             let anyLiVisible = false;
@@ -102,75 +105,75 @@ templ ItemsList(allItems *models.AllItems) {
         previousSelectedItem = element;
     }
   </script>
-    <div class="flex flex-col h-full">
-        <div class="w-full m-2">
-            <input type="text" autocomplete="off" id="filter-input" onkeyup="filterItems()" placeholder="Filter here" class="input input-bordered w-full max-w-xs" />
-        </div>
-        <div class="flex w-full h-full min-h-0" id="item-list">
-            <div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
-                for _, cat := range allItems.Categories {
-                   <section class="flex flex-col w-full">
-                     <div class="flex-2 sticky -top-2 bg-base-200 border-b-2 border-white">
-                       <h2>{ cat }</h2>
-                     </div>
-                     <ul data-category={ cat }>
-                         for _, i := range allItems.Items {
-                                if i.Category == cat {
-                                    <li class="text-left cursor-pointer hover:bg-primary hover:text-base-content" onclick="selectItem(this)" hx-get={ fmt.Sprintf("/item/%s",i.Id) } hx-trigger="click" hx-target="#item-details" hx-swap="innerHTML"><div>{ i.Name }</div></li>
-                                }
-                         }
-                     </ul>
-                   </section>
-                }
-            </div>
-            <div class="divider divider-horizontal"></div>
-            <div class="card p-2 bg-base-200 rounded-box grid flex-grow place-items-start w-full" id="item-details">
-            </div>
-        </div>
-    </div>
-
+	<div class="flex flex-col h-full">
+		<div class="w-full m-2">
+			<input type="text" autocomplete="off" id="filter-input" onkeyup="filterItems()" placeholder="Filter here" class="input input-bordered w-full max-w-xs"/>
+		</div>
+		<div class="flex w-full h-full min-h-0" id="item-list">
+			<div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
+				for _, cat := range allItems.Categories {
+					<details class="flex flex-col w-full" open>
+						<summary class="flex items-center gap-4 flex-row-reverse justify-between flex-2 sticky -top-2 bg-base-200 border-b-2 border-white"><h2>{ cat }</h2></summary>
+						<ul data-category={ cat }>
+							for _, i := range allItems.Items {
+								if i.Category == cat {
+									<li class="text-left cursor-pointer hover:bg-primary hover:text-base-content" onclick="selectItem(this)" hx-get={ fmt.Sprintf("/item/%s", i.Id) } hx-trigger="click" hx-target="#item-details" hx-swap="innerHTML"><div>{ i.Name }</div></li>
+								}
+							}
+						</ul>
+					</details>
+				}
+			</div>
+			<div class="divider divider-horizontal"></div>
+			<div class="card p-2 bg-base-200 rounded-box grid flex-grow place-items-start w-full" id="item-details">
+				<div>
+					<p class="text-9xl">👀</p>
+					<p class="text-left mb-4">Select something from the left menu and press the button <em>Give</em>. You will receive a message with the item at maximum stack size.</p>
+					<p class="text-left">If you need more, just keep pressing :-)</p>
+				</div>
+			</div>
+		</div>
+	</div>
 }
 
 templ ItemDetail(item models.ViewItem) {
-    <div class="card w-full">
-      <figure>
-        <img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png",item.Id) } />
-      </figure>
-      <div class="card-body">
-        <h2 class="card-title">{ item.Name }</h2>
-        <p class="text-justify">{ item.Description }</p>
-        <div class="card-actions justify-end">
-          <button class="btn btn-primary" hx-post={ fmt.Sprintf("/item/%s",item.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
-          <div id="loader" class="button-loader">
-            <span class="loading loading-spinner"></span>
-            <span class="button-hide">Give</span>
-          </div>
-          </button>
-        </div>
-      </div>
-    </div>
+	<div class="card w-full">
+		<figure>
+			<img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
+		</figure>
+		<div class="card-body">
+			<h2 class="card-title">{ item.Name }</h2>
+			<p class="text-justify">{ item.Description }</p>
+			<div class="card-actions justify-end">
+				<button class="btn btn-primary" hx-post={ fmt.Sprintf("/item/%s", item.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
+					<div id="loader" class="button-loader">
+						<span class="loading loading-spinner"></span>
+						<span class="button-hide">Give</span>
+					</div>
+				</button>
+			</div>
+		</div>
+	</div>
 }
 
-templ Button(classes string, hxUrl string, hxTarget string, hxSwap string,method string,label string, hxIndicator string, hxDisabledElt string) {
+templ Button(classes string, hxUrl string, hxTarget string, hxSwap string, method string, label string, hxIndicator string, hxDisabledElt string) {
 	<button
- 		class={ fmt.Sprintf("btn %s",classes) }
- 		type="submit"
- 		hx-target={ hxTarget }
- 		hx-trigger="click"
- 		hx-swap="outerhtml transition:false"
- 		if method == "get" {
+		class={ fmt.Sprintf("btn %s", classes) }
+		type="submit"
+		hx-target={ hxTarget }
+		hx-trigger="click"
+		hx-swap="outerhtml transition:false"
+		if method == "get" {
 			hx-get={ hxUrl }
 		}
- 		if method == "post" {
+		if method == "post" {
 			hx-post={ hxUrl }
 		}
 		if hxIndicator != "" {
-            hx-indicator={ hxIndicator }
-        }
-        if hxDisabledElt != "" {
-            hx-disabled-elt={ hxDisabledElt }
-        }
+			hx-indicator={ hxIndicator }
+		}
+		if hxDisabledElt != "" {
+			hx-disabled-elt={ hxDisabledElt }
+		}
 	>{ label }</button>
 }
-
-
