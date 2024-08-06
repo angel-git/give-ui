@@ -124,7 +124,16 @@ func NewChiRouter(app *App) *chi.Mux {
 			return i.Id == itemId
 		})
 		item := allItems.Items[itemIdx]
-		templ.Handler(components.ItemDetail(item)).ServeHTTP(w, r)
+
+		globalIdx := slices.IndexFunc(allItems.GlobalPresets, func(i models.ViewPreset) bool {
+			return item.Id == i.Encyclopedia
+		})
+		maybePresetId := ""
+		if globalIdx != -1 {
+			maybePresetId = allItems.GlobalPresets[globalIdx].Id
+		}
+
+		templ.Handler(components.ItemDetail(item, maybePresetId)).ServeHTTP(w, r)
 
 	})
 

@@ -40,7 +40,7 @@ func LoadProfiles(url string) (r []models.SPTProfile, e error) {
 }
 
 func LoadItems(url string, locale string) (r *models.AllItems, e error) {
-	itemsMap, err := getItemsFromServer(url)
+	items, err := getItemsFromServer(url)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func LoadItems(url string, locale string) (r *models.AllItems, e error) {
 		return nil, err
 	}
 
-	allItems := parseItems(itemsMap, *locales)
+	allItems := parseItems(items, *locales)
 
 	return &allItems, nil
 }
@@ -84,12 +84,12 @@ func getLocaleFromServer(url string, locale string) (*models.Locales, error) {
 	return locales, nil
 }
 
-func getItemsFromServer(url string) (map[string]models.BSGItem, error) {
+func getItemsFromServer(url string) (*models.ItemsResponse, error) {
 	itemsBytes, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/items", url))
 	if err != nil {
 		return nil, err
 	}
-	var itemsMap map[string]models.BSGItem
+	var itemsMap *models.ItemsResponse
 	err = util.ParseByteResponse(itemsBytes, &itemsMap)
 	if err != nil {
 		return nil, err
@@ -97,14 +97,24 @@ func getItemsFromServer(url string) (map[string]models.BSGItem, error) {
 	return itemsMap, nil
 }
 
-func parseItems(itemsMap map[string]models.BSGItem, locales models.Locales) models.AllItems {
+func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllItems {
 	const NameFormat = "%s Name"
 	const DescriptionFormat = "%s Description"
 	allItems := models.AllItems{
-		Categories: []string{},
-		Items:      []models.ViewItem{},
-		Presets:    []models.ViewItem{},
+		Categories:    []string{},
+		Items:         []models.ViewItem{},
+		GlobalPresets: []models.ViewPreset{},
 	}
+
+	for _, globalPreset := range items.GlobalPresets {
+		viewPreset := models.ViewPreset{
+			Id:           globalPreset.Id,
+			Encyclopedia: globalPreset.Encyclopedia,
+		}
+		allItems.GlobalPresets = append(allItems.GlobalPresets, viewPreset)
+	}
+
+	itemsMap := items.Items
 	for _, bsgItem := range itemsMap {
 		if bsgItem.Type == "Node" || bsgItem.Props.IsUnbuyable {
 			continue

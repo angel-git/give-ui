@@ -11,7 +11,7 @@ import type {ILogger} from '@spt/models/spt/utils/ILogger';
 import type {StaticRouterModService} from '@spt/services/mod/staticRouter/StaticRouterModService';
 import {MessageType} from "@spt/models/enums/MessageType";
 import {ISendMessageRequest} from "@spt/models/eft/dialog/ISendMessageRequest";
-import { SptCommandoCommands } from "@spt/helpers/Dialogue/Commando/SptCommandoCommands";
+import {SptCommandoCommands} from "@spt/helpers/Dialogue/Commando/SptCommandoCommands";
 import {GiveUserPresetSptCommand} from './GiveUserPresetSptCommand';
 
 class GiveUI implements IPreSptLoadMod {
@@ -57,7 +57,10 @@ class GiveUI implements IPreSptLoadMod {
                     url: '/give-ui/items',
                     action: (_url, _info, _sessionId, _output) => {
                         logger.log(`[give-ui] Loading items`, LogTextColor.GREEN);
-                        return Promise.resolve(JSON.stringify(databaseServer.getTables().templates.items));
+                        return Promise.resolve(JSON.stringify({
+                            items: databaseServer.getTables().templates.items,
+                            globalPresets: databaseServer.getTables().globals.ItemPresets
+                        }));
                     },
                 },
                 {

@@ -69,10 +69,14 @@ templ ItemsList(allItems *models.AllItems, userBuilds models.UserBuilds, session
 	</div>
 }
 
-templ ItemDetail(item models.ViewItem) {
+templ ItemDetail(item models.ViewItem, maybePresetId string) {
 	<div class="card w-full">
 		<figure>
-			<img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
+			if maybePresetId != "" {
+				<img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
+			} else {
+				<img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
+			}
 		</figure>
 		<div class="card-body">
 			<h2 class="card-title">{ item.Name }</h2>
