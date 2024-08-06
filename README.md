@@ -14,7 +14,7 @@ Simple UI for the `SPT GIVE` command.
 ### Development
 
 ```shell
-templ generate && wails dev
+templ fmt components/templates.templ && templ generate && wails dev
 ```
 
 ### Release
