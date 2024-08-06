@@ -54,55 +54,6 @@ templ ProfileList(profiles []models.SPTProfile, version string) {
 }
 
 templ ItemsList(allItems *models.AllItems, userBuilds models.UserBuilds, sessionId string) {
-<script type="text/javascript">
-
-    let previousSelectedItem = null;
-    function filterItems() {
-          const input = document.getElementById('filter-input');
-          const filter = input.value.toUpperCase().trim();
-          const itemList = document.getElementById("item-list");
-          const li = itemList.getElementsByTagName('li');
-
-          // Loop through all list items, and hide those who don't match the search query
-          for (i = 0; i < li.length; i++) {
-            const txtValue = (li[i].textContent || li[i].innerText).toUpperCase().trim();
-            const itemCategory = li[i].parentElement.getAttribute('data-category').toUpperCase().trim();
-            if (txtValue.indexOf(filter) > -1 || itemCategory.indexOf(filter) > -1) {
-              li[i].style.display = "";
-            } else {
-              li[i].style.display = "none";
-            }
-          }
-
-          // hide empty categories
-          const section = itemList.getElementsByTagName('section');
-          for (i = 0; i < section.length; i++) {
-            const innerLis = section[i].getElementsByTagName('li');
-            let anyLiVisible = false;
-            for (j = 0; j < innerLis.length; j++) {
-                if (innerLis[j].style.display === "") {
-                    anyLiVisible = true;
-                    break;
-                }
-            }
-            if (anyLiVisible) {
-                section[i].style.display = "";
-            } else {
-                section[i].style.display = "none";
-            }
-          }
-    }
-
-    function selectItem(element) {
-        const classToToggle = 'text-primary';
-        if (previousSelectedItem) {
-            previousSelectedItem.classList.remove(classToToggle);
-        }
-        element.classList.add(classToToggle);
-        previousSelectedItem = element;
-    }
-  </script>
-
         <div role="tablist" class="tabs tabs-bordered tabs-lg h-full">
               <input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Items" checked="checked" />
               <div role="tabpanel" class="tab-content p-1 overflow-y-auto">
@@ -137,9 +88,59 @@ templ ItemDetail(item models.ViewItem) {
 }
 
 templ _Items(allItems *models.AllItems, sessionId string) {
+
+    <script type="text/javascript">
+
+        let previousSelectedItem = null;
+        function filterItems() {
+              const input = document.getElementById('filter-items-input');
+              const filter = input.value.toUpperCase().trim();
+              const itemList = document.getElementById("item-list");
+              const li = itemList.getElementsByTagName('li');
+
+              // Loop through all list items, and hide those who don't match the search query
+              for (i = 0; i < li.length; i++) {
+                const txtValue = (li[i].textContent || li[i].innerText).toUpperCase().trim();
+                const itemCategory = li[i].parentElement.getAttribute('data-category').toUpperCase().trim();
+                if (txtValue.indexOf(filter) > -1 || itemCategory.indexOf(filter) > -1) {
+                  li[i].style.display = "";
+                } else {
+                  li[i].style.display = "none";
+                }
+              }
+
+              // hide empty categories
+              const section = itemList.getElementsByTagName('section');
+              for (i = 0; i < section.length; i++) {
+                const innerLis = section[i].getElementsByTagName('li');
+                let anyLiVisible = false;
+                for (j = 0; j < innerLis.length; j++) {
+                    if (innerLis[j].style.display === "") {
+                        anyLiVisible = true;
+                        break;
+                    }
+                }
+                if (anyLiVisible) {
+                    section[i].style.display = "";
+                } else {
+                    section[i].style.display = "none";
+                }
+              }
+        }
+
+        function selectItem(element) {
+            const classToToggle = 'text-primary';
+            if (previousSelectedItem) {
+                previousSelectedItem.classList.remove(classToToggle);
+            }
+            element.classList.add(classToToggle);
+            previousSelectedItem = element;
+        }
+      </script>
+
     <div class="flex flex-col h-full">
       <div class="w-full p-2">
-        <input type="text" autocomplete="off" id="filter-input" onkeyup="filterItems()" placeholder="Filter here" class="input input-bordered w-full max-w-xs" />
+        <input type="text" autocomplete="off" id="filter-items-input" onkeyup="filterItems()" placeholder="Filter here" class="input input-bordered w-full max-w-xs" />
       </div>
       <div class="flex w-full h-full min-h-0" id="item-list">
         <div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
@@ -165,9 +166,36 @@ templ _Items(allItems *models.AllItems, sessionId string) {
 }
 
 templ _UserWeapons(userBuilds models.UserBuilds, sessionId string) {
-    <div class="flex flex-wrap gap-2 h-full content-start p-2">
+
+    <script type="text/javascript">
+
+        function filterUserWeapons() {
+              const input = document.getElementById('filter-user-weapons-input');
+              const filter = input.value.toUpperCase().trim();
+              const itemList = document.getElementById("weapons-list");
+              const cards = itemList.getElementsByClassName('card-to-filter');
+
+              // Loop through all list items, and hide those who don't match the search query
+              for (i = 0; i < cards.length; i++) {
+                const title = cards[i].getElementsByTagName('h2')[0];
+                const txtValue = (title.textContent || title.innerText).toUpperCase().trim();
+                if (txtValue.indexOf(filter) > -1) {
+                  cards[i].style.display = "";
+                } else {
+                  cards[i].style.display = "none";
+                }
+              }
+        }
+
+    </script>
+
+<div class="h-full flex flex-col">
+    <div class="w-full p-2">
+        <input type="text" autocomplete="off" id="filter-user-weapons-input" onkeyup="filterUserWeapons()" placeholder="Filter here" class="input input-bordered w-full max-w-xs" />
+     </div>
+    <div class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto" id="weapons-list">
          for _, weaponBuild := range userBuilds.WeaponBuilds {
-            <div class="card bg-base-200 w-72 max-h-72 shadow-xl">
+            <div class="card bg-base-200 w-72 max-h-72 shadow-xl card-to-filter">
               <figure class="bg-base-300">
                 <img alt="item" style="max-height: 80px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", weaponBuild.Items[0].Tpl) } />
               </figure>
@@ -186,6 +214,7 @@ templ _UserWeapons(userBuilds models.UserBuilds, sessionId string) {
             </div>
          }
     </div>
+</div>
 }
 
 templ _Button(classes string, hxUrl string, hxTarget string, hxSwap string,method string,label string, hxIndicator string, hxDisabledElt string) {
