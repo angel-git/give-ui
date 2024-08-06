@@ -168,9 +168,12 @@ templ _UserWeapons(userBuilds models.UserBuilds, sessionId string) {
     <div class="flex flex-wrap gap-2 h-full content-start p-2">
          for _, weaponBuild := range userBuilds.WeaponBuilds {
             <div class="card bg-base-200 w-72 max-h-72 shadow-xl">
-              <div class="card-body overflow-y-auto">
-                <h2 class="card-title">{ weaponBuild.Name }</h2>
+              <figure class="bg-base-300">
                 <img alt="item" style="max-height: 80px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", weaponBuild.Items[0].Tpl) } />
+              </figure>
+              <div class="card-body overflow-y-auto">
+                <h2 class="card-title text-start line-clamp-2" title={ weaponBuild.Name }>{ weaponBuild.Name }</h2>
+                <p class="text-start">{ fmt.Sprintf("%d parts", len(weaponBuild.Items)) }</p>
                 <div class="card-actions justify-end items-end grow">
                   <button class="btn btn-primary" hx-post={ fmt.Sprintf("/user-weapons/%s", weaponBuild.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
                     <div id="loader" class="button-loader">
