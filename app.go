@@ -18,6 +18,7 @@ import (
 // ctx variables
 const contextSessionId = "sessionId"
 const contextUrl = "url"
+const contextProfiles = "profiles"
 const contextAllItems = "allItems"
 const contextServerInfo = "serverInfo"
 
@@ -91,10 +92,12 @@ func NewChiRouter(app *App) *chi.Mux {
 			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
 			return
 		}
+		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
+
 		templ.Handler(components.ProfileList(profiles, app.version)).ServeHTTP(w, r)
 	})
 
-	r.Get("/session/{id}", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/items/{id}", func(w http.ResponseWriter, r *http.Request) {
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
 		locale := app.convertLocale()
@@ -104,7 +107,14 @@ func NewChiRouter(app *App) *chi.Mux {
 			return
 		}
 		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
-		templ.Handler(components.ItemsList(allItems)).ServeHTTP(w, r)
+
+		allProfiles := app.ctx.Value(contextProfiles).([]models.SPTProfile)
+		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+		userBuilds := allProfiles[allProfilesIdx].UserBuilds
+
+		templ.Handler(components.ItemsList(allItems, userBuilds, sessionId)).ServeHTTP(w, r)
 	})
 
 	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +124,16 @@ func NewChiRouter(app *App) *chi.Mux {
 			return i.Id == itemId
 		})
 		item := allItems.Items[itemIdx]
-		templ.Handler(components.ItemDetail(item)).ServeHTTP(w, r)
+
+		globalIdx := slices.IndexFunc(allItems.GlobalPresets, func(i models.ViewPreset) bool {
+			return item.Id == i.Encyclopedia
+		})
+		maybePresetId := ""
+		if globalIdx != -1 {
+			maybePresetId = allItems.GlobalPresets[globalIdx].Id
+		}
+
+		templ.Handler(components.ItemDetail(item, maybePresetId)).ServeHTTP(w, r)
 
 	})
 
@@ -129,6 +148,17 @@ func NewChiRouter(app *App) *chi.Mux {
 		amount := allItems.Items[itemIdx].MaxStock
 
 		err := api.AddItem(url, sessionId, itemId, amount)
+		if err != nil {
+			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
+		}
+	})
+
+	r.Post("/user-weapons/{id}", func(w http.ResponseWriter, r *http.Request) {
+		presetId := chi.URLParam(r, "id")
+		url := app.ctx.Value(contextUrl).(string)
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		err := api.AddUserWeapon(url, sessionId, presetId)
 		if err != nil {
 			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
 		}

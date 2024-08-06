@@ -14,7 +14,7 @@ Simple UI for the `SPT GIVE` command.
 ### Development
 
 ```shell
-templ generate && wails dev
+TEMPL_EXPERIMENT=rawgo templ fmt components/templates.templ && TEMPL_EXPERIMENT=rawgo templ generate && wails dev
 ```
 
 ### Release

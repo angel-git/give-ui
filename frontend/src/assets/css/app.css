@@ -46,3 +46,41 @@ body {
 .htmx-request.button-loader .button-hide {
   display: none;
 }
+
+/* override tabs from daisy as per https://github.com/saadeghi/daisyui/issues/2988 */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+}
+.tab {
+  order: 0;
+}
+.tab-content {
+  order: 1;
+  width: 100%;
+  /* this takes into the tab header! */
+  height: calc(100% - 48px);
+}
+
+/*fix for summary arrow on Windows webview*/
+summary {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+summary::before {
+  content: "►"; /* Unicode for a right-pointing arrow */
+  display: inline-block;
+  margin-right: 0.5em;
+  transform: rotate(0deg); /* Rotate based on open/closed state */
+  transition: transform 0.1s ease-in-out;
+}
+details[open] summary::before {
+  transform: rotate(90deg); /* Rotate to a downward arrow when open */
+}

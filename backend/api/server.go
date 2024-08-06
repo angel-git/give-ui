@@ -19,7 +19,7 @@ func ConnectToSptServer(url string) (r *models.ServerInfo, e error) {
 	return serverInfo, nil
 }
 
-func LoadProfiles(url string) (r []models.SPTProfileInfo, e error) {
+func LoadProfiles(url string) (r []models.SPTProfile, e error) {
 	profiles, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/profiles", url))
 	if err != nil {
 		return nil, err
@@ -29,15 +29,18 @@ func LoadProfiles(url string) (r []models.SPTProfileInfo, e error) {
 	if err != nil {
 		return nil, err
 	}
-	var sessions []models.SPTProfileInfo
+	var sessions []models.SPTProfile
 	for _, v := range sessionsMap {
-		sessions = append(sessions, v.Info)
+		sessions = append(sessions, v)
 	}
+	sort.SliceStable(sessions, func(i, j int) bool {
+		return sessions[i].Info.Username < sessions[j].Info.Username
+	})
 	return sessions, nil
 }
 
 func LoadItems(url string, locale string) (r *models.AllItems, e error) {
-	itemsMap, err := getItemsFromServer(url)
+	items, err := getItemsFromServer(url)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +49,7 @@ func LoadItems(url string, locale string) (r *models.AllItems, e error) {
 		return nil, err
 	}
 
-	allItems := parseItems(itemsMap, *locales)
+	allItems := parseItems(items, *locales)
 
 	return &allItems, nil
 }
@@ -57,6 +60,14 @@ func AddItem(url string, sessionId string, itemId string, amount int) (e error) 
 		Amount: amount,
 	}
 	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/give", url), sessionId, request)
+	return err
+}
+
+func AddUserWeapon(url string, sessionId string, presetId string) (e error) {
+	request := models.AddUserWeaponPresetRequest{
+		ItemId: presetId,
+	}
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/give-user-preset", url), sessionId, request)
 	return err
 }
 
@@ -73,12 +84,12 @@ func getLocaleFromServer(url string, locale string) (*models.Locales, error) {
 	return locales, nil
 }
 
-func getItemsFromServer(url string) (map[string]models.BSGItem, error) {
+func getItemsFromServer(url string) (*models.ItemsResponse, error) {
 	itemsBytes, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/items", url))
 	if err != nil {
 		return nil, err
 	}
-	var itemsMap map[string]models.BSGItem
+	var itemsMap *models.ItemsResponse
 	err = util.ParseByteResponse(itemsBytes, &itemsMap)
 	if err != nil {
 		return nil, err
@@ -86,14 +97,24 @@ func getItemsFromServer(url string) (map[string]models.BSGItem, error) {
 	return itemsMap, nil
 }
 
-func parseItems(itemsMap map[string]models.BSGItem, locales models.Locales) models.AllItems {
+func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllItems {
 	const NameFormat = "%s Name"
 	const DescriptionFormat = "%s Description"
 	allItems := models.AllItems{
-		Categories: []string{},
-		Items:      []models.ViewItem{},
-		Presets:    []models.ViewItem{},
+		Categories:    []string{},
+		Items:         []models.ViewItem{},
+		GlobalPresets: []models.ViewPreset{},
 	}
+
+	for _, globalPreset := range items.GlobalPresets {
+		viewPreset := models.ViewPreset{
+			Id:           globalPreset.Id,
+			Encyclopedia: globalPreset.Encyclopedia,
+		}
+		allItems.GlobalPresets = append(allItems.GlobalPresets, viewPreset)
+	}
+
+	itemsMap := items.Items
 	for _, bsgItem := range itemsMap {
 		if bsgItem.Type == "Node" || bsgItem.Props.IsUnbuyable {
 			continue

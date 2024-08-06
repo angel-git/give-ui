@@ -9,8 +9,13 @@ type ViewItem struct {
 	MaxStock    int
 }
 
+type ViewPreset struct {
+	Id           string
+	Encyclopedia string
+}
+
 type AllItems struct {
-	Categories []string
-	Items      []ViewItem
-	Presets    []ViewItem
+	Categories    []string
+	Items         []ViewItem
+	GlobalPresets []ViewPreset
 }
