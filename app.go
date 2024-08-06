@@ -100,33 +100,21 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/items/{id}", func(w http.ResponseWriter, r *http.Request) {
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
-		allItems := app.ctx.Value(contextAllItems)
-		err := error(nil)
-		if allItems == nil {
-			locale := app.convertLocale()
-			allItems, err = api.LoadItems(app.ctx.Value(contextUrl).(string), locale)
-			if err != nil {
-				templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
-				return
-			}
+		locale := app.convertLocale()
+		allItems, err := api.LoadItems(app.ctx.Value(contextUrl).(string), locale)
+		if err != nil {
+			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
+			return
 		}
-
 		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
-		templ.Handler(components.ItemsList(allItems.(*models.AllItems), sessionId)).ServeHTTP(w, r)
-	})
-
-	r.Get("/user-weapons/{id}", func(w http.ResponseWriter, r *http.Request) {
-		sessionId := chi.URLParam(r, "id")
-		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
 
 		allProfiles := app.ctx.Value(contextProfiles).([]models.SPTProfile)
 		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
 			return i.Info.Id == sessionId
 		})
-
 		userBuilds := allProfiles[allProfilesIdx].UserBuilds
 
-		templ.Handler(components.UserWeaponsList(userBuilds, sessionId)).ServeHTTP(w, r)
+		templ.Handler(components.ItemsList(allItems, userBuilds, sessionId)).ServeHTTP(w, r)
 	})
 
 	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
