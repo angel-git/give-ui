@@ -36,7 +36,44 @@ func LoadProfiles(url string) (r []models.SPTProfileInfo, e error) {
 	return sessions, nil
 }
 
-func LoadItems(url string) (r *models.AllItems, e error) {
+func LoadItems(url string, locale string) (r *models.AllItems, e error) {
+	itemsMap, err := getItemsFromServer(url)
+	if err != nil {
+		return nil, err
+	}
+	locales, err := getLocaleFromServer(url, locale)
+	if err != nil {
+		return nil, err
+	}
+
+	allItems := parseItems(itemsMap, *locales)
+
+	return &allItems, nil
+}
+
+func AddItem(url string, sessionId string, itemId string, amount int) (e error) {
+	request := models.AddItemRequest{
+		ItemId: itemId,
+		Amount: amount,
+	}
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/give", url), sessionId, request)
+	return err
+}
+
+func getLocaleFromServer(url string, locale string) (*models.Locales, error) {
+	localeBytes, err := util.GetRawBytes(fmt.Sprintf("%s/client/locale/%s", url, locale))
+	if err != nil {
+		return nil, err
+	}
+	var locales *models.Locales
+	err = util.ParseByteResponse(localeBytes, &locales)
+	if err != nil {
+		return nil, err
+	}
+	return locales, nil
+}
+
+func getItemsFromServer(url string) (map[string]models.BSGItem, error) {
 	itemsBytes, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/items", url))
 	if err != nil {
 		return nil, err
@@ -46,17 +83,12 @@ func LoadItems(url string) (r *models.AllItems, e error) {
 	if err != nil {
 		return nil, err
 	}
-	// TODO hardcoded locale en
-	localeBytes, err := util.GetRawBytes(fmt.Sprintf("%s/client/locale/en", url))
-	if err != nil {
-		return nil, err
-	}
-	var locales models.Locales
-	err = util.ParseByteResponse(localeBytes, &locales)
-	if err != nil {
-		return nil, err
-	}
+	return itemsMap, nil
+}
 
+func parseItems(itemsMap map[string]models.BSGItem, locales models.Locales) models.AllItems {
+	const NameFormat = "%s Name"
+	const DescriptionFormat = "%s Description"
 	allItems := models.AllItems{
 		Categories: []string{},
 		Items:      []models.ViewItem{},
@@ -67,8 +99,8 @@ func LoadItems(url string) (r *models.AllItems, e error) {
 			continue
 		}
 		var category string
-		var parent = locales.Data[fmt.Sprintf("%s Name", bsgItem.Parent)]
-		var parentParent = locales.Data[fmt.Sprintf("%s Name", itemsMap[bsgItem.Parent].Parent)]
+		var parent = locales.Data[fmt.Sprintf(NameFormat, bsgItem.Parent)]
+		var parentParent = locales.Data[fmt.Sprintf(NameFormat, itemsMap[bsgItem.Parent].Parent)]
 		if parent != "" {
 			category = parent
 		} else if parentParent != "" {
@@ -77,15 +109,11 @@ func LoadItems(url string) (r *models.AllItems, e error) {
 			continue
 		}
 		// filter out useless categories
-		if strings.Contains(category, "Stash") ||
-			strings.Contains(category, "Searchable item") ||
-			strings.Contains(category, "Compound item") ||
-			strings.Contains(category, "Loot container") ||
-			strings.Contains(category, "Inventory") {
+		if slices.Contains(getHiddenCategories(), bsgItem.Parent) {
 			continue
 		}
-		name := locales.Data[fmt.Sprintf("%s Name", bsgItem.Id)]
-		description := locales.Data[fmt.Sprintf("%s Description", bsgItem.Id)]
+		name := locales.Data[fmt.Sprintf(NameFormat, bsgItem.Id)]
+		description := locales.Data[fmt.Sprintf(DescriptionFormat, bsgItem.Id)]
 		// filter out useless items
 		if strings.Contains(name, "DO_NOT_USE") || name == "" {
 			continue
@@ -108,15 +136,15 @@ func LoadItems(url string) (r *models.AllItems, e error) {
 	sort.SliceStable(allItems.Items, func(i, j int) bool {
 		return allItems.Items[i].Name < allItems.Items[j].Name
 	})
-
-	return &allItems, nil
+	return allItems
 }
 
-func AddItem(url string, sessionId string, itemId string, amount int) (e error) {
-	request := models.AddItemRequest{
-		ItemId: itemId,
-		Amount: amount,
+func getHiddenCategories() []string {
+	return []string{
+		"55d720f24bdc2d88028b456d",
+		"62f109593b54472778797866",
+		"63da6da4784a55176c018dba",
+		"566abbb64bdc2d144c8b457d",
+		"566965d44bdc2d814c8b4571",
 	}
-	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/give", url), sessionId, request)
-	return err
 }

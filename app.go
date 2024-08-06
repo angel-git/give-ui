@@ -6,6 +6,8 @@ import (
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/wailsapp/wails/v2/pkg/menu"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"net/http"
 	"slices"
 	"spt-give-ui/backend/api"
@@ -14,7 +16,6 @@ import (
 )
 
 // ctx variables
-const appVersion = "version"
 const contextSessionId = "sessionId"
 const contextUrl = "url"
 const contextAllItems = "allItems"
@@ -22,18 +23,25 @@ const contextServerInfo = "serverInfo"
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx        context.Context
+	language   string
+	menu       *menu.Menu
+	localeMenu *menu.Menu
+	version    string
 }
 
 // NewApp creates a new App application struct
-func NewApp() *App {
-	return &App{}
+func NewApp(version string) *App {
+	return &App{
+		language: "en",
+		version:  version,
+	}
 }
 
 // startup is called at application startup
-func (a *App) startup(ctx context.Context, version string) {
+func (a *App) startup(ctx context.Context) {
 	// Perform your setup here
-	a.ctx = context.WithValue(ctx, appVersion, version)
+	a.ctx = ctx
 }
 
 // domReady is called after front-end resources have been loaded
@@ -59,21 +67,19 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/initial", func(w http.ResponseWriter, r *http.Request) {
-		version := app.ctx.Value(appVersion).(string)
-		templ.Handler(components.LoginPage(version)).ServeHTTP(w, r)
+		templ.Handler(components.LoginPage(app.version)).ServeHTTP(w, r)
 	})
 
 	r.Post("/connect", func(w http.ResponseWriter, r *http.Request) {
 		url := r.FormValue(contextUrl)
-		version := app.ctx.Value(appVersion).(string)
 
 		serverInfo, err := api.ConnectToSptServer(url)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
 			return
 		}
-		if serverInfo.ModVersion != version {
-			templ.Handler(components.ErrorConnection(fmt.Sprintf("Wrong server mod version: %s", serverInfo.ModVersion), version)).ServeHTTP(w, r)
+		if serverInfo.ModVersion != app.version {
+			templ.Handler(components.ErrorConnection(fmt.Sprintf("Wrong server mod version: %s", serverInfo.ModVersion), app.version)).ServeHTTP(w, r)
 			return
 		}
 		// store initial server info
@@ -82,20 +88,19 @@ func NewChiRouter(app *App) *chi.Mux {
 
 		profiles, err := api.LoadProfiles(url)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
 			return
 		}
-		templ.Handler(components.ProfileList(profiles, version)).ServeHTTP(w, r)
+		templ.Handler(components.ProfileList(profiles, app.version)).ServeHTTP(w, r)
 	})
 
 	r.Get("/session/{id}", func(w http.ResponseWriter, r *http.Request) {
-		version := app.ctx.Value(appVersion).(string)
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
-		allItems, err := api.LoadItems(app.ctx.Value(contextUrl).(string))
+		locale := app.convertLocale()
+		allItems, err := api.LoadItems(app.ctx.Value(contextUrl).(string), locale)
 		if err != nil {
-			// TODO create new type of error template
-			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
 			return
 		}
 		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
@@ -116,7 +121,6 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
 		itemId := chi.URLParam(r, "id")
 		url := app.ctx.Value(contextUrl).(string)
-		version := app.ctx.Value(appVersion).(string)
 		sessionId := app.ctx.Value(contextSessionId).(string)
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
 		itemIdx := slices.IndexFunc(allItems.Items, func(i models.ViewItem) bool {
@@ -126,9 +130,66 @@ func NewChiRouter(app *App) *chi.Mux {
 
 		err := api.AddItem(url, sessionId, itemId, amount)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(err.Error(), version)).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
 		}
 	})
 
 	return r
+}
+
+func (a *App) setLocale(data *menu.CallbackData) {
+	if a.language == data.MenuItem.Label {
+		return
+	}
+	a.language = data.MenuItem.Label
+	for _, localeMenu := range a.localeMenu.Items {
+		localeMenu.Checked = false
+	}
+	data.MenuItem.Checked = true
+
+	// refresh menu with the selected locale
+	runtime.MenuSetApplicationMenu(a.ctx, a.menu)
+	runtime.MenuUpdateApplicationMenu(a.ctx)
+
+	// refresh to main screen
+	runtime.WindowReloadApp(a.ctx)
+}
+
+func (a *App) convertLocale() string {
+	switch a.language {
+	case "English":
+		return "en"
+	case "Czech":
+		return "cz"
+	case "French":
+		return "fr"
+	case "German":
+		return "ge"
+	case "Hungarian":
+		return "hu"
+	case "Italian":
+		return "it"
+	case "Japanese":
+		return "jp"
+	case "Korean":
+		return "kr"
+	case "Polish":
+		return "pl"
+	case "Portuguese":
+		return "po"
+	case "Slovak":
+		return "sk"
+	case "Spanish":
+		return "es"
+	case "Spanish - Mexico":
+		return "es-mx"
+	case "Turkish":
+		return "tu"
+	case "Romanian":
+		return "ro"
+	case "Русский":
+		return "ru"
+	default:
+		return "en"
+	}
 }
