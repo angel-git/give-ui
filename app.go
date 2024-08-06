@@ -147,7 +147,6 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/user-weapons/{id}", func(w http.ResponseWriter, r *http.Request) {
 		presetId := chi.URLParam(r, "id")
 		url := app.ctx.Value(contextUrl).(string)
-		// TODO maybe we should remove contextSessionId from the ctx and pass it as query param
 		sessionId := app.ctx.Value(contextSessionId).(string)
 
 		err := api.AddUserWeapon(url, sessionId, presetId)
