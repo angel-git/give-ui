@@ -141,15 +141,15 @@ templ UserWeaponsList(userBuilds models.UserBuilds, sessionId string) {
     <div class="flex flex-col h-full">
         <div role="tablist" class="tabs tabs-bordered">
             <a role="tab" class="tab" hx-swap="innerHTML" hx-target="#main" hx-get={ fmt.Sprintf("/items/%s", sessionId) }>Items</a>
-            <a role="tab" class="tab  tab-active">User weapons</a>
+            <a role="tab" class="tab tab-active">User weapons</a>
         </div>
-        <div class="grid gap-1 w-full h-full">
+        <div class="flex flex-wrap gap-1 w-full h-full">
              for _, weaponBuild := range userBuilds.WeaponBuilds {
-                <div class="card bg-base-200 w-96 h-72 shadow-xl">
-                  <div class="card-body">
+                <div class="card bg-base-200 w-80 shadow-xl">
+                  <div class="card-body overflow-y-auto">
                     <h2 class="card-title">{ weaponBuild.Name }</h2>
-                    <img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", weaponBuild.Items[0].Tpl) } />
-                    <div class="card-actions justify-end">
+                    <img alt="item" style="max-height: 80px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", weaponBuild.Items[0].Tpl) } />
+                    <div class="card-actions justify-end items-end grow">
                       <button class="btn btn-primary" hx-post={ fmt.Sprintf("/user-weapons/%s", weaponBuild.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
                         <div id="loader" class="button-loader">
                           <span class="loading loading-spinner"></span>
