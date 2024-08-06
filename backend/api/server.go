@@ -33,6 +33,9 @@ func LoadProfiles(url string) (r []models.SPTProfile, e error) {
 	for _, v := range sessionsMap {
 		sessions = append(sessions, v)
 	}
+	sort.SliceStable(sessions, func(i, j int) bool {
+		return sessions[i].Info.Username < sessions[j].Info.Username
+	})
 	return sessions, nil
 }
 
