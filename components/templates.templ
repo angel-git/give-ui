@@ -17,7 +17,7 @@ templ LoginPage(version string) {
 					<input type="text" name="url" value="http://127.0.0.1:6969" class="input input-bordered" required/>
 				</div>
 				<div class="form-control mt-6">
-					<button class="btn btn-primary">Connect</button>
+					<button class="btn btn-primary">CONNECT</button>
 				</div>
 				<progress id="loader" class="progress w-full htmx-indicator"></progress>
 			</form>
@@ -45,8 +45,9 @@ templ ProfileList(profiles []models.SPTProfileInfo, version string) {
 			<fieldset id="profile-fieldset">
 				<ul class="flex flex-col gap-1">
 					for _, i := range profiles {
-						<li class="flex flex-row items-center justify-between gap-2"><div>{ i.Username } ({ i.Id })</div>@Button("btn-primary btn-sm", fmt.Sprintf("/session/%s", i.Id), "#main", "innerHTML", "get", "SELECT", "#loader", "#profile-fieldset")
-</li>
+						<li class="flex flex-row items-center justify-between gap-2">
+							<div>{ i.Username } ({ i.Id })</div>@Button("btn-primary btn-sm", fmt.Sprintf("/session/%s", i.Id), "#main", "innerHTML", "get", "SELECT", "#loader", "#profile-fieldset")
+						</li>
 					}
 				</ul>
 			</fieldset>
@@ -124,7 +125,13 @@ templ ItemsList(allItems *models.AllItems) {
 				}
 			</div>
 			<div class="divider divider-horizontal"></div>
-			<div class="card p-2 bg-base-200 rounded-box grid flex-grow place-items-start w-full" id="item-details"></div>
+			<div class="card p-2 bg-base-200 rounded-box grid flex-grow place-items-start w-full" id="item-details">
+				<div>
+					<p class="text-9xl">👀</p>
+					<p class="text-left mb-4">Select something from the left menu and press the button <em>Give</em>. You will receive a message with the item at maximum stack size.</p>
+					<p class="text-left">If you need more, just keep pressing :-)</p>
+				</div>
+			</div>
 		</div>
 	</div>
 }
