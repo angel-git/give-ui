@@ -137,7 +137,6 @@ templ ItemDetail(item models.ViewItem) {
 }
 
 templ _Items(allItems *models.AllItems, sessionId string) {
-<div class="h-full">
     <div class="flex flex-col h-full">
       <div class="w-full p-2">
         <input type="text" autocomplete="off" id="filter-input" onkeyup="filterItems()" placeholder="Filter here" class="input input-bordered w-full max-w-xs" />
@@ -163,11 +162,9 @@ templ _Items(allItems *models.AllItems, sessionId string) {
         <div class="card p-2 bg-base-200 rounded-box grid flex-grow place-items-start w-full" id="item-details"></div>
       </div>
     </div>
-</div>
 }
 
 templ _UserWeapons(userBuilds models.UserBuilds, sessionId string) {
-<div class="h-full">
     <div class="flex flex-wrap gap-2 h-full content-start p-2">
          for _, weaponBuild := range userBuilds.WeaponBuilds {
             <div class="card bg-base-200 w-72 max-h-72 shadow-xl">
@@ -186,7 +183,6 @@ templ _UserWeapons(userBuilds models.UserBuilds, sessionId string) {
             </div>
          }
     </div>
-</div>
 }
 
 templ _Button(classes string, hxUrl string, hxTarget string, hxSwap string,method string,label string, hxIndicator string, hxDisabledElt string) {
