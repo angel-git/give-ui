@@ -62,22 +62,37 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	</div>
 }
 
+templ ItemsView(tabs templ.Component, allItems *models.AllItems, profile models.SPTProfile) {
+	@tabs
+	@_Items(allItems, profile.Info.Id)
+}
+
+templ UserWeaponsView(tabs templ.Component, allItems *models.AllItems, profile models.SPTProfile) {
+	@tabs
+	@_UserWeapons(allItems, profile.UserBuilds.WeaponBuilds, profile.Info.Id)
+}
+
+templ Tabs(tabSelected string) {
+	<div role="tablist" hx-boost="true" class="tabs tabs-bordered tabs-lg overflow-y-auto flex-1 flex-start">
+		@_Tab(tabSelected, "Items", "/view/items")
+		@_Tab(tabSelected, "User weapons", "/view/weapons")
+		@_Tab(tabSelected, "Magazine loadouts", "/view/magazines")
+	</div>
+}
+
+templ _Tab(tabSelected string, tabName string, href string) {
+	{{ var class string }}
+	{{if tabSelected == tabName {
+	class = "tab tab-active"
+} else {
+	class = "tab"
+}
+	}}
+	<a role="tab" href={ templ.URL(href) } class={ class } aria-label={ tabName } hx-target="#main">{ tabName }</a>
+}
+
 templ ItemsList(appName string, appVersion string, allItems *models.AllItems, profile models.SPTProfile) {
 	<div class="flex flex-col h-full justify-between">
-		<div role="tablist" class="tabs tabs-bordered tabs-lg overflow-y-auto flex-1">
-			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Items" checked="checked"/>
-			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@_Items(allItems, profile.Info.Id)
-			</div>
-			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="User weapons"/>
-			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@_UserWeapons(allItems, profile.UserBuilds.WeaponBuilds, profile.Info.Id)
-			</div>
-			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Magazine loadouts"/>
-			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@_MagazineLoadouts(profile.UserBuilds.MagazineBuilds, profile.Info.Id)
-			</div>
-		</div>
 		<div class="pt-1 border-t-2 border-t-base-200">
 			@_AppFooter(appName, appVersion, profile.Info.Username)
 		</div>
@@ -109,54 +124,6 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 }
 
 templ _Items(allItems *models.AllItems, sessionId string) {
-	<script type="text/javascript">
-
-        let previousSelectedItem = null;
-        function filterItems() {
-              const input = document.getElementById('filter-items-input');
-              const filter = input.value.toUpperCase().trim();
-              const itemList = document.getElementById("item-list");
-              const li = itemList.getElementsByTagName('li');
-
-              // Loop through all list items, and hide those who don't match the search query
-              for (i = 0; i < li.length; i++) {
-                const txtValue = (li[i].textContent || li[i].innerText).toUpperCase().trim();
-                const itemCategory = li[i].parentElement.getAttribute('data-category').toUpperCase().trim();
-                if (txtValue.indexOf(filter) > -1 || itemCategory.indexOf(filter) > -1) {
-                  li[i].style.display = "";
-                } else {
-                  li[i].style.display = "none";
-                }
-              }
-
-              // hide empty categories
-          const section = itemList.getElementsByTagName('details');
-              for (i = 0; i < section.length; i++) {
-                const innerLis = section[i].getElementsByTagName('li');
-                let anyLiVisible = false;
-                for (j = 0; j < innerLis.length; j++) {
-                    if (innerLis[j].style.display === "") {
-                        anyLiVisible = true;
-                        break;
-                    }
-                }
-                if (anyLiVisible) {
-                    section[i].style.display = "";
-                } else {
-                    section[i].style.display = "none";
-                }
-              }
-        }
-
-        function selectItem(element) {
-            const classToToggle = 'text-primary';
-            if (previousSelectedItem) {
-                previousSelectedItem.classList.remove(classToToggle);
-            }
-            element.classList.add(classToToggle);
-            previousSelectedItem = element;
-        }
-      </script>
 	<div class="flex flex-col h-full">
 		<div class="w-full p-2">
 			<input type="text" autocomplete="off" id="filter-items-input" onkeyup="filterItems()" placeholder="Filter here" class="input input-bordered w-full max-w-xs"/>
@@ -189,27 +156,6 @@ templ _Items(allItems *models.AllItems, sessionId string) {
 }
 
 templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild, sessionId string) {
-	<script type="text/javascript">
-
-        function filterUserWeapons() {
-              const input = document.getElementById('filter-user-weapons-input');
-              const filter = input.value.toUpperCase().trim();
-              const itemList = document.getElementById("weapons-list");
-              const cards = itemList.getElementsByClassName('card-to-filter');
-
-              // Loop through all list items, and hide those who don't match the search query
-              for (i = 0; i < cards.length; i++) {
-                const title = cards[i].getElementsByTagName('h2')[0];
-                const txtValue = (title.textContent || title.innerText).toUpperCase().trim();
-                if (txtValue.indexOf(filter) > -1) {
-                  cards[i].style.display = "";
-                } else {
-                  cards[i].style.display = "none";
-                }
-              }
-        }
-
-    </script>
 	<div class="h-full flex flex-col">
 		if len(weaponBuilds) == 0 {
 			<div role="alert" class="alert alert-info">
@@ -276,27 +222,6 @@ templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild,
 }
 
 templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild, sessionId string) {
-	<script type="text/javascript">
-
-        function filterMagazineLoadout() {
-              const input = document.getElementById('filter-magazine-loadout-input');
-              const filter = input.value.toUpperCase().trim();
-              const itemList = document.getElementById("magazine-loadout-list");
-              const cards = itemList.getElementsByClassName('card-to-filter');
-
-              // Loop through all list items, and hide those who don't match the search query
-              for (i = 0; i < cards.length; i++) {
-                const title = cards[i].getElementsByTagName('h2')[0];
-                const txtValue = (title.textContent || title.innerText).toUpperCase().trim();
-                if (txtValue.indexOf(filter) > -1) {
-                  cards[i].style.display = "";
-                } else {
-                  cards[i].style.display = "none";
-                }
-              }
-        }
-
-    </script>
 	<div class="h-full flex flex-col">
 		if len(magazineLoadouts) == 0 {
 			<div role="alert" class="alert alert-info p-2">
