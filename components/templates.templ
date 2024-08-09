@@ -73,6 +73,10 @@ templ ItemsList(appName string, appVersion string, allItems *models.AllItems, pr
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@_UserWeapons(allItems, profile.UserBuilds.WeaponBuilds, profile.Info.Id)
 			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Gear presets"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@_GearPresets(profile.UserBuilds.EquipmentBuilds, profile.Info.Id)
+			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Magazine loadouts"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@_MagazineLoadouts(profile.UserBuilds.MagazineBuilds, profile.Info.Id)
@@ -350,6 +354,39 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild, sessionId strin
 							</div>
 						</div>
 					</div>
+				}
+			</div>
+		}
+	</div>
+}
+
+templ _GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) {
+	<div class="h-full flex flex-col">
+		if len(equipmentBuilds) == 0 {
+			<div role="alert" class="alert alert-info p-2">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					class="h-6 w-6 shrink-0 stroke-current"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<span>You don't have any gear presets.</span>
+			</div>
+		} else {
+			<div class="w-full p-2">
+				<input type="text" autocomplete="off" id="filter-equipment-build-input" placeholder="Filter here" class="input input-bordered w-full max-w-xs"/>
+			</div>
+			<div class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto" id="magazine-loadout-list">
+				for _, equipmentBuild := range equipmentBuilds {
+					<div>Id: { equipmentBuild.Id }</div>
+					<div>Name: { equipmentBuild.Name }</div>
 				}
 			</div>
 		}
