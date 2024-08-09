@@ -112,9 +112,9 @@ func NewChiRouter(app *App) *chi.Mux {
 		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
 			return i.Info.Id == sessionId
 		})
-		userBuilds := allProfiles[allProfilesIdx].UserBuilds
+		profile := allProfiles[allProfilesIdx]
 
-		templ.Handler(components.ItemsList(allItems, userBuilds, sessionId)).ServeHTTP(w, r)
+		templ.Handler(components.ItemsList(allItems, profile, app.version)).ServeHTTP(w, r)
 	})
 
 	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
