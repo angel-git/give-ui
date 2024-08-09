@@ -49,7 +49,10 @@ templ ProfileList(profiles []models.SPTProfile, version string) {
 				<ul class="flex flex-col gap-1">
 					for _, i := range profiles {
 						<li class="flex flex-row items-center justify-between gap-2">
-							<div>{ i.Info.Username } ({ i.Info.Id })</div>@_Button("btn-primary btn-sm", fmt.Sprintf("/items/%s", i.Info.Id), "#main", "innerHTML", "get", "SELECT", "#loader", "#profile-fieldset")
+							<div>{ i.Info.Username } ({ i.Info.Id })</div>
+							<button class="btn btn-primary btn-sm" hx-post={ fmt.Sprintf("/connect/%s", i.Info.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="#profile-fieldset" hx-indicator="#loader">
+								SELECT
+							</button>
 						</li>
 					}
 				</ul>
@@ -358,26 +361,4 @@ templ _AddWorkbenchItem(itemId string) {
 			</div>
 		</button>
 	</div>
-}
-
-templ _Button(classes string, hxUrl string, hxTarget string, hxSwap string, method string, label string, hxIndicator string, hxDisabledElt string) {
-	<button
-		class={ fmt.Sprintf("btn %s", classes) }
-		type="submit"
-		hx-target={ hxTarget }
-		hx-trigger="click"
-		hx-swap="outerhtml transition:false"
-		if method == "get" {
-			hx-get={ hxUrl }
-		}
-		if method == "post" {
-			hx-post={ hxUrl }
-		}
-		if hxIndicator != "" {
-			hx-indicator={ hxIndicator }
-		}
-		if hxDisabledElt != "" {
-			hx-disabled-elt={ hxDisabledElt }
-		}
-	>{ label }</button>
 }
