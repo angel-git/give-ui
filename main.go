@@ -27,8 +27,9 @@ var wailsJson string
 
 func main() {
 	version := gjson.Get(wailsJson, "version").Str
+	name := gjson.Get(wailsJson, "name").Str
 	// Create an instance of the app structure and custom Middleware
-	app := NewApp(version)
+	app := NewApp(name, version)
 	app.makeMenu()
 	r := NewChiRouter(app)
 

@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"slices"
 	"spt-give-ui/backend/models"
+	"strings"
 )
 
-templ LoginPage(version string) {
+templ LoginPage(appName string, appVersion string) {
 	<div id="main" class="w-full h-full p-2">
-		<h1 class="mb-4">GIVE UI - v{ version }</h1>
+		@_AppHeader(appName, appVersion)
 		<div class="card align-middle mx-auto bg-base-200 w-full max-w-md shadow-2xl">
 			<form class="card-body" hx-post="/connect" hx-target="#main" hx-swap="innerHTML" hx-indicator="#loader" hx-disabled-elt="find button">
 				<div class="form-control">
@@ -26,8 +27,8 @@ templ LoginPage(version string) {
 	</div>
 }
 
-templ ErrorConnection(e string, version string) {
-	<h1 class="mb-4">GIVE UI - v{ version }</h1>
+templ ErrorConnection(appName string, appVersion string, e string) {
+	@_AppHeader(appName, appVersion)
 	<div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
 		<div class="card-body">
 			<h2 class="text-error">Connection Error</h2>
@@ -38,8 +39,8 @@ templ ErrorConnection(e string, version string) {
 	</div>
 }
 
-templ ProfileList(profiles []models.SPTProfile, version string) {
-	<h1 class="mb-4">GIVE UI - v{ version }</h1>
+templ ProfileList(appName string, appVersion string, profiles []models.SPTProfile) {
+	@_AppHeader(appName, appVersion)
 	<div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
 		<div class="card-body">
 			<h2>Select profile</h2>
@@ -60,7 +61,7 @@ templ ProfileList(profiles []models.SPTProfile, version string) {
 	</div>
 }
 
-templ ItemsList(allItems *models.AllItems, profile models.SPTProfile, appVersion string) {
+templ ItemsList(appName string, appVersion string, allItems *models.AllItems, profile models.SPTProfile) {
 	<div class="flex flex-col h-full">
 		<div role="tablist" class="tabs tabs-bordered tabs-lg overflow-y-auto">
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Items" checked="checked"/>
@@ -73,7 +74,7 @@ templ ItemsList(allItems *models.AllItems, profile models.SPTProfile, appVersion
 			</div>
 		</div>
 		<div class="pt-1 border-t-2 border-t-base-200">
-			<p class="text-xs text-left">GIVE UI v{ appVersion }: { profile.Info.Username }</p>
+			@_AppFooter(appName, appVersion, profile.Info.Username)
 		</div>
 	</div>
 }
@@ -279,4 +280,12 @@ templ _AddWorkbenchItem(itemId string) {
 			</div>
 		</button>
 	</div>
+}
+
+templ _AppHeader(appName string, appVersion string) {
+	<h1 class="mb-4">{ strings.ToUpper(appName) } v{ appVersion }</h1>
+}
+
+templ _AppFooter(appName string, appVersion string, profileName string) {
+	<p class="text-xs text-left">{ strings.ToUpper(appName) } v{ appVersion }: { profileName }</p>
 }
