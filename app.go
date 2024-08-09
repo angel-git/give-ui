@@ -116,7 +116,46 @@ func NewChiRouter(app *App) *chi.Mux {
 		})
 		profile := allProfiles[allProfilesIdx]
 
-		templ.Handler(components.ItemsList(app.name, app.version, allItems, profile)).ServeHTTP(w, r)
+		tabs := components.Tabs("Items")
+		templ.Handler(components.ItemsView(tabs, allItems, profile)).ServeHTTP(w, r)
+	})
+
+	r.Get("/view/items", func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		locale := app.convertLocale()
+		allItems, err := api.LoadItems(app.ctx.Value(contextUrl).(string), locale)
+		if err != nil {
+			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
+		allProfiles := app.ctx.Value(contextProfiles).([]models.SPTProfile)
+		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+		profile := allProfiles[allProfilesIdx]
+
+		tabs := components.Tabs("User weapons")
+		templ.Handler(components.ItemsView(tabs, allItems, profile)).ServeHTTP(w, r)
+	})
+
+	r.Get("/view/weapons", func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		locale := app.convertLocale()
+		allItems, err := api.LoadItems(app.ctx.Value(contextUrl).(string), locale)
+		if err != nil {
+			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
+		allProfiles := app.ctx.Value(contextProfiles).([]models.SPTProfile)
+		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+		profile := allProfiles[allProfilesIdx]
+
+		tabs := components.Tabs("User weapons")
+		templ.Handler(components.UserWeaponsView(tabs, allItems, profile)).ServeHTTP(w, r)
 	})
 
 	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
