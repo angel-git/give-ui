@@ -26,15 +26,17 @@ const contextServerInfo = "serverInfo"
 type App struct {
 	ctx        context.Context
 	language   string
-	menu       *menu.Menu
 	localeMenu *menu.Menu
+	menu       *menu.Menu
+	name       string
 	version    string
 }
 
 // NewApp creates a new App application struct
-func NewApp(version string) *App {
+func NewApp(name string, version string) *App {
 	return &App{
 		language: "en",
+		name:     name,
 		version:  version,
 	}
 }
@@ -68,7 +70,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/initial", func(w http.ResponseWriter, r *http.Request) {
-		templ.Handler(components.LoginPage(app.version)).ServeHTTP(w, r)
+		templ.Handler(components.LoginPage(app.name, app.version)).ServeHTTP(w, r)
 	})
 
 	r.Post("/connect", func(w http.ResponseWriter, r *http.Request) {
@@ -76,11 +78,11 @@ func NewChiRouter(app *App) *chi.Mux {
 
 		serverInfo, err := api.ConnectToSptServer(url)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
 			return
 		}
 		if serverInfo.ModVersion != app.version {
-			templ.Handler(components.ErrorConnection(fmt.Sprintf("Wrong server mod version: %s", serverInfo.ModVersion), app.version)).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(app.name, app.version, fmt.Sprintf("Wrong server mod version: %s", serverInfo.ModVersion))).ServeHTTP(w, r)
 			return
 		}
 		// store initial server info
@@ -89,12 +91,12 @@ func NewChiRouter(app *App) *chi.Mux {
 
 		profiles, err := api.LoadProfiles(url)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
 			return
 		}
 		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
 
-		templ.Handler(components.ProfileList(profiles, app.version)).ServeHTTP(w, r)
+		templ.Handler(components.ProfileList(app.name, app.version, profiles)).ServeHTTP(w, r)
 	})
 
 	r.Post("/connect/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -103,7 +105,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		locale := app.convertLocale()
 		allItems, err := api.LoadItems(app.ctx.Value(contextUrl).(string), locale)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
 			return
 		}
 		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
@@ -112,9 +114,9 @@ func NewChiRouter(app *App) *chi.Mux {
 		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
 			return i.Info.Id == sessionId
 		})
-		userBuilds := allProfiles[allProfilesIdx].UserBuilds
+		profile := allProfiles[allProfilesIdx]
 
-		templ.Handler(components.ItemsList(allItems, userBuilds, sessionId)).ServeHTTP(w, r)
+		templ.Handler(components.ItemsList(app.name, app.version, allItems, profile)).ServeHTTP(w, r)
 	})
 
 	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +151,7 @@ func NewChiRouter(app *App) *chi.Mux {
 
 		err := api.AddItem(url, sessionId, itemId, amount)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
 		}
 	})
 
@@ -160,7 +162,7 @@ func NewChiRouter(app *App) *chi.Mux {
 
 		err := api.AddUserWeapon(url, sessionId, presetId)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
+			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
 		}
 	})
 
@@ -188,7 +190,7 @@ func NewChiRouter(app *App) *chi.Mux {
 				amount := allItems.Items[itemIdx].MaxStock
 				err := api.AddItem(url, sessionId, item.TemplateId, amount)
 				if err != nil {
-					templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
+					templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
 					break
 				}
 			}

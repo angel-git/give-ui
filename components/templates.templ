@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-templ LoginPage(version string) {
+templ LoginPage(appName string, appVersion string) {
 	<div id="main" class="w-full h-full p-2">
-		<h1 class="mb-4">GIVE UI - v{ version }</h1>
+		@_AppHeader(appName, appVersion)
 		<div class="card align-middle mx-auto bg-base-200 w-full max-w-md shadow-2xl">
 			<form class="card-body" hx-post="/connect" hx-target="#main" hx-swap="innerHTML" hx-indicator="#loader" hx-disabled-elt="find button">
 				<div class="form-control">
@@ -28,8 +28,8 @@ templ LoginPage(version string) {
 	</div>
 }
 
-templ ErrorConnection(e string, version string) {
-	<h1 class="mb-4">GIVE UI - v{ version }</h1>
+templ ErrorConnection(appName string, appVersion string, e string) {
+	@_AppHeader(appName, appVersion)
 	<div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
 		<div class="card-body">
 			<h2 class="text-error">Connection Error</h2>
@@ -40,8 +40,8 @@ templ ErrorConnection(e string, version string) {
 	</div>
 }
 
-templ ProfileList(profiles []models.SPTProfile, version string) {
-	<h1 class="mb-4">GIVE UI - v{ version }</h1>
+templ ProfileList(appName string, appVersion string, profiles []models.SPTProfile) {
+	@_AppHeader(appName, appVersion)
 	<div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
 		<div class="card-body">
 			<h2>Select profile</h2>
@@ -62,19 +62,24 @@ templ ProfileList(profiles []models.SPTProfile, version string) {
 	</div>
 }
 
-templ ItemsList(allItems *models.AllItems, userBuilds models.UserBuilds, sessionId string) {
-	<div role="tablist" class="tabs tabs-bordered tabs-lg h-full">
-		<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Items" checked="checked"/>
-		<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-			@_Items(allItems, sessionId)
+templ ItemsList(appName string, appVersion string, allItems *models.AllItems, profile models.SPTProfile) {
+	<div class="flex flex-col h-full justify-between">
+		<div role="tablist" class="tabs tabs-bordered tabs-lg overflow-y-auto flex-1">
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Items" checked="checked"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@_Items(allItems, profile.Info.Id)
+			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="User weapons"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@_UserWeapons(allItems, profile.UserBuilds.WeaponBuilds, profile.Info.Id)
+			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Magazine loadouts"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@_MagazineLoadouts(profile.UserBuilds.MagazineBuilds, profile.Info.Id)
+			</div>
 		</div>
-		<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="User weapons"/>
-		<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-			@_UserWeapons(allItems, userBuilds.WeaponBuilds, sessionId)
-		</div>
-		<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Magazine loadouts"/>
-		<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-			@_MagazineLoadouts(userBuilds.MagazineBuilds, sessionId)
+		<div class="pt-1 border-t-2 border-t-base-200">
+			@_AppFooter(appName, appVersion, profile.Info.Username)
 		</div>
 	</div>
 }
@@ -361,4 +366,12 @@ templ _AddWorkbenchItem(itemId string) {
 			</div>
 		</button>
 	</div>
+}
+
+templ _AppHeader(appName string, appVersion string) {
+	<h1 class="mb-4">{ strings.ToUpper(appName) } v{ appVersion }</h1>
+}
+
+templ _AppFooter(appName string, appVersion string, profileName string) {
+	<p class="text-xs text-left">{ strings.ToUpper(appName) } v{ appVersion }: { profileName }</p>
 }
