@@ -3,7 +3,9 @@ package components
 import (
 	"fmt"
 	"slices"
+	"sort"
 	"spt-give-ui/backend/models"
+	"strings"
 )
 
 templ LoginPage(version string) {
@@ -65,7 +67,11 @@ templ ItemsList(allItems *models.AllItems, userBuilds models.UserBuilds, session
 		</div>
 		<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="User weapons"/>
 		<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-			@_UserWeapons(allItems, userBuilds, sessionId)
+			@_UserWeapons(allItems, userBuilds.WeaponBuilds, sessionId)
+		</div>
+		<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Magazine loadouts"/>
+		<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+			@_MagazineLoadouts(userBuilds.MagazineBuilds, sessionId)
 		</div>
 	</div>
 }
@@ -174,7 +180,7 @@ templ _Items(allItems *models.AllItems, sessionId string) {
 	</div>
 }
 
-templ _UserWeapons(allItems *models.AllItems, userBuilds models.UserBuilds, sessionId string) {
+templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild, sessionId string) {
 	<script type="text/javascript">
 
         function filterUserWeapons() {
@@ -197,7 +203,7 @@ templ _UserWeapons(allItems *models.AllItems, userBuilds models.UserBuilds, sess
 
     </script>
 	<div class="h-full flex flex-col">
-		if len(userBuilds.WeaponBuilds) == 0 {
+		if len(weaponBuilds) == 0 {
 			<div role="alert" class="alert alert-info">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -227,7 +233,7 @@ templ _UserWeapons(allItems *models.AllItems, userBuilds models.UserBuilds, sess
 				<input type="text" autocomplete="off" id="filter-user-weapons-input" onkeyup="filterUserWeapons()" placeholder="Filter here" class="input input-bordered w-full max-w-xs"/>
 			</div>
 			<div class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto" id="weapons-list">
-				for _, weaponBuild := range userBuilds.WeaponBuilds {
+				for _, weaponBuild := range weaponBuilds {
 					{{ globalIdx := slices.IndexFunc(allItems.GlobalPresets, func(i models.ViewPreset) bool { return weaponBuild.Items[0].Tpl == i.Encyclopedia }) }}
 					{{ maybePresetId := "" }}
 					{{if globalIdx != -1 {
@@ -250,6 +256,87 @@ templ _UserWeapons(allItems *models.AllItems, userBuilds models.UserBuilds, sess
 									<div id="loader" class="button-loader">
 										<span class="loading loading-spinner"></span>
 										<span class="button-hide">Give</span>
+									</div>
+								</button>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+		}
+	</div>
+}
+
+templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild, sessionId string) {
+	<script type="text/javascript">
+
+        function filterMagazineLoadout() {
+              const input = document.getElementById('filter-magazine-loadout-input');
+              const filter = input.value.toUpperCase().trim();
+              const itemList = document.getElementById("magazine-loadout-list");
+              const cards = itemList.getElementsByClassName('card-to-filter');
+
+              // Loop through all list items, and hide those who don't match the search query
+              for (i = 0; i < cards.length; i++) {
+                const title = cards[i].getElementsByTagName('h2')[0];
+                const txtValue = (title.textContent || title.innerText).toUpperCase().trim();
+                if (txtValue.indexOf(filter) > -1) {
+                  cards[i].style.display = "";
+                } else {
+                  cards[i].style.display = "none";
+                }
+              }
+        }
+
+    </script>
+	<div class="h-full flex flex-col">
+		if len(magazineLoadouts) == 0 {
+			<div role="alert" class="alert alert-info p-2">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					class="h-6 w-6 shrink-0 stroke-current"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<span>You don't have magazine loadouts.</span>
+			</div>
+		} else {
+			{{sort.Slice(magazineLoadouts, func(i, j int) bool {
+	if magazineLoadouts[i].Caliber == magazineLoadouts[j].Caliber {
+		return magazineLoadouts[i].Name < magazineLoadouts[j].Name
+	}
+	return magazineLoadouts[i].Caliber < magazineLoadouts[j].Caliber
+})
+			}}
+			<div class="w-full p-2">
+				<input type="text" autocomplete="off" id="filter-magazine-loadout-input" onkeyup="filterMagazineLoadout()" placeholder="Filter here" class="input input-bordered w-full max-w-xs"/>
+			</div>
+			<div class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto" id="magazine-loadout-list">
+				for _, magazineLoadout := range magazineLoadouts {
+					{{ caliber := strings.Replace(magazineLoadout.Caliber, "Caliber", "", -1) }}
+					<div class="card bg-base-200 w-72 shadow-xl card-to-filter">
+						<div class="card-body overflow-y-auto">
+							<h2 class="card-title text-start">{ magazineLoadout.Name }</h2>
+							<p class="text-left">{ caliber }</p>
+							<div class="flex gap-4 flex-wrap">
+								for _, bullet := range magazineLoadout.Items {
+									if bullet.TemplateId != "" {
+										<img alt="item" style="max-height: 80px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", bullet.TemplateId) }/>
+									}
+								}
+							</div>
+							<div class="card-actions justify-end items-end grow">
+								<button class="btn btn-primary" hx-post={ fmt.Sprintf("/magazine-loadouts/%s", magazineLoadout.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
+									<div id="loader" class="button-loader">
+										<span class="loading loading-spinner"></span>
+										<span class="button-hide">Give all</span>
 									</div>
 								</button>
 							</div>

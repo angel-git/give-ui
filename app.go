@@ -164,6 +164,37 @@ func NewChiRouter(app *App) *chi.Mux {
 		}
 	})
 
+	r.Post("/magazine-loadouts/{id}", func(w http.ResponseWriter, r *http.Request) {
+		magazineLoadoutId := chi.URLParam(r, "id")
+		url := app.ctx.Value(contextUrl).(string)
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+
+		allProfiles := app.ctx.Value(contextProfiles).([]models.SPTProfile)
+		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+
+		magazineBuilds := allProfiles[allProfilesIdx].UserBuilds.MagazineBuilds
+		magazineBuildsIdx := slices.IndexFunc(magazineBuilds, func(i models.MagazineBuild) bool {
+			return i.Id == magazineLoadoutId
+		})
+
+		for _, item := range magazineBuilds[magazineBuildsIdx].Items {
+			if item.TemplateId != "" {
+				itemIdx := slices.IndexFunc(allItems.Items, func(i models.ViewItem) bool {
+					return i.Id == item.TemplateId
+				})
+				amount := allItems.Items[itemIdx].MaxStock
+				err := api.AddItem(url, sessionId, item.TemplateId, amount)
+				if err != nil {
+					templ.Handler(components.ErrorConnection(err.Error(), app.version)).ServeHTTP(w, r)
+					break
+				}
+			}
+		}
+	})
+
 	return r
 }
 
