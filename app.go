@@ -97,7 +97,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		templ.Handler(components.ProfileList(profiles, app.version)).ServeHTTP(w, r)
 	})
 
-	r.Get("/items/{id}", func(w http.ResponseWriter, r *http.Request) {
+	r.Post("/connect/{id}", func(w http.ResponseWriter, r *http.Request) {
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
 		locale := app.convertLocale()
