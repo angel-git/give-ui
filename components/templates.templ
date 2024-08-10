@@ -395,7 +395,7 @@ templ _GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) {
 							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 						></path>
 					</svg>
-					<span>I'm still working on this feature. For now you can only add your helmet, armor and primary weapon. If you would like to have more stuff let me know in the comments. You can start by selecting your preset in the dropdown below</span>
+					<span>For now you can only add your helmet and backpack. If you would like to have more stuff let me know in the mod comments page. You can start by selecting your preset in the dropdown below</span>
 				</div>
 				<div class="dropdown">
 					<div tabindex="0" role="button" class="btn m-1">Choose preset here</div>
@@ -422,8 +422,9 @@ func findBySlotId(items []models.Item, slotId string) models.Item {
 
 templ GearPreset(equipmentBuild models.EquipmentBuild) {
 	{{ backpack := findBySlotId(equipmentBuild.Items, "Backpack") }}
+	{{ helmet := findBySlotId(equipmentBuild.Items, "Headwear") }}
 	<div>
-		<h1>Backpack!!!</h1>
+		<h1>Backpack</h1>
 		<img alt="item" st-yle="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", backpack.Tpl) }/>
 		<button class="btn btn-primary" hx-post={ fmt.Sprintf("/gear-preset/%s/%s", equipmentBuild.Id, backpack.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
 			<div id="loader" class="button-loader">
@@ -433,10 +434,14 @@ templ GearPreset(equipmentBuild models.EquipmentBuild) {
 		</button>
 	</div>
 	<div>
-		for _, item := range equipmentBuild.Items {
-			<div>{ item.Id } - { item.SlotId }</div>
-			<img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Tpl) }/>
-		}
+		<h1>Helmet</h1>
+		<img alt="item" st-yle="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", helmet.Tpl) }/>
+		<button class="btn btn-primary" hx-post={ fmt.Sprintf("/gear-preset/%s/%s", equipmentBuild.Id, helmet.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
+			<div id="loader" class="button-loader">
+				<span class="loading loading-spinner"></span>
+				<span class="button-hide">Give all</span>
+			</div>
+		</button>
 	</div>
 }
 
