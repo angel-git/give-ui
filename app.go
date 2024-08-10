@@ -64,6 +64,15 @@ func (a *App) shutdown(ctx context.Context) {
 	// Perform your teardown here
 }
 
+func getErrorComponent(app *App, err string) templ.Component {
+	giveUiError := models.GiveUiError{
+		AppName:    app.name,
+		AppVersion: app.version,
+		Error:      err,
+	}
+	return components.ErrorConnection(giveUiError)
+}
+
 func NewChiRouter(app *App) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -78,11 +87,11 @@ func NewChiRouter(app *App) *chi.Mux {
 
 		serverInfo, err := api.ConnectToSptServer(url)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
 		if serverInfo.ModVersion != app.version {
-			templ.Handler(components.ErrorConnection(app.name, app.version, fmt.Sprintf("Wrong server mod version: %s", serverInfo.ModVersion))).ServeHTTP(w, r)
+			templ.Handler(getErrorComponent(app, fmt.Sprintf("Wrong server mod version: %s", serverInfo.ModVersion))).ServeHTTP(w, r)
 			return
 		}
 		// store initial server info
@@ -91,7 +100,7 @@ func NewChiRouter(app *App) *chi.Mux {
 
 		profiles, err := api.LoadProfiles(url)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
 		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
@@ -105,7 +114,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		locale := app.convertLocale()
 		allItems, err := api.LoadItems(app.ctx.Value(contextUrl).(string), locale)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
 		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
@@ -151,7 +160,7 @@ func NewChiRouter(app *App) *chi.Mux {
 
 		err := api.AddItem(url, sessionId, itemId, amount)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
 	})
 
@@ -162,7 +171,7 @@ func NewChiRouter(app *App) *chi.Mux {
 
 		err := api.AddUserWeapon(url, sessionId, presetId)
 		if err != nil {
-			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
 	})
 
@@ -190,7 +199,7 @@ func NewChiRouter(app *App) *chi.Mux {
 				amount := allItems.Items[itemIdx].MaxStock
 				err := api.AddItem(url, sessionId, item.TemplateId, amount)
 				if err != nil {
-					templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
+					templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 					break
 				}
 			}
