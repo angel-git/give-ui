@@ -63,6 +63,10 @@ export class GiveGearPresetSptCommand implements ISptCommand {
 
         const gearPresetItems = this.itemHelper.findAndReturnChildrenAsItems(equipmentBuild.Items, result[2])
         let itemsToSend = this.cloner.clone(gearPresetItems);
+        if (itemsToSend.length > 0) {
+            // clear slotId from main item so we can accept it in UI
+            itemsToSend[0].slotId = undefined;
+        }
         itemsToSend = this.itemHelper.replaceIDs(itemsToSend);
         this.itemHelper.setFoundInRaid(itemsToSend);
         this.mailSendService.sendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
