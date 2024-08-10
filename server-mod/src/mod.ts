@@ -13,12 +13,15 @@ import {MessageType} from "@spt/models/enums/MessageType";
 import {ISendMessageRequest} from "@spt/models/eft/dialog/ISendMessageRequest";
 import {SptCommandoCommands} from "@spt/helpers/Dialogue/Commando/SptCommandoCommands";
 import {GiveUserPresetSptCommand} from './GiveUserPresetSptCommand';
+import {GiveGearPresetSptCommand} from './GiveGearPresetSptCommand';
 
 class GiveUI implements IPreSptLoadMod {
     public preSptLoad(container: DependencyContainer): void {
 
         container.register<GiveUserPresetSptCommand>("GiveUserPresetSptCommand", GiveUserPresetSptCommand);
+        container.register<GiveGearPresetSptCommand>("GiveGearPresetSptCommand", GiveGearPresetSptCommand);
         container.resolve<SptCommandoCommands>("SptCommandoCommands").registerSptCommandoCommand(container.resolve<GiveUserPresetSptCommand>("GiveUserPresetSptCommand"));
+        container.resolve<SptCommandoCommands>("SptCommandoCommands").registerSptCommandoCommand(container.resolve<GiveGearPresetSptCommand>("GiveGearPresetSptCommand"));
 
         const logger = container.resolve<ILogger>('WinstonLogger');
         const databaseServer = container.resolve<DatabaseServer>('DatabaseServer');
@@ -82,6 +85,21 @@ class GiveUI implements IPreSptLoadMod {
                     url: '/give-ui/give-user-preset',
                     action: (_url, request, sessionId, _output) => {
                         const command = `spt give-user-preset ${request.itemId}`;
+                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
+                        const message: ISendMessageRequest = {
+                            dialogId: sessionId,
+                            type: MessageType.SYSTEM_MESSAGE,
+                            text: command,
+                            replyTo: undefined,
+                        };
+                        const response = commando.handleMessage(sessionId, message);
+                        return Promise.resolve(JSON.stringify({response}));
+                    },
+                },
+                {
+                    url: '/give-ui/give-gear-preset',
+                    action: (_url, request, sessionId, _output) => {
+                        const command = `spt give-gear-preset ${request.presetId} ${request.itemId}`;
                         logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
                         const message: ISendMessageRequest = {
                             dialogId: sessionId,

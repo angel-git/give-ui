@@ -8,3 +8,8 @@ type AddItemRequest struct {
 type AddUserWeaponPresetRequest struct {
 	ItemId string `json:"itemId"`
 }
+
+type AddGearPresetRequest struct {
+	PresetId string `json:"presetId"`
+	ItemId   string `json:"itemId"`
+}
