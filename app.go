@@ -136,7 +136,25 @@ func NewChiRouter(app *App) *chi.Mux {
 		}
 
 		templ.Handler(components.ItemDetail(item, maybePresetId)).ServeHTTP(w, r)
+	})
 
+	// TODO these kind of endpoints maybe shuold be called view something ??
+	r.Get("/gear/{id}", func(w http.ResponseWriter, r *http.Request) {
+		gearId := chi.URLParam(r, "id")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		//allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		allProfiles := app.ctx.Value(contextProfiles).([]models.SPTProfile)
+		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+
+		equipmentBuilds := allProfiles[allProfilesIdx].UserBuilds.EquipmentBuilds
+		equipmentBuildsIdx := slices.IndexFunc(equipmentBuilds, func(i models.EquipmentBuild) bool {
+			return i.Id == gearId
+		})
+
+		templ.Handler(components.GearPreset(equipmentBuilds[equipmentBuildsIdx])).ServeHTTP(w, r)
 	})
 
 	r.Post("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -194,6 +212,18 @@ func NewChiRouter(app *App) *chi.Mux {
 					break
 				}
 			}
+		}
+	})
+
+	r.Post("/gear-preset/{presetId}/{itemId}", func(w http.ResponseWriter, r *http.Request) {
+		presetId := chi.URLParam(r, "presetId")
+		itemId := chi.URLParam(r, "itemId")
+		url := app.ctx.Value(contextUrl).(string)
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		err := api.AddGearPreset(url, sessionId, presetId, itemId)
+		if err != nil {
+			templ.Handler(components.ErrorConnection(app.name, app.version, err.Error())).ServeHTTP(w, r)
 		}
 	})
 

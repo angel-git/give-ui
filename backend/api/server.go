@@ -71,6 +71,15 @@ func AddUserWeapon(url string, sessionId string, presetId string) (e error) {
 	return err
 }
 
+func AddGearPreset(url string, sessionId string, presetId string, itemId string) (e error) {
+	request := models.AddGearPresetRequest{
+		PresetId: presetId,
+		ItemId:   itemId,
+	}
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/give-gear-preset", url), sessionId, request)
+	return err
+}
+
 func getLocaleFromServer(url string, locale string) (*models.Locales, error) {
 	localeBytes, err := util.GetRawBytes(fmt.Sprintf("%s/client/locale/%s", url, locale))
 	if err != nil {

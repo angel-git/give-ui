@@ -381,14 +381,61 @@ templ _GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) {
 			</div>
 		} else {
 			<div class="w-full p-2">
-				<input type="text" autocomplete="off" id="filter-equipment-build-input" placeholder="Filter here" class="input input-bordered w-full max-w-xs"/>
+				<div role="alert" class="alert alert-info p-2">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						class="h-6 w-6 shrink-0 stroke-current"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+						></path>
+					</svg>
+					<span>I'm still working on this feature. For now you can only add your helmet, armor and primary weapon. If you would like to have more stuff let me know in the comments. You can start by selecting your preset in the dropdown below</span>
+				</div>
+				<div class="dropdown">
+					<div tabindex="0" role="button" class="btn m-1">Choose preset here</div>
+					<ul hx-boost="true" tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+						for _, equipmentBuild := range equipmentBuilds {
+							<li><a hx-target="#gear-details" href={ templ.URL(fmt.Sprintf("/gear/%s", equipmentBuild.Id)) }>{ equipmentBuild.Name }</a></li>
+						}
+					</ul>
+				</div>
+				<div id="gear-details" class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto"></div>
 			</div>
-			<div class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto" id="magazine-loadout-list">
-				for _, equipmentBuild := range equipmentBuilds {
-					<div>Id: { equipmentBuild.Id }</div>
-					<div>Name: { equipmentBuild.Name }</div>
-				}
+		}
+	</div>
+}
+
+func findBySlotId(items []models.Item, slotId string) models.Item {
+	for _, item := range items {
+		if item.SlotId == slotId {
+			return item
+		}
+	}
+	return models.Item{}
+}
+
+templ GearPreset(equipmentBuild models.EquipmentBuild) {
+	{{ backpack := findBySlotId(equipmentBuild.Items, "Backpack") }}
+	<div>
+		<h1>Backpack!!!</h1>
+		<img alt="item" st-yle="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", backpack.Tpl) }/>
+		<button class="btn btn-primary" hx-post={ fmt.Sprintf("/gear-preset/%s/%s", equipmentBuild.Id, backpack.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
+			<div id="loader" class="button-loader">
+				<span class="loading loading-spinner"></span>
+				<span class="button-hide">Give all</span>
 			</div>
+		</button>
+	</div>
+	<div>
+		for _, item := range equipmentBuild.Items {
+			<div>{ item.Id } - { item.SlotId }</div>
+			<img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Tpl) }/>
 		}
 	</div>
 }
