@@ -6,6 +6,13 @@ import (
 	"spt-give-ui/backend/logger"
 )
 
+const (
+	defaultTheme = "mytheme"
+	lightTheme   = "retro"
+	localeDbKey  = "locale"
+	themeDbKey   = "theme"
+)
+
 type Config struct {
 	errorLogger *logger.ErrorFileLogger
 	db          *bbolt.DB
@@ -16,16 +23,16 @@ type Config struct {
 func LoadConfig() *Config {
 	errorLogger := logger.SetupLogger()
 	db := database.CreateDatabase()
-	locale := database.GetValue(db, "locale")
+	locale := database.GetValue(db, localeDbKey)
 	if locale == "" {
 		locale = "English"
-		database.SaveValue(db, "locale", locale)
+		database.SaveValue(db, localeDbKey, locale)
 	}
 
-	theme := database.GetValue(db, "theme")
+	theme := database.GetValue(db, themeDbKey)
 	if theme == "" {
-		theme = "mytheme"
-		database.SaveValue(db, "theme", theme)
+		theme = defaultTheme
+		database.SaveValue(db, theme, theme)
 	}
 
 	return &Config{
@@ -39,7 +46,27 @@ func LoadConfig() *Config {
 func (c *Config) SetLocale(locale string) {
 	// write in database AND refresh config
 	c.locale = locale
-	database.SaveValue(c.db, "locale", locale)
+	database.SaveValue(c.db, localeDbKey, locale)
+}
+
+func (c *Config) SwitchTheme() {
+	// write in database AND refresh config
+	newTheme := ""
+	if c.theme == defaultTheme {
+		newTheme = lightTheme
+	} else {
+		newTheme = defaultTheme
+	}
+	c.theme = newTheme
+	database.SaveValue(c.db, themeDbKey, newTheme)
+}
+
+func (c *Config) GetLocale() string {
+	return c.locale
+}
+
+func (c *Config) GetTheme() string {
+	return c.theme
 }
 
 func (c *Config) Close() error {
@@ -48,8 +75,4 @@ func (c *Config) Close() error {
 		return err
 	}
 	return c.errorLogger.Close()
-}
-
-func (c *Config) GetLocale() string {
-	return c.locale
 }
