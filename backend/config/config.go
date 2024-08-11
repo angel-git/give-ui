@@ -7,10 +7,11 @@ import (
 )
 
 const (
-	defaultTheme = "mytheme"
-	lightTheme   = "retro"
-	localeDbKey  = "locale"
-	themeDbKey   = "theme"
+	defaultTheme  = "mytheme"
+	lightTheme    = "retro"
+	localeDbKey   = "locale"
+	themeDbKey    = "theme"
+	sptSeverDbKey = "sptUrl"
 )
 
 type Config struct {
@@ -18,6 +19,7 @@ type Config struct {
 	db          *bbolt.DB
 	locale      string
 	theme       string
+	sptUrl      string
 }
 
 func LoadConfig() *Config {
@@ -35,22 +37,26 @@ func LoadConfig() *Config {
 		database.SaveValue(db, theme, theme)
 	}
 
+	sptUrl := database.GetValue(db, sptSeverDbKey)
+	if sptUrl == "" {
+		sptUrl = "http://127.0.0.1:6969"
+		database.SaveValue(db, sptSeverDbKey, sptUrl)
+	}
 	return &Config{
 		errorLogger: errorLogger,
 		db:          db,
 		locale:      locale,
 		theme:       theme,
+		sptUrl:      sptUrl,
 	}
 }
 
 func (c *Config) SetLocale(locale string) {
-	// write in database AND refresh config
 	c.locale = locale
 	database.SaveValue(c.db, localeDbKey, locale)
 }
 
 func (c *Config) SwitchTheme() {
-	// write in database AND refresh config
 	newTheme := ""
 	if c.theme == defaultTheme {
 		newTheme = lightTheme
@@ -61,12 +67,21 @@ func (c *Config) SwitchTheme() {
 	database.SaveValue(c.db, themeDbKey, newTheme)
 }
 
+func (c *Config) SetSptUrl(url string) {
+	c.sptUrl = url
+	database.SaveValue(c.db, sptSeverDbKey, url)
+}
+
 func (c *Config) GetLocale() string {
 	return c.locale
 }
 
 func (c *Config) GetTheme() string {
 	return c.theme
+}
+
+func (c *Config) GetSptUrl() string {
+	return c.sptUrl
 }
 
 func (c *Config) Close() error {

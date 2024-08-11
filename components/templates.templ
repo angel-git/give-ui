@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-templ LoginPage(appName string, appVersion string, currentTheme string) {
+templ LoginPage(appName string, appVersion string, currentTheme string, sptUrl string) {
 	<div id="main" class="w-full h-full p-2 overflow-y-auto">
 		@_AppHeader(appName, appVersion)
 		<div class="card align-middle mx-auto bg-base-200 w-full max-w-md shadow-2xl">
@@ -17,7 +17,7 @@ templ LoginPage(appName string, appVersion string, currentTheme string) {
 					<label class="label">
 						<span class="label-text">SPT URL</span>
 					</label>
-					<input type="text" name="url" value="http://127.0.0.1:6969" class="input input-bordered" required/>
+					<input type="text" name="url" value={ sptUrl } class="input input-bordered" required/>
 				</div>
 				<div class="form-control mt-6">
 					<button class="btn btn-primary">CONNECT</button>

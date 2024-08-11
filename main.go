@@ -11,6 +11,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
+	runtimeWails "github.com/wailsapp/wails/v2/pkg/runtime"
 	"log"
 	"net/http"
 	"runtime"
@@ -127,4 +128,22 @@ func (a *App) makeMenu() {
 func addRadio(label string, selected string, click menu.Callback) *menu.MenuItem {
 	item := menu.Radio(label, label == selected, nil, click)
 	return item
+}
+
+func (a *App) setLocale(data *menu.CallbackData) {
+	if a.config.GetLocale() == data.MenuItem.Label {
+		return
+	}
+	a.config.SetLocale(data.MenuItem.Label)
+	for _, localeMenu := range a.localeMenu.Items {
+		localeMenu.Checked = false
+	}
+	data.MenuItem.Checked = true
+
+	// refresh menu with the selected locale
+	runtimeWails.MenuSetApplicationMenu(a.ctx, a.menu)
+	runtimeWails.MenuUpdateApplicationMenu(a.ctx)
+
+	// refresh to main screen
+	runtimeWails.WindowReloadApp(a.ctx)
 }

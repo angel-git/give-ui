@@ -7,11 +7,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/wailsapp/wails/v2/pkg/menu"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"net/http"
 	"slices"
 	"spt-give-ui/backend/api"
 	"spt-give-ui/backend/config"
+	"spt-give-ui/backend/locale"
 	"spt-give-ui/backend/logger"
 	"spt-give-ui/backend/models"
 	"spt-give-ui/components"
@@ -19,10 +19,8 @@ import (
 
 // ctx variables
 const contextSessionId = "sessionId"
-const contextUrl = "url"
 const contextProfiles = "profiles"
 const contextAllItems = "allItems"
-const contextServerInfo = "serverInfo"
 
 // App struct
 type App struct {
@@ -87,7 +85,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/initial", func(w http.ResponseWriter, r *http.Request) {
-		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme())).ServeHTTP(w, r)
+		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
 	})
 
 	r.Post("/theme", func(w http.ResponseWriter, r *http.Request) {
@@ -95,8 +93,8 @@ func NewChiRouter(app *App) *chi.Mux {
 	})
 
 	r.Post("/connect", func(w http.ResponseWriter, r *http.Request) {
-		url := r.FormValue(contextUrl)
-
+		url := r.FormValue("url")
+		app.config.SetSptUrl(url)
 		serverInfo, err := api.ConnectToSptServer(url)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
@@ -106,9 +104,6 @@ func NewChiRouter(app *App) *chi.Mux {
 			templ.Handler(getErrorComponent(app, fmt.Sprintf("Wrong server mod version: %s", serverInfo.ModVersion))).ServeHTTP(w, r)
 			return
 		}
-		// store initial server info
-		app.ctx = context.WithValue(app.ctx, contextServerInfo, serverInfo)
-		app.ctx = context.WithValue(app.ctx, contextUrl, url)
 
 		profiles, err := api.LoadProfiles(url)
 		if err != nil {
@@ -123,8 +118,8 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/connect/{id}", func(w http.ResponseWriter, r *http.Request) {
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
-		locale := app.convertLocale()
-		allItems, err := api.LoadItems(app.ctx.Value(contextUrl).(string), locale)
+		localeCode := locale.ConvertLocale(app.config.GetLocale())
+		allItems, err := api.LoadItems(app.config.GetSptUrl(), localeCode)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
@@ -162,7 +157,6 @@ func NewChiRouter(app *App) *chi.Mux {
 
 	r.Post("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
 		itemId := chi.URLParam(r, "id")
-		url := app.ctx.Value(contextUrl).(string)
 		sessionId := app.ctx.Value(contextSessionId).(string)
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
 		itemIdx := slices.IndexFunc(allItems.Items, func(i models.ViewItem) bool {
@@ -170,7 +164,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		})
 		amount := allItems.Items[itemIdx].MaxStock
 
-		err := api.AddItem(url, sessionId, itemId, amount)
+		err := api.AddItem(app.config.GetSptUrl(), sessionId, itemId, amount)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
@@ -178,10 +172,9 @@ func NewChiRouter(app *App) *chi.Mux {
 
 	r.Post("/user-weapons/{id}", func(w http.ResponseWriter, r *http.Request) {
 		presetId := chi.URLParam(r, "id")
-		url := app.ctx.Value(contextUrl).(string)
 		sessionId := app.ctx.Value(contextSessionId).(string)
 
-		err := api.AddUserWeapon(url, sessionId, presetId)
+		err := api.AddUserWeapon(app.config.GetSptUrl(), sessionId, presetId)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
@@ -191,7 +184,6 @@ func NewChiRouter(app *App) *chi.Mux {
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", func(w http.ResponseWriter, r *http.Request) {
 		magazineLoadoutId := chi.URLParam(r, "id")
-		url := app.ctx.Value(contextUrl).(string)
 		sessionId := app.ctx.Value(contextSessionId).(string)
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
 
@@ -211,7 +203,7 @@ func NewChiRouter(app *App) *chi.Mux {
 					return i.Id == item.TemplateId
 				})
 				amount := allItems.Items[itemIdx].MaxStock
-				err := api.AddItem(url, sessionId, item.TemplateId, amount)
+				err := api.AddItem(app.config.GetSptUrl(), sessionId, item.TemplateId, amount)
 				if err != nil {
 					templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 					break
@@ -221,61 +213,4 @@ func NewChiRouter(app *App) *chi.Mux {
 	})
 
 	return r
-}
-
-func (a *App) setLocale(data *menu.CallbackData) {
-	if a.config.GetLocale() == data.MenuItem.Label {
-		return
-	}
-	a.config.SetLocale(data.MenuItem.Label)
-	for _, localeMenu := range a.localeMenu.Items {
-		localeMenu.Checked = false
-	}
-	data.MenuItem.Checked = true
-
-	// refresh menu with the selected locale
-	runtime.MenuSetApplicationMenu(a.ctx, a.menu)
-	runtime.MenuUpdateApplicationMenu(a.ctx)
-
-	// refresh to main screen
-	runtime.WindowReloadApp(a.ctx)
-}
-
-func (a *App) convertLocale() string {
-	switch a.config.GetLocale() {
-	case "English":
-		return "en"
-	case "Czech":
-		return "cz"
-	case "French":
-		return "fr"
-	case "German":
-		return "ge"
-	case "Hungarian":
-		return "hu"
-	case "Italian":
-		return "it"
-	case "Japanese":
-		return "jp"
-	case "Korean":
-		return "kr"
-	case "Polish":
-		return "pl"
-	case "Portuguese":
-		return "po"
-	case "Slovak":
-		return "sk"
-	case "Spanish":
-		return "es"
-	case "Spanish - Mexico":
-		return "es-mx"
-	case "Turkish":
-		return "tu"
-	case "Romanian":
-		return "ro"
-	case "Русский":
-		return "ru"
-	default:
-		return "en"
-	}
 }
