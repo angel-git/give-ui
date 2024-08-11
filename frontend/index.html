@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="mytheme">
 
 <head>
     <meta charset="UTF-8"/>
@@ -11,7 +11,9 @@
 
 <body>
 <div id="app">
-    <div id="initial" hx-get="/initial" hx-trigger="load" hx-target="#app" hx-swap="innerHTML"></div>
+    <div id="app-inner" class="flex flex-col h-full justify-between">
+        <div id="initial" hx-get="/initial" hx-trigger="load" hx-target="#app-inner"></div>
+    </div>
 </div>
 </body>
 </html>
