@@ -11,7 +11,7 @@ module.exports = {
   plugins: [require("daisyui")],
   daisyui: {
     logs: false,
-    themes: [
+    themes: ["retro",
       {
         mytheme: {
           "primary": "#9A8866FF",
