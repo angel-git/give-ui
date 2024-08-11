@@ -1,6 +1,19 @@
 package models
 
-type SPTProfileInfo struct {
+type PmcInfo struct {
+	Nickname string `json:"Nickname"`
+}
+
+type Pmc struct {
+	Info     PmcInfo  `json:"Info"`
+	WishList []string `json:"WishList"`
+}
+
+type Characters struct {
+	Pmc Pmc `json:"pmc"`
+}
+
+type Info struct {
 	Id       string `json:"id"`
 	Username string `json:"username"`
 }
@@ -34,6 +47,7 @@ type UserBuilds struct {
 }
 
 type SPTProfile struct {
-	Info       SPTProfileInfo `json:"info"`
-	UserBuilds UserBuilds     `json:"userbuilds"`
+	Info       Info       `json:"info"`
+	Characters Characters `json:"characters"`
+	UserBuilds UserBuilds `json:"userbuilds"`
 }
