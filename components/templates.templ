@@ -29,14 +29,12 @@ templ LoginPage(appName string, appVersion string) {
 }
 
 templ ErrorConnection(e models.GiveUiError) {
-	if e.AppName != "" && e.AppVersion != "" {
-		@_AppHeader(e.AppName, e.AppVersion)
-	}
+	@_AppHeader(e.AppName, e.AppVersion)
 	<div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
 		<div class="card-body">
 			<h2 class="text-error">Connection Error</h2>
 			<div>Please check SPT Server is running, the connection details are correct and the mod is installed in your user folder</div>
-			<div>Details: { e.Error }</div>
+			<pre class="text-xs whitespace-normal">{ e.Error }</pre>
 			<button class="btn btn-primary btn-outline" onclick="location.reload()">Go back</button>
 		</div>
 	</div>
