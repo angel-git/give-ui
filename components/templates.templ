@@ -85,7 +85,7 @@ templ ItemsList(appName string, appVersion string, allItems *models.AllItems, pr
 
 templ ItemDetail(item models.ViewItem, maybePresetId string) {
 	<div class="card w-full">
-		<figure class="item-background min-h-[6rem] p-4">
+		<figure class="bg-base-300 min-h-[6rem] p-4">
 			if maybePresetId != "" {
 				<img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
 			} else {
@@ -269,7 +269,7 @@ templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild,
 										<h3 class="text-lg font-bold">{ weaponBuild.Name }</h3>
 										<div class="py-4 flex flex-wrap gap-4">
 											for _, item := range weaponBuild.Items {
-												<div class="bg-base-300">
+												<div class="border border-base-300 p-1">
 													<img alt="item" style="max-height: 60px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Tpl) }/>
 												</div>
 											}

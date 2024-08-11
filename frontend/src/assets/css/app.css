@@ -30,12 +30,6 @@ body {
   text-align: center;
 }
 
-.item-background {
-  background-image: url("../images/background.png");
-  background-size: cover;
-  background-repeat: no-repeat;
-}
-
  /* <div id="loader" class="button-loader">
             <span class="loading loading-spinner"></span>
             <span class="button-hide">Give</span>

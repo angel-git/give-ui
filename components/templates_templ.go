@@ -253,7 +253,7 @@ func ItemDetail(item models.ViewItem, maybePresetId string) templ.Component {
 			templ_7745c5c3_Var10 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"card w-full\"><figure class=\"item-background min-h-[6rem] p-4\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"card w-full\"><figure class=\"bg-base-300 min-h-[6rem] p-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -606,7 +606,7 @@ func _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild, 
 					return templ_7745c5c3_Err
 				}
 				for _, item := range weaponBuild.Items {
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"bg-base-300\"><img alt=\"item\" style=\"max-height: 60px\" src=\"")
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"border border-base-300 p-1\"><img alt=\"item\" style=\"max-height: 60px\" src=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
