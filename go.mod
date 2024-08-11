@@ -9,6 +9,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/tidwall/gjson v1.9.3
 	github.com/wailsapp/wails/v2 v2.9.1
+	go.etcd.io/bbolt v1.3.10
 )
 
 require (
