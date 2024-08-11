@@ -21,7 +21,6 @@ import (
 const contextSessionId = "sessionId"
 const contextProfiles = "profiles"
 const contextAllItems = "allItems"
-const contextServerInfo = "serverInfo"
 
 // App struct
 type App struct {
@@ -105,8 +104,6 @@ func NewChiRouter(app *App) *chi.Mux {
 			templ.Handler(getErrorComponent(app, fmt.Sprintf("Wrong server mod version: %s", serverInfo.ModVersion))).ServeHTTP(w, r)
 			return
 		}
-		// store initial server info
-		app.ctx = context.WithValue(app.ctx, contextServerInfo, serverInfo)
 
 		profiles, err := api.LoadProfiles(url)
 		if err != nil {
