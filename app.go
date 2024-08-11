@@ -7,11 +7,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/wailsapp/wails/v2/pkg/menu"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"net/http"
 	"slices"
 	"spt-give-ui/backend/api"
 	"spt-give-ui/backend/config"
+	"spt-give-ui/backend/locale"
 	"spt-give-ui/backend/logger"
 	"spt-give-ui/backend/models"
 	"spt-give-ui/components"
@@ -121,8 +121,8 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/connect/{id}", func(w http.ResponseWriter, r *http.Request) {
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
-		locale := app.convertLocale()
-		allItems, err := api.LoadItems(app.config.GetSptUrl(), locale)
+		localeCode := locale.ConvertLocale(app.config.GetLocale())
+		allItems, err := api.LoadItems(app.config.GetSptUrl(), localeCode)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
@@ -216,61 +216,4 @@ func NewChiRouter(app *App) *chi.Mux {
 	})
 
 	return r
-}
-
-func (a *App) setLocale(data *menu.CallbackData) {
-	if a.config.GetLocale() == data.MenuItem.Label {
-		return
-	}
-	a.config.SetLocale(data.MenuItem.Label)
-	for _, localeMenu := range a.localeMenu.Items {
-		localeMenu.Checked = false
-	}
-	data.MenuItem.Checked = true
-
-	// refresh menu with the selected locale
-	runtime.MenuSetApplicationMenu(a.ctx, a.menu)
-	runtime.MenuUpdateApplicationMenu(a.ctx)
-
-	// refresh to main screen
-	runtime.WindowReloadApp(a.ctx)
-}
-
-func (a *App) convertLocale() string {
-	switch a.config.GetLocale() {
-	case "English":
-		return "en"
-	case "Czech":
-		return "cz"
-	case "French":
-		return "fr"
-	case "German":
-		return "ge"
-	case "Hungarian":
-		return "hu"
-	case "Italian":
-		return "it"
-	case "Japanese":
-		return "jp"
-	case "Korean":
-		return "kr"
-	case "Polish":
-		return "pl"
-	case "Portuguese":
-		return "po"
-	case "Slovak":
-		return "sk"
-	case "Spanish":
-		return "es"
-	case "Spanish - Mexico":
-		return "es-mx"
-	case "Turkish":
-		return "tu"
-	case "Romanian":
-		return "ro"
-	case "Русский":
-		return "ru"
-	default:
-		return "en"
-	}
 }
