@@ -3,15 +3,18 @@ package config
 import (
 	"go.etcd.io/bbolt"
 	"spt-give-ui/backend/database"
+	"spt-give-ui/backend/logger"
 )
 
 type Config struct {
-	db     *bbolt.DB
-	locale string
-	theme  string
+	errorLogger *logger.ErrorFileLogger
+	db          *bbolt.DB
+	locale      string
+	theme       string
 }
 
 func LoadConfig() *Config {
+	errorLogger := logger.SetupLogger()
 	db := database.CreateDatabase()
 	locale := database.GetValue(db, "locale")
 	if locale == "" {
@@ -26,9 +29,10 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		db:     db,
-		locale: locale,
-		theme:  theme,
+		errorLogger: errorLogger,
+		db:          db,
+		locale:      locale,
+		theme:       theme,
 	}
 }
 
@@ -39,7 +43,11 @@ func (c *Config) SetLocale(locale string) {
 }
 
 func (c *Config) Close() error {
-	return c.db.Close()
+	err := c.db.Close()
+	if err != nil {
+		return err
+	}
+	return c.errorLogger.Close()
 }
 
 func (c *Config) GetLocale() string {

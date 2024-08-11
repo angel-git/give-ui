@@ -12,6 +12,7 @@ import (
 	"slices"
 	"spt-give-ui/backend/api"
 	"spt-give-ui/backend/config"
+	"spt-give-ui/backend/logger"
 	"spt-give-ui/backend/models"
 	"spt-give-ui/components"
 )
@@ -35,6 +36,7 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp(name string, version string) *App {
+	logger.SetupLogger()
 	a := &App{
 		name:    name,
 		version: version,
