@@ -104,21 +104,27 @@ func (a *App) makeMenu() {
 	if runtime.GOOS == "darwin" {
 		a.menu.Append(menu.AppMenu())
 	}
+	localeFromConfig := a.config.GetLocale()
 	a.localeMenu = a.menu.AddSubmenu("Locale")
-	a.localeMenu.AddRadio("English", true, nil, a.setLocale)
-	a.localeMenu.AddRadio("Czech", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("French", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("German", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Hungarian", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Italian", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Japanese", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Korean", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Polish", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Portuguese", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Slovak", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Spanish", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Spanish - Mexico", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Turkish", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Romanian", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Русский", false, nil, a.setLocale)
+	a.localeMenu.Append(addRadio("English", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Czech", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("French", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("German", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Hungarian", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Italian", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Japanese", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Korean", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Polish", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Portuguese", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Slovak", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Spanish", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Spanish - Mexico", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Turkish", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Romanian", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Русский", localeFromConfig, a.setLocale))
+}
+
+func addRadio(label string, selected string, click menu.Callback) *menu.MenuItem {
+	item := menu.Radio(label, label == selected, nil, click)
+	return item
 }
