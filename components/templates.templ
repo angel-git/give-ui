@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-templ LoginPage(appName string, appVersion string) {
-	<div id="main" class="w-full h-full p-2">
+templ LoginPage(appName string, appVersion string, currentTheme string) {
+	<div id="main" class="w-full h-full p-2 overflow-y-auto">
 		@_AppHeader(appName, appVersion)
 		<div class="card align-middle mx-auto bg-base-200 w-full max-w-md shadow-2xl">
 			<form class="card-body" hx-post="/connect" hx-target="#main" hx-swap="innerHTML" hx-indicator="#loader" hx-disabled-elt="find button">
@@ -26,6 +26,7 @@ templ LoginPage(appName string, appVersion string) {
 			</form>
 		</div>
 	</div>
+	@_AppFooter(appName, appVersion, currentTheme)
 }
 
 templ ErrorConnection(e models.GiveUiError) {
@@ -65,7 +66,14 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	</div>
 }
 
-templ ItemsList(appName string, appVersion string, allItems *models.AllItems, profile models.SPTProfile) {
+templ MainPage(appName string, appVersion string, allItems *models.AllItems, profile *models.SPTProfile) {
+	@templ.JSONScript("profile-selected-username", profile.Info.Username)
+	@templ.JSONScript("profile-selected-nickname", profile.Characters.Pmc.Info.Nickname)
+	<script>
+        const username = JSON.parse(document.getElementById("profile-selected-username").textContent);
+        const nickname = JSON.parse(document.getElementById("profile-selected-nickname").textContent);
+        document.getElementById('profile-selected').innerText = ": " + username + " - " + nickname;
+    </script>
 	<div class="flex flex-col h-full justify-between">
 		<div role="tablist" class="tabs tabs-bordered tabs-lg overflow-y-auto flex-1">
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Items" checked="checked"/>
@@ -76,9 +84,6 @@ templ ItemsList(appName string, appVersion string, allItems *models.AllItems, pr
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@_UserWeapons(allItems, profile.UserBuilds.WeaponBuilds, profile.Info.Id)
 			</div>
-		</div>
-		<div class="pt-1 border-t-2 border-t-base-200">
-			@_AppFooter(appName, appVersion, profile)
 		</div>
 	</div>
 }
@@ -391,6 +396,48 @@ templ _AppHeader(appName string, appVersion string) {
 	<h1 class="mb-4">{ strings.ToUpper(appName) } v{ appVersion }</h1>
 }
 
-templ _AppFooter(appName string, appVersion string, profile models.SPTProfile) {
-	<p class="text-xs text-left">{ strings.ToUpper(appName) } v{ appVersion }: { profile.Info.Username } - { profile.Characters.Pmc.Info.Nickname }</p>
+templ _AppFooter(appName string, appVersion string, currentTheme string) {
+	<div class="pt-1 border-t-2 border-t-base-200">
+		<div class="flex justify-between items-center p-1">
+			<p class="text-xs text-left">{ strings.ToUpper(appName) } v{ appVersion }<span id="profile-selected"></span></p>
+			@_ThemeSwitcher(currentTheme)
+		</div>
+	</div>
+}
+
+templ _ThemeSwitcher(currentTheme string) {
+	<div class="scale-75">
+		<label class="flex cursor-pointer gap-2 items-center">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="20"
+				height="20"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+			</svg>
+			<input type="checkbox" value="retro" checked?={ currentTheme == "retro" } class="toggle theme-controller" hx-post="/theme" hx-target="#main" hx-trigger="change"/>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="20"
+				height="20"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<circle cx="12" cy="12" r="5"></circle>
+				<path
+					d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"
+				></path>
+			</svg>
+		</label>
+	</div>
 }

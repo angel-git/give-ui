@@ -87,7 +87,11 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/initial", func(w http.ResponseWriter, r *http.Request) {
-		templ.Handler(components.LoginPage(app.name, app.version)).ServeHTTP(w, r)
+		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme())).ServeHTTP(w, r)
+	})
+
+	r.Post("/theme", func(w http.ResponseWriter, r *http.Request) {
+		app.config.SwitchTheme()
 	})
 
 	r.Post("/connect", func(w http.ResponseWriter, r *http.Request) {
@@ -133,7 +137,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		})
 		profile := allProfiles[allProfilesIdx]
 
-		templ.Handler(components.ItemsList(app.name, app.version, allItems, profile)).ServeHTTP(w, r)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, &profile)).ServeHTTP(w, r)
 	})
 
 	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
