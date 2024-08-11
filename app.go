@@ -19,7 +19,6 @@ import (
 
 // ctx variables
 const contextSessionId = "sessionId"
-const contextUrl = "url"
 const contextProfiles = "profiles"
 const contextAllItems = "allItems"
 const contextServerInfo = "serverInfo"
@@ -87,7 +86,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/initial", func(w http.ResponseWriter, r *http.Request) {
-		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme())).ServeHTTP(w, r)
+		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
 	})
 
 	r.Post("/theme", func(w http.ResponseWriter, r *http.Request) {
@@ -95,8 +94,8 @@ func NewChiRouter(app *App) *chi.Mux {
 	})
 
 	r.Post("/connect", func(w http.ResponseWriter, r *http.Request) {
-		url := r.FormValue(contextUrl)
-
+		url := r.FormValue("url")
+		app.config.SetSptUrl(url)
 		serverInfo, err := api.ConnectToSptServer(url)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
@@ -108,7 +107,6 @@ func NewChiRouter(app *App) *chi.Mux {
 		}
 		// store initial server info
 		app.ctx = context.WithValue(app.ctx, contextServerInfo, serverInfo)
-		app.ctx = context.WithValue(app.ctx, contextUrl, url)
 
 		profiles, err := api.LoadProfiles(url)
 		if err != nil {
@@ -124,7 +122,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
 		locale := app.convertLocale()
-		allItems, err := api.LoadItems(app.ctx.Value(contextUrl).(string), locale)
+		allItems, err := api.LoadItems(app.config.GetSptUrl(), locale)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
@@ -162,7 +160,6 @@ func NewChiRouter(app *App) *chi.Mux {
 
 	r.Post("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
 		itemId := chi.URLParam(r, "id")
-		url := app.ctx.Value(contextUrl).(string)
 		sessionId := app.ctx.Value(contextSessionId).(string)
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
 		itemIdx := slices.IndexFunc(allItems.Items, func(i models.ViewItem) bool {
@@ -170,7 +167,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		})
 		amount := allItems.Items[itemIdx].MaxStock
 
-		err := api.AddItem(url, sessionId, itemId, amount)
+		err := api.AddItem(app.config.GetSptUrl(), sessionId, itemId, amount)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
@@ -178,10 +175,9 @@ func NewChiRouter(app *App) *chi.Mux {
 
 	r.Post("/user-weapons/{id}", func(w http.ResponseWriter, r *http.Request) {
 		presetId := chi.URLParam(r, "id")
-		url := app.ctx.Value(contextUrl).(string)
 		sessionId := app.ctx.Value(contextSessionId).(string)
 
-		err := api.AddUserWeapon(url, sessionId, presetId)
+		err := api.AddUserWeapon(app.config.GetSptUrl(), sessionId, presetId)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
@@ -191,7 +187,6 @@ func NewChiRouter(app *App) *chi.Mux {
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", func(w http.ResponseWriter, r *http.Request) {
 		magazineLoadoutId := chi.URLParam(r, "id")
-		url := app.ctx.Value(contextUrl).(string)
 		sessionId := app.ctx.Value(contextSessionId).(string)
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
 
@@ -211,7 +206,7 @@ func NewChiRouter(app *App) *chi.Mux {
 					return i.Id == item.TemplateId
 				})
 				amount := allItems.Items[itemIdx].MaxStock
-				err := api.AddItem(url, sessionId, item.TemplateId, amount)
+				err := api.AddItem(app.config.GetSptUrl(), sessionId, item.TemplateId, amount)
 				if err != nil {
 					templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 					break
