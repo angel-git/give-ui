@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"slices"
 	"spt-give-ui/backend/api"
+	"spt-give-ui/backend/config"
+	"spt-give-ui/backend/logger"
 	"spt-give-ui/backend/models"
 	"spt-give-ui/components"
 )
@@ -24,8 +26,8 @@ const contextServerInfo = "serverInfo"
 
 // App struct
 type App struct {
+	config     *config.Config
 	ctx        context.Context
-	language   string
 	localeMenu *menu.Menu
 	menu       *menu.Menu
 	name       string
@@ -34,11 +36,13 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp(name string, version string) *App {
-	return &App{
-		language: "en",
-		name:     name,
-		version:  version,
+	logger.SetupLogger()
+	a := &App{
+		name:    name,
+		version: version,
 	}
+	a.config = config.LoadConfig()
+	return a
 }
 
 // startup is called at application startup
@@ -62,6 +66,10 @@ func (a *App) beforeClose(ctx context.Context) (prevent bool) {
 // shutdown is called at application termination
 func (a *App) shutdown(ctx context.Context) {
 	// Perform your teardown here
+	err := a.config.Close()
+	if err != nil {
+		panic("Can't close connection to database: " + err.Error())
+	}
 }
 
 func getErrorComponent(app *App, err string) templ.Component {
@@ -212,10 +220,10 @@ func NewChiRouter(app *App) *chi.Mux {
 }
 
 func (a *App) setLocale(data *menu.CallbackData) {
-	if a.language == data.MenuItem.Label {
+	if a.config.GetLocale() == data.MenuItem.Label {
 		return
 	}
-	a.language = data.MenuItem.Label
+	a.config.SetLocale(data.MenuItem.Label)
 	for _, localeMenu := range a.localeMenu.Items {
 		localeMenu.Checked = false
 	}
@@ -230,7 +238,7 @@ func (a *App) setLocale(data *menu.CallbackData) {
 }
 
 func (a *App) convertLocale() string {
-	switch a.language {
+	switch a.config.GetLocale() {
 	case "English":
 		return "en"
 	case "Czech":
