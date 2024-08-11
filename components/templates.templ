@@ -76,10 +76,6 @@ templ ItemsList(appName string, appVersion string, allItems *models.AllItems, pr
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@_UserWeapons(allItems, profile.UserBuilds.WeaponBuilds, profile.Info.Id)
 			</div>
-			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Magazine loadouts"/>
-			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@_MagazineLoadouts(profile.UserBuilds.MagazineBuilds, profile.Info.Id)
-			</div>
 		</div>
 		<div class="pt-1 border-t-2 border-t-base-200">
 			@_AppFooter(appName, appVersion, profile)

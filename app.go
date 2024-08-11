@@ -175,6 +175,8 @@ func NewChiRouter(app *App) *chi.Mux {
 		}
 	})
 
+	// this is not used as it is disabled in the template
+	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", func(w http.ResponseWriter, r *http.Request) {
 		magazineLoadoutId := chi.URLParam(r, "id")
 		url := app.ctx.Value(contextUrl).(string)
