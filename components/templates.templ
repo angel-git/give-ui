@@ -228,7 +228,6 @@ templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild,
         function showModal(event) {
             const dialog = document.getElementById(event.getAttribute('data-dialog-target'));
             dialog.showModal();
-            document.activeElement?.blur();
         }
 
     </script>
@@ -284,9 +283,6 @@ templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild,
 							<div class="card-actions justify-end items-end grow">
 								<dialog id={ weaponBuild.Id } class="modal">
 									<div class="modal-box flex flex-col">
-										<form method="dialog">
-											<button tabIndex="-1" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-										</form>
 										<h3 class="text-lg font-bold">{ weaponBuild.Name }</h3>
 										<div class="flex flex-col gap-4 overflow-y-auto">
 											for _, item := range weaponBuild.Items {
@@ -299,6 +295,9 @@ templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild,
 											}
 										</div>
 									</div>
+									<form method="dialog" class="modal-backdrop">
+										<button tabIndex="-1">close</button>
+									</form>
 								</dialog>
 								<button class="btn btn-primary" hx-post={ fmt.Sprintf("/user-weapons/%s", weaponBuild.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
 									<div id="loader" class="button-loader">
