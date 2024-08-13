@@ -138,10 +138,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
 		itemId := chi.URLParam(r, "id")
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
-		itemIdx := slices.IndexFunc(allItems.Items, func(i models.ViewItem) bool {
-			return i.Id == itemId
-		})
-		item := allItems.Items[itemIdx]
+		item := allItems.Items[itemId]
 
 		globalIdx := slices.IndexFunc(allItems.GlobalPresets, func(i models.ViewPreset) bool {
 			return item.Id == i.Encyclopedia
@@ -159,10 +156,7 @@ func NewChiRouter(app *App) *chi.Mux {
 		itemId := chi.URLParam(r, "id")
 		sessionId := app.ctx.Value(contextSessionId).(string)
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
-		itemIdx := slices.IndexFunc(allItems.Items, func(i models.ViewItem) bool {
-			return i.Id == itemId
-		})
-		amount := allItems.Items[itemIdx].MaxStock
+		amount := allItems.Items[itemId].MaxStock
 
 		err := api.AddItem(app.config.GetSptUrl(), sessionId, itemId, amount)
 		if err != nil {
@@ -199,10 +193,7 @@ func NewChiRouter(app *App) *chi.Mux {
 
 		for _, item := range magazineBuilds[magazineBuildsIdx].Items {
 			if item.TemplateId != "" {
-				itemIdx := slices.IndexFunc(allItems.Items, func(i models.ViewItem) bool {
-					return i.Id == item.TemplateId
-				})
-				amount := allItems.Items[itemIdx].MaxStock
+				amount := allItems.Items[item.TemplateId].MaxStock
 				err := api.AddItem(app.config.GetSptUrl(), sessionId, item.TemplateId, amount)
 				if err != nil {
 					templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)

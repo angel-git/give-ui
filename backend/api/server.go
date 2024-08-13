@@ -102,7 +102,7 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 	const DescriptionFormat = "%s Description"
 	allItems := models.AllItems{
 		Categories:    []string{},
-		Items:         []models.ViewItem{},
+		Items:         map[string]models.ViewItem{},
 		GlobalPresets: []models.ViewPreset{},
 	}
 
@@ -148,15 +148,12 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 			Category:    category,
 			MaxStock:    bsgItem.Props.StackMaxSize,
 		}
-		allItems.Items = append(allItems.Items, viewItem)
+		allItems.Items[viewItem.Id] = viewItem
 		if !slices.Contains(allItems.Categories, category) {
 			allItems.Categories = append(allItems.Categories, category)
 		}
 	}
 	sort.Strings(allItems.Categories)
-	sort.SliceStable(allItems.Items, func(i, j int) bool {
-		return allItems.Items[i].Name < allItems.Items[j].Name
-	})
 	return allItems
 }
 
