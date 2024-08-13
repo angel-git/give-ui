@@ -3,84 +3,108 @@
 @tailwind utilities;
 
 @layer base {
-  h1 {
-    @apply text-2xl;
-  }
-  h2 {
-    @apply text-xl;
-  }
+    h1 {
+        @apply text-2xl;
+    }
+
+    h2 {
+        @apply text-xl;
+    }
 }
 
 body {
-  font-family: "Bender", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-  "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-  sans-serif;
+    font-family: "Bender", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
 }
 
 @font-face {
-  font-family: "Bender";
-  font-style: normal;
-  font-weight: 400;
-  src: local(""),
-  url("../fonts/Bender.woff") format("woff");
+    font-family: "Bender";
+    font-style: normal;
+    font-weight: 400;
+    src: local(""),
+    url("../fonts/Bender.woff") format("woff");
 }
 
 #app {
-  height: 100vh;
-  text-align: center;
+    height: 100vh;
+    text-align: center;
 }
 
- /* <div id="loader" class="button-loader">
-            <span class="loading loading-spinner"></span>
-            <span class="button-hide">Give</span>
-  </div> */
+/* <div id="loader" class="button-loader">
+           <span class="loading loading-spinner"></span>
+           <span class="button-hide">Give</span>
+ </div> */
 .button-loader .loading {
-  display: none;
+    display: none;
 }
+
 .button-loader .button-hide {
-  display: block;
+    display: block;
 }
+
 .htmx-request.button-loader .loading {
-  display: block;
+    display: block;
 }
+
 .htmx-request.button-loader .button-hide {
-  display: none;
+    display: none;
 }
 
 /* override tabs from daisy as per https://github.com/saadeghi/daisyui/issues/2988 */
 .tabs {
-  display: flex;
-  flex-wrap: wrap;
+    display: flex;
+    flex-wrap: wrap;
 }
+
 .tab {
-  order: 0;
+    order: 0;
 }
+
 .tab-content {
-  order: 1;
-  width: 100%;
-  /* this takes into the tab header! */
-  height: calc(100% - 48px);
+    order: 1;
+    width: 100%;
+    /* this takes into the tab header! */
+    height: calc(100% - 48px);
 }
 
 /*fix for summary arrow on Windows webview*/
 summary {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
 }
+
 details > summary {
-  list-style: none;
+    list-style: none;
 }
+
 details > summary::-webkit-details-marker {
-  display: none;
+    display: none;
 }
+
 summary::before {
-  content: "►"; /* Unicode for a right-pointing arrow */
-  display: inline-block;
-  margin-right: 0.5em;
-  transform: rotate(0deg); /* Rotate based on open/closed state */
-  transition: transform 0.1s ease-in-out;
+    content: "►"; /* Unicode for a right-pointing arrow */
+    display: inline-block;
+    margin-right: 0.5em;
+    transform: rotate(0deg); /* Rotate based on open/closed state */
+    transition: transform 0.1s ease-in-out;
 }
+
 details[open] summary::before {
-  transform: rotate(90deg); /* Rotate to a downward arrow when open */
+    transform: rotate(90deg); /* Rotate to a downward arrow when open */
+}
+
+/*override the modal since it's pushing content on windows */
+dialog.modal {
+    display: block;
+    transition-property: opacity, visibility;
+}
+
+/* we don't want the translate effect to show in screen so dialogs are already centered even if they are closed */
+dialog.modal .modal-box {
+    left: 50vw !important;
+    top: 50vh !important;
+    position: fixed !important;
+    transform: translate(-50%, -50%) !important;
 }
