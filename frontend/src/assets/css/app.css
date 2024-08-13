@@ -99,3 +99,7 @@ details[open] summary::before {
 dialog.modal:not([open]) {
     z-index: -1;
 }
+
+:root:has(:is(.modal-open, .modal:target, .modal-toggle:checked + .modal, .modal[open])) {
+    scrollbar-gutter: auto !important;
+}
