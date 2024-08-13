@@ -84,15 +84,15 @@ details > summary::-webkit-details-marker {
 }
 
 summary::before {
-    content: "►"; /* Unicode for a right-pointing arrow */
+    content: "\25B2";
     display: inline-block;
     margin-right: 0.5em;
-    transform: rotate(0deg); /* Rotate based on open/closed state */
+    transform: rotate(90deg); /* Rotate based on open/closed state */
     transition: transform 0.1s ease-in-out;
 }
 
 details[open] summary::before {
-    transform: rotate(90deg); /* Rotate to a downward arrow when open */
+    transform: rotate(180deg); /* Rotate to a downward arrow when open */
 }
 
 /*override the modal since it's pushing content on windows */
