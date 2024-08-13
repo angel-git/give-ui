@@ -94,3 +94,8 @@ summary::before {
 details[open] summary::before {
     transform: rotate(180deg); /* Rotate to a downward arrow when open */
 }
+
+/*fix scrolling issue, if you put mouse on top of it when it's closed you cant scroll */
+dialog.modal:not([open]) {
+    z-index: -1;
+}
