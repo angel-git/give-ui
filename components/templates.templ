@@ -92,9 +92,9 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 	<div class="card w-full">
 		<figure class="bg-base-300 min-h-[6rem] p-4">
 			if maybePresetId != "" {
-				<img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
+				<img alt="item" class="max-h-52" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
 			} else {
-				<img alt="item" style="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
+				<img alt="item" class="max-h-52" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
 			}
 		</figure>
 		<div class="card-body">
@@ -112,7 +112,19 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 	</div>
 }
 
+func sortAndConvertItems(allItems *models.AllItems) []models.ViewItem {
+	itemsSlice := make([]models.ViewItem, 0, len(allItems.Items))
+	for _, item := range allItems.Items {
+		itemsSlice = append(itemsSlice, item)
+	}
+	sort.SliceStable(itemsSlice, func(i, j int) bool {
+		return itemsSlice[i].Name < itemsSlice[j].Name
+	})
+	return itemsSlice
+}
+
 templ _Items(allItems *models.AllItems, sessionId string) {
+	{{ sortedItems := sortAndConvertItems(allItems) }}
 	<script type="text/javascript">
 
         let previousSelectedItem = null;
@@ -171,7 +183,7 @@ templ _Items(allItems *models.AllItems, sessionId string) {
 					<details class="flex flex-col w-full" open>
 						<summary class="flex flex-row-reverse justify-between flex-2 sticky -top-2 bg-base-200 border-b-2 border-white"><h2>{ cat }</h2></summary>
 						<ul data-category={ cat }>
-							for _, i := range allItems.Items {
+							for _, i := range sortedItems {
 								if i.Category == cat {
 									<li class="text-left cursor-pointer hover:bg-primary hover:text-base-content" onclick="selectItem(this)" hx-get={ fmt.Sprintf("/item/%s", i.Id) } hx-trigger="click" hx-target="#item-details" hx-swap="innerHTML"><div>{ i.Name }</div></li>
 								}
@@ -258,11 +270,11 @@ templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild,
 }
 					}}
 					<div class="card bg-base-200 w-72 max-h-96 shadow-xl card-to-filter">
-						<figure class="bg-base-300 min-h-[100px]">
+						<figure class="bg-base-300 h-28">
 							if maybePresetId != "" {
-								<img alt="item" style="max-height: 100px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
+								<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
 							} else {
-								<img alt="item" style="max-height: 100px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", weaponBuild.Items[0].Tpl) }/>
+								<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", weaponBuild.Items[0].Tpl) }/>
 							}
 						</figure>
 						<div class="card-body overflow-y-auto">
@@ -270,18 +282,21 @@ templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild,
 							<button class="w-max p-0 btn btn-link" data-dialog-target={ weaponBuild.Id } onclick="showModal(this)">{ fmt.Sprintf("See %d parts", len(weaponBuild.Items)) }</button>
 							<div class="card-actions justify-end items-end grow">
 								<dialog id={ weaponBuild.Id } class="modal">
-									<div class="modal-box">
+									<div class="modal-box flex flex-col">
 										<h3 class="text-lg font-bold">{ weaponBuild.Name }</h3>
-										<div class="py-4 flex flex-wrap gap-4">
+										<div class="flex flex-col gap-4 overflow-y-auto">
 											for _, item := range weaponBuild.Items {
-												<div class="border border-base-300 p-1">
-													<img alt="item" style="max-height: 60px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Tpl) }/>
+												<div>
+													<div class="w-16 h-16 table-cell align-middle">
+														<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Tpl) }/>
+													</div>
+													<div class="pl-2 text-start table-cell align-middle">{ allItems.Items[item.Tpl].Name }</div>
 												</div>
 											}
 										</div>
 									</div>
 									<form method="dialog" class="modal-backdrop">
-										<button>close</button>
+										<button tabIndex="-1">close</button>
 									</form>
 								</dialog>
 								<button class="btn btn-primary" hx-post={ fmt.Sprintf("/user-weapons/%s", weaponBuild.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
@@ -360,7 +375,7 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild, sessionId strin
 							<div class="flex gap-4 flex-wrap">
 								for _, bullet := range magazineLoadout.Items {
 									if bullet.TemplateId != "" {
-										<img alt="item" style="max-height: 80px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", bullet.TemplateId) }/>
+										<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", bullet.TemplateId) }/>
 									}
 								}
 							</div>
@@ -382,7 +397,7 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild, sessionId strin
 
 templ _AddWorkbenchItem(itemId string) {
 	<div class="flex items-center gap-4">
-		<img alt="item" style="max-height: 80px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", itemId) }/>
+		<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", itemId) }/>
 		<button class="btn btn-primary" hx-post={ fmt.Sprintf("/item/%s", itemId) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
 			<div id="loader" class="button-loader">
 				<span class="loading loading-spinner"></span>

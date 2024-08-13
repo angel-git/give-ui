@@ -16,6 +16,6 @@ type ViewPreset struct {
 
 type AllItems struct {
 	Categories    []string
-	Items         []ViewItem
+	Items         map[string]ViewItem
 	GlobalPresets []ViewPreset
 }
