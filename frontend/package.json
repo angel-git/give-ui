@@ -10,7 +10,7 @@
   },
   "private": true,
   "scripts": {
-    "dev": "bun -b --hot vite",
+    "dev": "bun -b --hot vite --host",
     "build": "bun -b vite build",
     "preview": "bun -b vite preview"
   },
