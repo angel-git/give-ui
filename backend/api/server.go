@@ -119,6 +119,11 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 		if bsgItem.Type == "Node" || bsgItem.Props.IsUnbuyable {
 			continue
 		}
+		// filter test broken items
+		if slices.Contains(getHiddenItems(), bsgItem.Id) {
+			continue
+		}
+
 		var category string
 		var parent = locales.Data[fmt.Sprintf(NameFormat, bsgItem.Parent)]
 		var parentParent = locales.Data[fmt.Sprintf(NameFormat, itemsMap[bsgItem.Parent].Parent)]
@@ -164,5 +169,11 @@ func getHiddenCategories() []string {
 		"63da6da4784a55176c018dba",
 		"566abbb64bdc2d144c8b457d",
 		"566965d44bdc2d814c8b4571",
+	}
+}
+
+func getHiddenItems() []string {
+	return []string{
+		"5ae083b25acfc4001a5fc702",
 	}
 }
