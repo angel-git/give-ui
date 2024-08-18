@@ -1,22 +1,17 @@
 package config
 
 import (
-	"go.etcd.io/bbolt"
 	"spt-give-ui/backend/database"
 	"spt-give-ui/backend/logger"
 )
 
 const (
-	defaultTheme  = "mytheme"
-	lightTheme    = "retro"
-	localeDbKey   = "locale"
-	themeDbKey    = "theme"
-	sptSeverDbKey = "sptUrl"
+	defaultTheme = "mytheme"
+	lightTheme   = "retro"
 )
 
 type Config struct {
 	errorLogger *logger.ErrorFileLogger
-	db          *bbolt.DB
 	locale      string
 	theme       string
 	sptUrl      string
@@ -24,36 +19,24 @@ type Config struct {
 
 func LoadConfig() *Config {
 	errorLogger := logger.SetupLogger()
-	db := database.CreateDatabase()
-	locale := database.GetValue(db, localeDbKey)
-	if locale == "" {
-		locale = "English"
-		database.SaveValue(db, localeDbKey, locale)
+	defaultJsonConfig := database.JsonDatabase{
+		Locale: "English",
+		Theme:  defaultTheme,
+		SptUrl: "http://127.0.0.1:6969",
 	}
-
-	theme := database.GetValue(db, themeDbKey)
-	if theme == "" {
-		theme = defaultTheme
-		database.SaveValue(db, theme, theme)
-	}
-
-	sptUrl := database.GetValue(db, sptSeverDbKey)
-	if sptUrl == "" {
-		sptUrl = "http://127.0.0.1:6969"
-		database.SaveValue(db, sptSeverDbKey, sptUrl)
-	}
+	jsonConfig := database.CreateDatabase(defaultJsonConfig)
 	return &Config{
 		errorLogger: errorLogger,
-		db:          db,
-		locale:      locale,
-		theme:       theme,
-		sptUrl:      sptUrl,
+		//db:          db,
+		locale: jsonConfig.Locale,
+		theme:  jsonConfig.Theme,
+		sptUrl: jsonConfig.SptUrl,
 	}
 }
 
 func (c *Config) SetLocale(locale string) {
 	c.locale = locale
-	database.SaveValue(c.db, localeDbKey, locale)
+	database.SaveValue(database.LocaleDbKey, locale)
 }
 
 func (c *Config) SwitchTheme() {
@@ -64,12 +47,12 @@ func (c *Config) SwitchTheme() {
 		newTheme = defaultTheme
 	}
 	c.theme = newTheme
-	database.SaveValue(c.db, themeDbKey, newTheme)
+	database.SaveValue(database.ThemeDbKey, newTheme)
 }
 
 func (c *Config) SetSptUrl(url string) {
 	c.sptUrl = url
-	database.SaveValue(c.db, sptSeverDbKey, url)
+	database.SaveValue(database.SptSeverDbKey, url)
 }
 
 func (c *Config) GetLocale() string {
@@ -85,9 +68,9 @@ func (c *Config) GetSptUrl() string {
 }
 
 func (c *Config) Close() error {
-	err := c.db.Close()
-	if err != nil {
-		return err
-	}
+	//err := c.db.Close()
+	//if err != nil {
+	//	return err
+	//}
 	return c.errorLogger.Close()
 }

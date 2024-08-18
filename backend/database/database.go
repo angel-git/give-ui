@@ -1,58 +1,64 @@
 package database
 
 import (
-	"go.etcd.io/bbolt"
+	"encoding/json"
 	"log"
+	"os"
 )
 
-const configBucket = "config"
-const dbName = "give-ui.config.db"
-
-func CreateDatabase() *bbolt.DB {
-	db, err := bbolt.Open(dbName, 0600, nil)
-	if err != nil {
-		log.Fatalf("Error opening database: %s", err)
-	}
-	createConfigBucket(db)
-	return db
+type JsonDatabase struct {
+	Locale string `json:"locale"`
+	Theme  string `json:"theme"`
+	SptUrl string `json:"sptUrl"`
 }
 
-func GetValue(db *bbolt.DB, key string) string {
-	var value = ""
-	err := db.View(func(tx *bbolt.Tx) error {
-		b := tx.Bucket([]byte(configBucket))
-		v := b.Get([]byte(key))
-		if v != nil {
-			value = string(v)
+const LocaleDbKey = "locale"
+const ThemeDbKey = "theme"
+const SptSeverDbKey = "sptUrl"
+
+const dbName = "give-ui.config.json"
+
+func CreateDatabase(defaultConfig JsonDatabase) JsonDatabase {
+	file, _ := os.Open(dbName)
+	if file == nil {
+		content, _ := json.Marshal(defaultConfig)
+		err := os.WriteFile(dbName, content, 0600)
+		if err != nil {
+			log.Fatalf("Error creating json config file: %s", err)
 		}
-		return nil
-	})
-	if err != nil {
-		log.Fatalf("Error reading key [%s]: %s", key, err)
+		return defaultConfig
 	}
-	return value
+	defer file.Close()
+
+	content, err := os.ReadFile(dbName)
+	if err != nil {
+		log.Fatalf("Error reading json config file: %s", err)
+	}
+	jsonConfig := JsonDatabase{}
+	err = json.Unmarshal(content, &jsonConfig)
+	if err != nil {
+		log.Fatalf("Error reading json config content: %s", err)
+	}
+
+	return jsonConfig
+
 }
 
-func SaveValue(db *bbolt.DB, key string, value string) {
-	err := db.Update(func(tx *bbolt.Tx) error {
-		b := tx.Bucket([]byte(configBucket))
-		err := b.Put([]byte(key), []byte(value))
-		return err
-	})
+func SaveValue(key string, value string) {
+	content, err := os.ReadFile(dbName)
 	if err != nil {
 		log.Fatalf("Error writing key [%s] with value [%s]: %s", key, value, err)
 	}
-}
-
-func createConfigBucket(db *bbolt.DB) {
-	err := db.Update(func(tx *bbolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(configBucket))
-		if err != nil {
-			return err
-		}
-		return nil
-	})
+	jsonConfig := map[string]any{}
+	err = json.Unmarshal(content, &jsonConfig)
 	if err != nil {
-		log.Fatalf("Error creating the json bucket: %s", err)
+		log.Fatalf("Error writing key [%s] with value [%s]: %s", key, value, err)
 	}
+	jsonConfig[key] = value
+	newContent, err := json.Marshal(jsonConfig)
+	err = os.WriteFile(dbName, newContent, 0600)
+	if err != nil {
+		log.Fatalf("Error writing key [%s] with value [%s]: %s", key, value, err)
+	}
+
 }
