@@ -1,8 +1,8 @@
 package config
 
 import (
-	"spt-give-ui/backend/database"
 	"spt-give-ui/backend/logger"
+	"spt-give-ui/backend/store"
 )
 
 const (
@@ -19,12 +19,12 @@ type Config struct {
 
 func LoadConfig() *Config {
 	errorLogger := logger.SetupLogger()
-	defaultJsonConfig := database.JsonDatabase{
+	defaultJsonConfig := store.JsonDatabase{
 		Locale: "English",
 		Theme:  defaultTheme,
 		SptUrl: "http://127.0.0.1:6969",
 	}
-	jsonConfig := database.CreateDatabase(defaultJsonConfig)
+	jsonConfig := store.CreateDatabase(defaultJsonConfig)
 	return &Config{
 		errorLogger: errorLogger,
 		//db:          db,
@@ -36,7 +36,7 @@ func LoadConfig() *Config {
 
 func (c *Config) SetLocale(locale string) {
 	c.locale = locale
-	database.SaveValue(database.LocaleDbKey, locale)
+	store.SaveValue(store.LocaleDbKey, locale)
 }
 
 func (c *Config) SwitchTheme() {
@@ -47,12 +47,12 @@ func (c *Config) SwitchTheme() {
 		newTheme = defaultTheme
 	}
 	c.theme = newTheme
-	database.SaveValue(database.ThemeDbKey, newTheme)
+	store.SaveValue(store.ThemeDbKey, newTheme)
 }
 
 func (c *Config) SetSptUrl(url string) {
 	c.sptUrl = url
-	database.SaveValue(database.SptSeverDbKey, url)
+	store.SaveValue(store.SptSeverDbKey, url)
 }
 
 func (c *Config) GetLocale() string {
