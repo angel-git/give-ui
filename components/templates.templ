@@ -54,7 +54,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 								<div><strong>{ i.Info.Username }</strong> { i.Characters.Pmc.Info.Nickname }</div>
 								<div class="text-xs">{ i.Info.Id }</div>
 							</div>
-							<button class="btn btn-primary btn-sm" hx-post={ fmt.Sprintf("/connect/%s", i.Info.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="#profile-fieldset" hx-indicator="#loader">
+							<button class="btn btn-primary btn-sm" hx-get={ fmt.Sprintf("/connect/%s", i.Info.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="#profile-fieldset" hx-indicator="#loader">
 								SELECT
 							</button>
 						</li>
