@@ -85,6 +85,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/initial", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
 		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
 	})
 
@@ -115,7 +116,8 @@ func NewChiRouter(app *App) *chi.Mux {
 		templ.Handler(components.ProfileList(app.name, app.version, profiles)).ServeHTTP(w, r)
 	})
 
-	r.Post("/connect/{id}", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/connect/{id}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
 		localeCode := locale.ConvertLocale(app.config.GetLocale())
