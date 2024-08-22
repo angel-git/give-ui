@@ -6,7 +6,7 @@ frontend/dist
 bun*
 
 # config file
-give-ui.config.db
+give-ui.config.json
 # log file
 give-ui.error.log
 
