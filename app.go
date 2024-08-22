@@ -134,7 +134,12 @@ func NewChiRouter(app *App) *chi.Mux {
 		})
 		profile := allProfiles[allProfilesIdx]
 
-		templ.Handler(components.MainPage(app.name, app.version, allItems, &profile)).ServeHTTP(w, r)
+		if r.Header.Get("HX-Request") == "true" {
+			templ.Handler(components.MainPage(app.name, app.version, allItems, &profile)).ServeHTTP(w, r)
+		} else {
+			templ.Handler(components.MainPageWrapped(app.name, app.version, app.config.GetTheme(), allItems, &profile)).ServeHTTP(w, r)
+		}
+
 	})
 
 	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {

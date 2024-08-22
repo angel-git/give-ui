@@ -54,7 +54,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 								<div><strong>{ i.Info.Username }</strong> { i.Characters.Pmc.Info.Nickname }</div>
 								<div class="text-xs">{ i.Info.Id }</div>
 							</div>
-							<button class="btn btn-primary btn-sm" hx-get={ fmt.Sprintf("/connect/%s", i.Info.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="#profile-fieldset" hx-indicator="#loader">
+							<button class="btn btn-primary btn-sm" hx-get={ fmt.Sprintf("/connect/%s", i.Info.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="#profile-fieldset" hx-indicator="#loader" hx-replace-url="true">
 								SELECT
 							</button>
 						</li>
@@ -64,6 +64,32 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 			<progress id="loader" class="progress w-full htmx-indicator"></progress>
 		</div>
 	</div>
+}
+
+templ MainPageWrapped(appName string, appVersion string, currentTheme string, allItems *models.AllItems, profile *models.SPTProfile) {
+	<!DOCTYPE html>
+	<html lang="en" data-theme="mytheme">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+			<title>give-ui</title>
+			<script src="https://unpkg.com/htmx.org@2.0.0"></script>
+			<script src="/wails/ipc.js"></script>
+			<script src="/wails/runtime.js"></script>
+			<script type="module" src="/@vite/client"></script>
+			<link rel="stylesheet" href="/src/assets/css/app.css"/>
+		</head>
+		<body>
+			<div id="app" class="bg-base-100">
+				<div id="app-inner" class="flex flex-col h-full justify-between">
+					<div id="main" class="w-full h-full p-2 overflow-y-auto">
+						@MainPage(appName, appVersion, allItems, profile)
+					</div>
+					@_AppFooter(appName, appVersion, currentTheme)
+				</div>
+			</div>
+		</body>
+	</html>
 }
 
 templ MainPage(appName string, appVersion string, allItems *models.AllItems, profile *models.SPTProfile) {
