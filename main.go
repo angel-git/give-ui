@@ -145,5 +145,5 @@ func (a *App) setLocale(data *menu.CallbackData) {
 	runtimeWails.MenuUpdateApplicationMenu(a.ctx)
 
 	// refresh to main screen
-	runtimeWails.WindowReloadApp(a.ctx)
+	runtimeWails.WindowExecJS(a.ctx, "location.reload()")
 }
