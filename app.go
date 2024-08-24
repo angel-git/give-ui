@@ -15,6 +15,7 @@ import (
 	"spt-give-ui/backend/logger"
 	"spt-give-ui/backend/models"
 	"spt-give-ui/components"
+	"strconv"
 )
 
 // ctx variables
@@ -154,11 +155,10 @@ func NewChiRouter(app *App) *chi.Mux {
 
 	})
 
-	r.Post("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
-		itemId := chi.URLParam(r, "id")
+	r.Post("/item", func(w http.ResponseWriter, r *http.Request) {
+		itemId := r.FormValue("id")
+		amount, _ := strconv.Atoi(r.FormValue("quantity"))
 		sessionId := app.ctx.Value(contextSessionId).(string)
-		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
-		amount := allItems.Items[itemId].MaxStock
 
 		err := api.AddItem(app.config.GetSptUrl(), sessionId, itemId, amount)
 		if err != nil {
