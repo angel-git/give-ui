@@ -100,14 +100,16 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 		<div class="card-body">
 			<h2 class="card-title">{ item.Name }</h2>
 			<p class="text-justify">{ item.Description }</p>
-			<div class="card-actions justify-end">
-				<button class="btn btn-primary" hx-post={ fmt.Sprintf("/item/%s", item.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
+			<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this">
+				<input name="quantity" type="number" min="1" max="2147483647" class="input input-bordered" value={ fmt.Sprintf("%d", item.MaxStock) }/>
+				<input name="id" hidden value={ item.Id }/>
+				<button type="submit" class="btn btn-primary">
 					<div id="loader" class="button-loader">
 						<span class="loading loading-spinner"></span>
 						<span class="button-hide">Give</span>
 					</div>
 				</button>
-			</div>
+			</form>
 		</div>
 	</div>
 }
@@ -252,9 +254,9 @@ templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild,
 			<div class="p-2">
 				<p class="text-left">Psss Psss you might want to add this to build it:</p>
 				<div class="flex flex-col gap-2">
-					@_AddWorkbenchItem("57347c77245977448d35f6e2")
-					@_AddWorkbenchItem("57347c5b245977448d35f6e1")
-					@_AddWorkbenchItem("544fb5454bdc2df8738b456a")
+					@_AddWorkbenchItem("57347c77245977448d35f6e2", "1")
+					@_AddWorkbenchItem("57347c5b245977448d35f6e1", "1")
+					@_AddWorkbenchItem("544fb5454bdc2df8738b456a", "1")
 				</div>
 			</div>
 		} else {
@@ -395,15 +397,19 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild, sessionId strin
 	</div>
 }
 
-templ _AddWorkbenchItem(itemId string) {
+templ _AddWorkbenchItem(itemId string, itemQuantity string) {
 	<div class="flex items-center gap-4">
 		<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", itemId) }/>
-		<button class="btn btn-primary" hx-post={ fmt.Sprintf("/item/%s", itemId) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
-			<div id="loader" class="button-loader">
-				<span class="loading loading-spinner"></span>
-				<span class="button-hide">Give</span>
-			</div>
-		</button>
+		<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this">
+			<input name="quantity" hidden value={ itemQuantity }/>
+			<input name="id" hidden value={ itemId }/>
+			<button type="submit" class="btn btn-primary">
+				<div id="loader" class="button-loader">
+					<span class="loading loading-spinner"></span>
+					<span class="button-hide">Give</span>
+				</div>
+			</button>
+		</form>
 	</div>
 }
 
