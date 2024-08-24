@@ -462,7 +462,7 @@ func _Items(allItems *models.AllItems, sessionId string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"divider divider-horizontal\"></div><div class=\"card p-2 bg-base-200 rounded-box grid flex-grow place-items-start w-full\" id=\"item-details\"><div><p class=\"text-9xl mb-4\">👀</p><p class=\"text-left mb-4\">Select something from the left menu and press the button <em>Give</em>. You will receive a message with the item at maximum stack size.</p><p class=\"text-left\">If you need more, just keep pressing :-)</p></div></div></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><div class=\"divider divider-horizontal\"></div><div class=\"card bg-base-200 rounded-box grid flex-grow place-items-start w-full overflow-y-auto\" id=\"item-details\"><div class=\"p-2\"><p class=\"text-9xl mb-4\">👀</p><p class=\"text-left mb-4\">Select something from the left menu and press the button <em>Give</em>. You will receive a message with the item at maximum stack size.</p><p class=\"text-left\">If you need more, just keep pressing :-)</p></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
