@@ -105,6 +105,7 @@ func (a *App) makeMenu() {
 	if runtime.GOOS == "darwin" {
 		a.menu.Append(menu.AppMenu())
 	}
+	a.menu.Append(menu.EditMenu())
 	localeFromConfig := a.config.GetLocale()
 	a.localeMenu = a.menu.AddSubmenu("Locale")
 	a.localeMenu.Append(addRadio("English", localeFromConfig, a.setLocale))
