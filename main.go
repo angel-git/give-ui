@@ -104,6 +104,7 @@ func (a *App) makeMenu() {
 	a.menu = menu.NewMenu()
 	if runtime.GOOS == "darwin" {
 		a.menu.Append(menu.AppMenu())
+		a.menu.Append(menu.EditMenu())
 	}
 	localeFromConfig := a.config.GetLocale()
 	a.localeMenu = a.menu.AddSubmenu("Locale")
