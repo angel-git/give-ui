@@ -139,8 +139,9 @@ templ _Items(allItems *models.AllItems, sessionId string) {
               // Loop through all list items, and hide those who don't match the search query
               for (i = 0; i < li.length; i++) {
                 const txtValue = (li[i].textContent || li[i].innerText).toUpperCase().trim();
+                const itemId = li[i].getAttribute('data-item-id').toUpperCase().trim();
                 const itemCategory = li[i].parentElement.getAttribute('data-category').toUpperCase().trim();
-                if (txtValue.indexOf(filter) > -1 || itemCategory.indexOf(filter) > -1) {
+                if (txtValue.indexOf(filter) > -1 || itemCategory.indexOf(filter) > -1 || itemId.indexOf(filter) > -1) {
                   li[i].style.display = "";
                 } else {
                   li[i].style.display = "none";
@@ -177,7 +178,7 @@ templ _Items(allItems *models.AllItems, sessionId string) {
       </script>
 	<div class="flex flex-col h-full">
 		<div class="w-full p-2">
-			<input type="text" autocomplete="off" id="filter-items-input" onkeyup="filterItems()" placeholder="Filter here" class="input input-bordered w-full max-w-xs"/>
+			<input type="text" autocomplete="off" id="filter-items-input" oninput="filterItems()" placeholder="Filter here" class="input input-bordered w-full max-w-xs"/>
 		</div>
 		<div class="flex w-full h-full min-h-0" id="item-list">
 			<div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
@@ -187,7 +188,7 @@ templ _Items(allItems *models.AllItems, sessionId string) {
 						<ul data-category={ cat }>
 							for _, i := range sortedItems {
 								if i.Category == cat {
-									<li class="text-left cursor-pointer hover:bg-primary hover:text-base-content" onclick="selectItem(this)" hx-get={ fmt.Sprintf("/item/%s", i.Id) } hx-trigger="click" hx-target="#item-details" hx-swap="innerHTML"><div>{ i.Name }</div></li>
+									<li class="text-left cursor-pointer hover:bg-primary hover:text-base-content" data-item-id={ i.Id } onclick="selectItem(this)" hx-get={ fmt.Sprintf("/item/%s", i.Id) } hx-trigger="click" hx-target="#item-details" hx-swap="innerHTML"><div>{ i.Name }</div></li>
 								}
 							}
 						</ul>
@@ -261,7 +262,7 @@ templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild,
 			</div>
 		} else {
 			<div class="w-full p-2">
-				<input type="text" autocomplete="off" id="filter-user-weapons-input" onkeyup="filterUserWeapons()" placeholder="Filter here" class="input input-bordered w-full max-w-xs"/>
+				<input type="text" autocomplete="off" id="filter-user-weapons-input" oninput="filterUserWeapons()" placeholder="Filter here" class="input input-bordered w-full max-w-xs"/>
 			</div>
 			<div class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto" id="weapons-list">
 				for _, weaponBuild := range weaponBuilds {
@@ -365,7 +366,7 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild, sessionId strin
 })
 			}}
 			<div class="w-full p-2">
-				<input type="text" autocomplete="off" id="filter-magazine-loadout-input" onkeyup="filterMagazineLoadout()" placeholder="Filter here" class="input input-bordered w-full max-w-xs"/>
+				<input type="text" autocomplete="off" id="filter-magazine-loadout-input" oninput="filterMagazineLoadout()" placeholder="Filter here" class="input input-bordered w-full max-w-xs"/>
 			</div>
 			<div class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto" id="magazine-loadout-list">
 				for _, magazineLoadout := range magazineLoadouts {
