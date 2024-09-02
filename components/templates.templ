@@ -78,11 +78,15 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, pro
 		<div role="tablist" class="tabs tabs-bordered tabs-lg overflow-y-auto flex-1">
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Items" checked="checked"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@_Items(allItems, profile.Info.Id)
+				@_Items(allItems)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="User weapons"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@_UserWeapons(allItems, profile.UserBuilds.WeaponBuilds, profile.Info.Id)
+				@_UserWeapons(allItems, profile.UserBuilds.WeaponBuilds)
+			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Wishlist"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@_WishList(allItems, profile.Characters.Pmc.WishList)
 			</div>
 		</div>
 	</div>
@@ -126,7 +130,7 @@ func sortAndConvertItems(allItems *models.AllItems) []models.ViewItem {
 	return itemsSlice
 }
 
-templ _Items(allItems *models.AllItems, sessionId string) {
+templ _Items(allItems *models.AllItems) {
 	{{ sortedItems := sortAndConvertItems(allItems) }}
 	<script type="text/javascript">
 
@@ -208,7 +212,7 @@ templ _Items(allItems *models.AllItems, sessionId string) {
 	</div>
 }
 
-templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild, sessionId string) {
+templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) {
 	<script type="text/javascript">
 
         function filterUserWeapons() {
@@ -314,6 +318,79 @@ templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild,
 					</div>
 				}
 			</div>
+		}
+	</div>
+}
+
+func GroupByValue(originalMap map[string]int) map[string][]string {
+	var numberToStringMap = map[int]string{
+		0: "Tasks",
+		1: "Hideout",
+		2: "Barter",
+		3: "Equipment",
+		4: "Other",
+	}
+
+	groupedMap := make(map[string][]string)
+	for key, value := range originalMap {
+		strValue, ok := numberToStringMap[value]
+		if ok {
+			groupedMap[strValue] = append(groupedMap[strValue], key)
+		}
+	}
+	return groupedMap
+}
+
+templ _WishList(allItems *models.AllItems, wishlistItems map[string]int) {
+	{{ groupWishlist := GroupByValue(wishlistItems) }}
+	{{ order := []string{"Tasks", "Equipment", "Hideout", "Other", "Barter"} }}
+	<div class="h-full flex flex-col p-2 w-9/12 mx-auto">
+		if len(wishlistItems) == 0 {
+			<div role="alert" class="alert alert-info">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					class="h-6 w-6 shrink-0 stroke-current"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<span>You don't have any item in the wishlist.</span>
+			</div>
+		}
+		for _, group := range order {
+			if len(groupWishlist[group]) > 0 {
+				<div>
+					<h2 class="text-lg">{ group }</h2>
+					<div class="flex flex-wrap gap-2">
+						for _, itemId := range groupWishlist[group] {
+							{{ item := allItems.Items[itemId] }}
+							<div class="tooltip" data-tip={ item.Name }>
+								<div class="h-16 w-16 flex items-center group">
+									<img alt={ item.Name } class="max-h-16 max-w-16 group-hover:hidden" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
+									<div class="hidden group-hover:block">
+										<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this">
+											<input name="quantity" hidden value="1"/>
+											<input name="id" hidden value={ item.Id }/>
+											<button type="submit" class="btn btn-primary">
+												<div id="loader" class="button-loader">
+													<span class="loading loading-spinner"></span>
+													<span class="button-hide">Give</span>
+												</div>
+											</button>
+										</form>
+									</div>
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			}
 		}
 	</div>
 }
