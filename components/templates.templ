@@ -344,7 +344,7 @@ func GroupByValue(originalMap map[string]int) map[string][]string {
 templ _WishList(allItems *models.AllItems, wishlistItems map[string]int) {
 	{{ groupWishlist := GroupByValue(wishlistItems) }}
 	{{ order := []string{"Tasks", "Equipment", "Hideout", "Other", "Barter"} }}
-	<div class="h-full flex flex-col p-2 w-9/12 mx-auto">
+	<div class="h-full flex flex-col p-2 w-9/12 mx-auto gap-4">
 		if len(wishlistItems) == 0 {
 			<div role="alert" class="alert alert-info">
 				<svg
@@ -365,29 +365,31 @@ templ _WishList(allItems *models.AllItems, wishlistItems map[string]int) {
 		}
 		for _, group := range order {
 			if len(groupWishlist[group]) > 0 {
-				<div>
-					<h2 class="text-lg">{ group }</h2>
-					<div class="flex flex-wrap gap-2">
-						for _, itemId := range groupWishlist[group] {
-							{{ item := allItems.Items[itemId] }}
-							<div class="tooltip" data-tip={ item.Name }>
-								<div class="h-16 w-16 flex items-center group">
-									<img alt={ item.Name } class="max-h-16 max-w-16 group-hover:hidden" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
-									<div class="hidden group-hover:block">
-										<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this">
-											<input name="quantity" hidden value="1"/>
-											<input name="id" hidden value={ item.Id }/>
-											<button type="submit" class="btn btn-primary">
-												<div id="loader" class="button-loader">
-													<span class="loading loading-spinner"></span>
-													<span class="button-hide">Give</span>
-												</div>
-											</button>
-										</form>
+				<div class="card bg-base-200 shadow-xl">
+					<div class="card-body">
+						<h2 class="card-title text-start">{ group }</h2>
+						<div class="flex flex-wrap gap-2">
+							for _, itemId := range groupWishlist[group] {
+								{{ item := allItems.Items[itemId] }}
+								<div class="tooltip" data-tip={ item.Name }>
+									<div class="h-16 w-16 flex items-center group">
+										<img alt={ item.Name } class="max-h-16 max-w-16 group-hover:hidden" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
+										<div class="hidden group-hover:block">
+											<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this">
+												<input name="quantity" hidden value="1"/>
+												<input name="id" hidden value={ item.Id }/>
+												<button type="submit" class="btn btn-primary">
+													<div id="loader" class="button-loader">
+														<span class="loading loading-spinner"></span>
+														<span class="button-hide">Give</span>
+													</div>
+												</button>
+											</form>
+										</div>
 									</div>
 								</div>
-							</div>
-						}
+							}
+						</div>
 					</div>
 				</div>
 			}
