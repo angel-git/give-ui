@@ -5,8 +5,8 @@ type PmcInfo struct {
 }
 
 type Pmc struct {
-	Info     PmcInfo  `json:"Info"`
-	WishList []string `json:"WishList"`
+	Info     PmcInfo        `json:"Info"`
+	WishList map[string]int `json:"WishList"`
 }
 
 type Characters struct {
