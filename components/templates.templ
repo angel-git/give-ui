@@ -376,7 +376,7 @@ templ _WishList(allItems *models.AllItems, wishlistItems map[string]int) {
 										<img alt={ item.Name } class="max-h-16 max-w-16 group-hover:hidden" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
 										<div class="hidden group-hover:block">
 											<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this">
-												<input name="quantity" hidden value="1"/>
+												<input name="quantity" hidden value={ fmt.Sprintf("%d", item.MaxStock) }/>
 												<input name="id" hidden value={ item.Id }/>
 												<button type="submit" class="btn btn-primary">
 													<div id="loader" class="button-loader">
