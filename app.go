@@ -80,21 +80,15 @@ func getErrorComponent(app *App, err string) templ.Component {
 	return components.ErrorConnection(giveUiError)
 }
 
-func NewChiRouter(app *App) *chi.Mux {
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-
-	r.Get("/initial", func(w http.ResponseWriter, r *http.Request) {
+func getLoginPage(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
 		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
-	})
+	}
+}
 
-	r.Post("/theme", func(w http.ResponseWriter, r *http.Request) {
-		app.config.SwitchTheme()
-	})
-
-	r.Post("/connect", func(w http.ResponseWriter, r *http.Request) {
+func getProfileList(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		url := r.FormValue("url")
 		app.config.SetSptUrl(url)
 		serverInfo, err := api.ConnectToSptServer(url)
@@ -115,9 +109,17 @@ func NewChiRouter(app *App) *chi.Mux {
 		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
 
 		templ.Handler(components.ProfileList(app.name, app.version, profiles)).ServeHTTP(w, r)
-	})
+	}
+}
 
-	r.Get("/connect/{id}", func(w http.ResponseWriter, r *http.Request) {
+func switchTheme(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		app.config.SwitchTheme()
+	}
+}
+
+func getMainPageForProfile(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
 		sessionId := chi.URLParam(r, "id")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
@@ -126,6 +128,14 @@ func NewChiRouter(app *App) *chi.Mux {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
+		}
+		favoriteItems := app.config.GetFavoriteItems()
+		for _, favoriteItem := range favoriteItems {
+			item, exists := allItems.Items[favoriteItem]
+			if exists {
+				item.Favorite = true
+				allItems.Items[favoriteItem] = item
+			}
 		}
 		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
 
@@ -136,9 +146,12 @@ func NewChiRouter(app *App) *chi.Mux {
 		profile := allProfiles[allProfilesIdx]
 
 		templ.Handler(components.MainPage(app.name, app.version, allItems, &profile)).ServeHTTP(w, r)
-	})
+	}
+}
 
-	r.Get("/item/{id}", func(w http.ResponseWriter, r *http.Request) {
+func getItemDetails(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
 		itemId := chi.URLParam(r, "id")
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
 		item := allItems.Items[itemId]
@@ -152,10 +165,27 @@ func NewChiRouter(app *App) *chi.Mux {
 		}
 
 		templ.Handler(components.ItemDetail(item, maybePresetId)).ServeHTTP(w, r)
+	}
+}
 
-	})
+func toggleFavorite(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		itemId := chi.URLParam(r, "id")
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		app.config.ToggleFavoriteItem(itemId)
 
-	r.Post("/item", func(w http.ResponseWriter, r *http.Request) {
+		item := allItems.Items[itemId]
+		item.Favorite = !item.Favorite
+		allItems.Items[itemId] = item
+
+		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
+
+		getItemDetails(app)(w, r)
+	}
+}
+
+func addItem(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		itemId := r.FormValue("id")
 		amount, _ := strconv.Atoi(r.FormValue("quantity"))
 		sessionId := app.ctx.Value(contextSessionId).(string)
@@ -164,9 +194,11 @@ func NewChiRouter(app *App) *chi.Mux {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
-	})
+	}
+}
 
-	r.Post("/user-weapons/{id}", func(w http.ResponseWriter, r *http.Request) {
+func addUserWeaponPreset(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		presetId := chi.URLParam(r, "id")
 		sessionId := app.ctx.Value(contextSessionId).(string)
 
@@ -174,11 +206,11 @@ func NewChiRouter(app *App) *chi.Mux {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
-	})
+	}
+}
 
-	// this is not used as it is disabled in the template
-	// https://github.com/angel-git/give-ui/issues/49
-	r.Post("/magazine-loadouts/{id}", func(w http.ResponseWriter, r *http.Request) {
+func addMagazineLoadout(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		magazineLoadoutId := chi.URLParam(r, "id")
 		sessionId := app.ctx.Value(contextSessionId).(string)
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
@@ -203,7 +235,25 @@ func NewChiRouter(app *App) *chi.Mux {
 				}
 			}
 		}
-	})
+	}
+}
+
+func NewChiRouter(app *App) *chi.Mux {
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	r.Get("/initial", getLoginPage(app))
+	r.Post("/theme", switchTheme(app))
+	r.Post("/connect", getProfileList(app))
+	r.Get("/connect/{id}", getMainPageForProfile(app))
+	r.Get("/item/{id}", getItemDetails(app))
+	r.Post("/fav/{id}", toggleFavorite(app))
+	r.Post("/item", addItem(app))
+	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
+	// this is not used as it is disabled in the template
+	// https://github.com/angel-git/give-ui/issues/49
+	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))
 
 	return r
 }
