@@ -122,6 +122,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
 		sessionId := chi.URLParam(r, "id")
+		isFavorite := r.URL.Query().Get("fav")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
 		localeCode := locale.ConvertLocale(app.config.GetLocale())
 		allItems, err := api.LoadItems(app.config.GetSptUrl(), localeCode)
@@ -145,7 +146,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		})
 		profile := allProfiles[allProfilesIdx]
 
-		templ.Handler(components.MainPage(app.name, app.version, allItems, &profile)).ServeHTTP(w, r)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite == "on", &profile)).ServeHTTP(w, r)
 	}
 }
 
