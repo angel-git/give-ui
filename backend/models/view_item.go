@@ -7,6 +7,7 @@ type ViewItem struct {
 	Description string
 	Category    string
 	MaxStock    int
+	Favorite    bool
 }
 
 type ViewPreset struct {
