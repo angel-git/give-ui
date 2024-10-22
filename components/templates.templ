@@ -98,7 +98,39 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 			}
 		</figure>
 		<div class="card-body">
-			<h2 class="card-title">{ item.Name }</h2>
+			<div class="card-title">
+				<h2>{ item.Name }</h2>
+				<label class="btn btn-circle swap swap-rotate">
+					<input type="checkbox" checked?={ item.Favorite } hx-post={ fmt.Sprintf("/fav/%s", item.Id) } hx-trigger="change" hx-target="#item-details" hx-swap="innerHTML"/>
+					<svg
+						class="swap-on"
+						fill="currentColor"
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						width="32"
+						height="32"
+					>
+						<path d="M12 .587l3.668 7.431 8.214 1.192-5.941 5.79 1.404 8.186L12 18.897l-7.345 3.863 1.404-8.186L.118 9.21l8.214-1.192L12 .587z"></path>
+					</svg>
+					<svg
+						class="swap-off"
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						width="32"
+						height="32"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<path
+							d="M12 2.5l2.98 6.034 6.646.964-4.813 4.689 1.137 6.628L12 17.995l-5.95 3.12 1.137-6.628L2.375 9.498l6.646-.964L12 2.5z"
+							stroke-linejoin="round"
+							stroke-linecap="round"
+							fill="none"
+						></path>
+					</svg>
+				</label>
+			</div>
 			<p class="text-justify text-sm">{ item.Id }</p>
 			<p class="text-justify">{ item.Description }</p>
 			<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this">
