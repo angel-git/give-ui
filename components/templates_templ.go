@@ -232,7 +232,7 @@ func MainPage(appName string, appVersion string, allItems *models.AllItems, prof
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = _Items(allItems, profile.Info.Id).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = _Items(allItems).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -240,7 +240,7 @@ func MainPage(appName string, appVersion string, allItems *models.AllItems, prof
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = _UserWeapons(allItems, profile.UserBuilds.WeaponBuilds, profile.Info.Id).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = _UserWeapons(allItems, profile.UserBuilds.WeaponBuilds).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -395,7 +395,7 @@ func sortAndConvertItems(allItems *models.AllItems) []models.ViewItem {
 	return itemsSlice
 }
 
-func _Items(allItems *models.AllItems, sessionId string) templ.Component {
+func _Items(allItems *models.AllItems) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -509,7 +509,7 @@ func _Items(allItems *models.AllItems, sessionId string) templ.Component {
 	})
 }
 
-func _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild, sessionId string) templ.Component {
+func _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -736,7 +736,7 @@ func _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild, 
 	})
 }
 
-func _MagazineLoadouts(magazineLoadouts []models.MagazineBuild, sessionId string) templ.Component {
+func _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)

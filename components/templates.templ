@@ -78,11 +78,11 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, pro
 		<div role="tablist" class="tabs tabs-bordered tabs-lg overflow-y-auto flex-1">
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Items" checked="checked"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@_Items(allItems, profile.Info.Id)
+				@_Items(allItems)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="User weapons"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@_UserWeapons(allItems, profile.UserBuilds.WeaponBuilds, profile.Info.Id)
+				@_UserWeapons(allItems, profile.UserBuilds.WeaponBuilds)
 			</div>
 		</div>
 	</div>
@@ -126,7 +126,7 @@ func sortAndConvertItems(allItems *models.AllItems) []models.ViewItem {
 	return itemsSlice
 }
 
-templ _Items(allItems *models.AllItems, sessionId string) {
+templ _Items(allItems *models.AllItems) {
 	{{ sortedItems := sortAndConvertItems(allItems) }}
 	<script type="text/javascript">
 
@@ -208,7 +208,7 @@ templ _Items(allItems *models.AllItems, sessionId string) {
 	</div>
 }
 
-templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild, sessionId string) {
+templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) {
 	<script type="text/javascript">
 
         function filterUserWeapons() {
@@ -318,7 +318,7 @@ templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild,
 	</div>
 }
 
-templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild, sessionId string) {
+templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 	<script type="text/javascript">
 
         function filterMagazineLoadout() {
