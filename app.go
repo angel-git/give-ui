@@ -83,6 +83,9 @@ func getErrorComponent(app *App, err string) templ.Component {
 func getLoginPage(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
+		app.ctx = context.WithValue(app.ctx, contextSessionId, nil)
+		app.ctx = context.WithValue(app.ctx, contextProfiles, nil)
+		app.ctx = context.WithValue(app.ctx, contextAllItems, nil)
 		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
 	}
 }
@@ -124,12 +127,20 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		sessionId := chi.URLParam(r, "id")
 		isFavorite := r.URL.Query().Get("fav")
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
-		localeCode := locale.ConvertLocale(app.config.GetLocale())
-		allItems, err := api.LoadItems(app.config.GetSptUrl(), localeCode)
-		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
-			return
+
+		var allItems *models.AllItems
+		var err error
+		if app.ctx.Value(contextAllItems) == nil {
+			localeCode := locale.ConvertLocale(app.config.GetLocale())
+			allItems, err = api.LoadItems(app.config.GetSptUrl(), localeCode)
+			if err != nil {
+				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				return
+			}
+		} else {
+			allItems = app.ctx.Value(contextAllItems).(*models.AllItems)
 		}
+
 		favoriteItems := app.config.GetFavoriteItems()
 		for _, favoriteItem := range favoriteItems {
 			item, exists := allItems.Items[favoriteItem]
