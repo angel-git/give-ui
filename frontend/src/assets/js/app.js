@@ -95,5 +95,6 @@ function filterMagazineLoadout() {
 window.setUsernameOnFooter = setUsernameOnFooter;
 window.filterItems = filterItems;
 window.selectItem = selectItem;
+window.filterUserWeapons = filterUserWeapons;
 window.showModal = showModal;
 window.filterMagazineLoadout = filterMagazineLoadout;
