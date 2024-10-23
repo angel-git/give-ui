@@ -29,7 +29,7 @@ function filterItems() {
     for (let i = 0; i < section.length; i++) {
         const innerLis = section[i].getElementsByTagName('li');
         let anyLiVisible = false;
-        for (j = 0; j < innerLis.length; j++) {
+        for (let j = 0; j < innerLis.length; j++) {
             if (innerLis[j].style.display === "") {
                 anyLiVisible = true;
                 break;
@@ -92,3 +92,9 @@ function filterMagazineLoadout() {
         }
     }
 }
+window.setUsernameOnFooter = setUsernameOnFooter;
+window.filterItems = filterItems;
+window.selectItem = selectItem;
+window.filterUserWeapons = filterUserWeapons;
+window.showModal = showModal;
+window.filterMagazineLoadout = filterMagazineLoadout;
