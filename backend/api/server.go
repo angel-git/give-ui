@@ -152,6 +152,7 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 			Description: description,
 			Category:    category,
 			MaxStock:    bsgItem.Props.StackMaxSize,
+			Favorite:    false,
 		}
 		allItems.Items[viewItem.Id] = viewItem
 		if !slices.Contains(allItems.Categories, category) {
