@@ -4,7 +4,7 @@
   "version": "1.6.1",
   "license": "MIT",
   "main": "src/mod.js",
-  "sptVersion": "~3.9",
+  "sptVersion": "~3.10",
   "loadBefore": [],
   "loadAfter": [],
   "isBundleMod": false,
