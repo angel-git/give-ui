@@ -7,14 +7,16 @@ import (
 )
 
 type JsonDatabase struct {
-	Locale string `json:"locale"`
-	Theme  string `json:"theme"`
-	SptUrl string `json:"sptUrl"`
+	Locale        string   `json:"locale"`
+	Theme         string   `json:"theme"`
+	SptUrl        string   `json:"sptUrl"`
+	FavoriteItems []string `json:"favoriteItems"`
 }
 
 const LocaleDbKey = "locale"
 const ThemeDbKey = "theme"
 const SptSeverDbKey = "sptUrl"
+const FavoriteItemsDbKey = "favoriteItems"
 
 const dbName = "give-ui.config.json"
 
@@ -44,7 +46,7 @@ func CreateDatabase(defaultConfig JsonDatabase) JsonDatabase {
 
 }
 
-func SaveValue(key string, value string) {
+func SaveValue(key string, value any) {
 	content, err := os.ReadFile(dbName)
 	if err != nil {
 		log.Fatalf("Error writing key [%s] with value [%s]: %s", key, value, err)

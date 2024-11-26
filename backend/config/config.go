@@ -1,6 +1,7 @@
 package config
 
 import (
+	"slices"
 	"spt-give-ui/backend/logger"
 	"spt-give-ui/backend/store"
 )
@@ -11,26 +12,29 @@ const (
 )
 
 type Config struct {
-	errorLogger *logger.ErrorFileLogger
-	locale      string
-	theme       string
-	sptUrl      string
+	errorLogger   *logger.ErrorFileLogger
+	locale        string
+	theme         string
+	sptUrl        string
+	favoriteItems []string
 }
 
 func LoadConfig() *Config {
 	errorLogger := logger.SetupLogger()
 	defaultJsonConfig := store.JsonDatabase{
-		Locale: "English",
-		Theme:  defaultTheme,
-		SptUrl: "http://127.0.0.1:6969",
+		Locale:        "English",
+		Theme:         defaultTheme,
+		SptUrl:        "http://127.0.0.1:6969",
+		FavoriteItems: []string{},
 	}
 	jsonConfig := store.CreateDatabase(defaultJsonConfig)
 	return &Config{
 		errorLogger: errorLogger,
 		//db:          db,
-		locale: jsonConfig.Locale,
-		theme:  jsonConfig.Theme,
-		sptUrl: jsonConfig.SptUrl,
+		locale:        jsonConfig.Locale,
+		theme:         jsonConfig.Theme,
+		sptUrl:        jsonConfig.SptUrl,
+		favoriteItems: jsonConfig.FavoriteItems,
 	}
 }
 
@@ -55,6 +59,21 @@ func (c *Config) SetSptUrl(url string) {
 	store.SaveValue(store.SptSeverDbKey, url)
 }
 
+func (c *Config) ToggleFavoriteItem(itemId string) {
+	idx := slices.Index(c.favoriteItems, itemId)
+	if slices.Contains(c.favoriteItems, itemId) {
+		c.favoriteItems = remove(c.favoriteItems, idx)
+	} else {
+		c.favoriteItems = append(c.favoriteItems, itemId)
+	}
+	store.SaveValue(store.FavoriteItemsDbKey, c.favoriteItems)
+}
+
+func remove(s []string, i int) []string {
+	s[i] = s[len(s)-1]
+	return s[:len(s)-1]
+}
+
 func (c *Config) GetLocale() string {
 	return c.locale
 }
@@ -65,6 +84,10 @@ func (c *Config) GetTheme() string {
 
 func (c *Config) GetSptUrl() string {
 	return c.sptUrl
+}
+
+func (c *Config) GetFavoriteItems() []string {
+	return c.favoriteItems
 }
 
 func (c *Config) Close() error {
