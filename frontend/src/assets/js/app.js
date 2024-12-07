@@ -1,7 +1,6 @@
 function setUsernameOnFooter() {
     const username = JSON.parse(document.getElementById("profile-selected-username").textContent);
-    const nickname = JSON.parse(document.getElementById("profile-selected-nickname").textContent);
-    document.getElementById('profile-selected').innerText = ": " + username + " - " + nickname;
+    document.getElementById('profile-selected').innerText = ": " + username;
 }
 
 let previousSelectedItem = null;

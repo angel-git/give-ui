@@ -51,7 +51,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 					for _, i := range profiles {
 						<li class="flex flex-row items-center justify-between gap-2">
 							<div class="text-left">
-								<div><strong>{ i.Info.Username }</strong> { i.Characters.Pmc.Info.Nickname }</div>
+								<div>{ i.Info.Username }</div>
 								<div class="text-xs">{ i.Info.Id }</div>
 							</div>
 							<button class="btn btn-primary btn-sm" hx-get={ fmt.Sprintf("/connect/%s", i.Info.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="#profile-fieldset" hx-indicator="#loader">
@@ -68,7 +68,6 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 
 templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile) {
 	@templ.JSONScript("profile-selected-username", profile.Info.Username)
-	@templ.JSONScript("profile-selected-nickname", profile.Characters.Pmc.Info.Nickname)
 	<script>
         setUsernameOnFooter();
     </script>
