@@ -98,7 +98,7 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 			<div class="card-title">
 				<h2>{ item.Name }</h2>
 				<label class="swap swap-rotate">
-					<input type="checkbox" class="focus:border-2 focus:border-primary focus:outline-none" checked?={ item.Favorite } hx-post={ fmt.Sprintf("/fav/%s", item.Id) } hx-trigger="change, keydown[key=='Enter']" hx-target="#item-details" hx-swap="innerHTML"/>
+					<input type="checkbox" class="focus:border-2 focus:border-primary focus:outline-none" checked?={ item.Favorite } hx-post={ fmt.Sprintf("/fav/%s", item.Id) } hx-trigger="change, keydown[key=='Enter'], keydown[ctrlKey&&shiftKey&&key=='F'] from:body" hx-target="#item-details" hx-swap="innerHTML"/>
 					<svg
 						class="swap-on"
 						fill="currentColor"
