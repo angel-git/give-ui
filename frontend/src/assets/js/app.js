@@ -51,6 +51,12 @@ function selectItem(element) {
     previousSelectedItem = element;
 }
 
+function selectItemFromKeyboard(event, element) {
+    if (event.key === 'Enter') {
+        selectItem(element);
+    }
+}
+
 function filterUserWeapons() {
     const input = document.getElementById('filter-user-weapons-input');
     const filter = input.value.toUpperCase().trim();
@@ -94,6 +100,7 @@ function filterMagazineLoadout() {
 window.setUsernameOnFooter = setUsernameOnFooter;
 window.filterItems = filterItems;
 window.selectItem = selectItem;
+window.selectItemFromKeyboard = selectItemFromKeyboard;
 window.filterUserWeapons = filterUserWeapons;
 window.showModal = showModal;
 window.filterMagazineLoadout = filterMagazineLoadout;
