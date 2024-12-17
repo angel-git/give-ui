@@ -411,7 +411,7 @@ templ _ThemeSwitcher(currentTheme string) {
 templ _FavSwitcher(sessionId string, filterFavorites bool) {
 	<div class="scale-75">
 		<label class="swap swap-rotate">
-			<input type="checkbox" class="focus:border-2 focus:border-primary focus:outline-none" checked?={ filterFavorites } hx-get={ fmt.Sprintf("/connect/%s?", sessionId) } name="fav" hx-disabled-elt="this" hx-target="#main" hx-trigger="click, keydown[key=='Enter']"/>
+			<input type="checkbox" class="focus:border-2 focus:border-primary focus:outline-none" checked?={ filterFavorites } hx-get={ fmt.Sprintf("/connect/%s?", sessionId) } name="fav" hx-disabled-elt="this" hx-target="#main" hx-trigger="click"/>
 			<svg
 				class="swap-off"
 				width="32"
