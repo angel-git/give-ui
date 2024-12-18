@@ -81,6 +81,16 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@_UserWeapons(allItems, profile.UserBuilds.WeaponBuilds)
 			</div>
+			<div class="grow text-right">
+				<div class="dropdown dropdown-hover dropdown-end">
+					<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-sm m-1">Help</div>
+					<div tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-[1] w-80 p-2 shadow text-left">
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + S</kbd> to toggle favorites search</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + A</kbd> to add selected item</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + F</kbd> to fav/unfav selected item</p>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 }
