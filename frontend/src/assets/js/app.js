@@ -104,3 +104,18 @@ window.selectItemFromKeyboard = selectItemFromKeyboard;
 window.filterUserWeapons = filterUserWeapons;
 window.showModal = showModal;
 window.filterMagazineLoadout = filterMagazineLoadout;
+
+let previousToast = null;
+
+htmx.on("showAddItemMessage", (_e) => {
+    if (previousToast) {
+        clearTimeout(previousToast)
+    }
+    const toastElement = document.getElementById("success-toast")
+    const toastBody = document.getElementById("success-toast-message")
+    toastBody.innerText = "Your item has been sent"
+    toastElement.classList.remove("hidden")
+    previousToast = setTimeout(() => {
+        toastElement.classList.add("hidden")
+    }, 2000)
+})

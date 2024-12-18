@@ -217,6 +217,7 @@ func addItem(app *App) http.HandlerFunc {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
+		w.Header().Set("HX-Trigger", "showAddItemMessage")
 	}
 }
 
@@ -229,6 +230,7 @@ func addUserWeaponPreset(app *App) http.HandlerFunc {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
+		w.Header().Set("HX-Trigger", "showAddItemMessage")
 	}
 }
 
