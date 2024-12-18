@@ -81,6 +81,16 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@_UserWeapons(allItems, profile.UserBuilds.WeaponBuilds)
 			</div>
+			<div class="grow text-right">
+				<div class="dropdown dropdown-hover dropdown-end">
+					<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-sm m-1">Help</div>
+					<div tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-[1] w-80 p-2 shadow text-left">
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + S</kbd> to toggle favorites search</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + A</kbd> to add selected item</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + F</kbd> to fav/unfav selected item</p>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 }
@@ -97,8 +107,8 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 		<div class="card-body">
 			<div class="card-title">
 				<h2>{ item.Name }</h2>
-				<label class="btn btn-circle swap swap-rotate">
-					<input type="checkbox" checked?={ item.Favorite } hx-post={ fmt.Sprintf("/fav/%s", item.Id) } hx-trigger="change" hx-target="#item-details" hx-swap="innerHTML"/>
+				<label class="swap swap-rotate">
+					<input type="checkbox" class="focus:border-2 focus:border-primary focus:outline-none" checked?={ item.Favorite } hx-post={ fmt.Sprintf("/fav/%s", item.Id) } hx-trigger="change, keydown[key=='Enter'], keydown[ctrlKey&&shiftKey&&key=='F'] from:body" hx-target="#item-details" hx-swap="innerHTML"/>
 					<svg
 						class="swap-on"
 						fill="currentColor"
@@ -123,7 +133,7 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 			</div>
 			<p class="text-justify text-sm">{ item.Id }</p>
 			<p class="text-justify">{ item.Description }</p>
-			<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this">
+			<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit, keydown[ctrlKey&&shiftKey&&key=='A'] from:body">
 				<input name="quantity" type="number" min="1" max="2147483647" class="input input-bordered bg-base-200 max-w-24" value={ fmt.Sprintf("%d", item.MaxStock) }/>
 				<input name="id" hidden value={ item.Id }/>
 				<button type="submit" class="btn btn-primary">
@@ -165,7 +175,7 @@ templ _Items(allItems *models.AllItems, sessionId string, filterFavorites bool) 
 	<div class="flex flex-col h-full">
 		<div class="w-full p-2 flex items-center justify-center">
 			<label class="input input-bordered bg-base-200 flex items-center gap-2 max-w-xs w-full">
-				<input type="text" autocomplete="off" id="filter-items-input" oninput="filterItems()" placeholder="Filter here" class="grow"/>
+				<input type="text" autocomplete="off" id="filter-items-input" oninput="filterItems()" placeholder="Filter here" autofocus class="grow"/>
 				@_FavSwitcher(sessionId, filterFavorites)
 			</label>
 		</div>
@@ -174,11 +184,11 @@ templ _Items(allItems *models.AllItems, sessionId string, filterFavorites bool) 
 				for _, cat := range allItems.Categories {
 					if anyItemInsideCategory(cat, sortedItems) {
 						<details class="flex flex-col w-full" open>
-							<summary class="flex flex-row-reverse justify-between flex-2 sticky -top-2 bg-base-200 border-b-2 border-white"><h2>{ cat }</h2></summary>
+							<summary tabindex="-1" class="flex flex-row-reverse justify-between flex-2 sticky -top-2 bg-base-200 border-b-2 border-white"><h2>{ cat }</h2></summary>
 							<ul data-category={ cat }>
 								for _, i := range sortedItems {
 									if i.Category == cat {
-										<li class="text-left cursor-pointer hover:bg-primary hover:text-base-content" data-item-id={ i.Id } onclick="selectItem(this)" hx-get={ fmt.Sprintf("/item/%s", i.Id) } hx-trigger="click" hx-target="#item-details" hx-swap="innerHTML"><div>{ i.Name }</div></li>
+										<li tabindex="0" class="text-left cursor-pointer hover:bg-primary hover:text-base-content focus:bg-base-300 focus:text-primary focus:outline-none" data-item-id={ i.Id } onkeydown="selectItemFromKeyboard(event, this)" onclick="selectItem(this)" hx-get={ fmt.Sprintf("/item/%s", i.Id) } hx-trigger="click, keydown[key=='Enter']" hx-target="#item-details" hx-swap="innerHTML"><div>{ i.Name }</div></li>
 									}
 								}
 							</ul>
@@ -227,7 +237,7 @@ templ _UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild)
 			</div>
 		} else {
 			<div class="w-full p-2">
-				<input type="text" autocomplete="off" id="filter-user-weapons-input" oninput="filterUserWeapons()" placeholder="Filter here" class="input input-bordered w-full max-w-xs bg-base-200"/>
+				<input type="text" autocomplete="off" id="filter-user-weapons-input" oninput="filterUserWeapons()" placeholder="Filter here" autofocus class="input input-bordered w-full max-w-xs bg-base-200"/>
 			</div>
 			<div class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto" id="weapons-list">
 				for _, weaponBuild := range weaponBuilds {
@@ -410,8 +420,8 @@ templ _ThemeSwitcher(currentTheme string) {
 
 templ _FavSwitcher(sessionId string, filterFavorites bool) {
 	<div class="scale-75">
-		<label class="btn btn-circle swap swap-rotate">
-			<input type="checkbox" checked?={ filterFavorites } hx-get={ fmt.Sprintf("/connect/%s?", sessionId) } name="fav" hx-disabled-elt="this" hx-target="#main" hx-trigger="click"/>
+		<label class="swap swap-rotate">
+			<input type="checkbox" class="focus:border-2 focus:border-primary focus:outline-none" checked?={ filterFavorites } hx-get={ fmt.Sprintf("/search/%s?", sessionId) } hx-disabled-elt="this" hx-target="#main" hx-trigger="click, keydown[ctrlKey&&shiftKey&&key=='S'] from:body"/>
 			<svg
 				class="swap-off"
 				width="32"
