@@ -22,6 +22,7 @@ import (
 const contextSessionId = "sessionId"
 const contextProfiles = "profiles"
 const contextAllItems = "allItems"
+const favoriteSearch = "favoriteSearch"
 
 // App struct
 type App struct {
@@ -86,6 +87,7 @@ func getLoginPage(app *App) http.HandlerFunc {
 		app.ctx = context.WithValue(app.ctx, contextSessionId, nil)
 		app.ctx = context.WithValue(app.ctx, contextProfiles, nil)
 		app.ctx = context.WithValue(app.ctx, contextAllItems, nil)
+		app.ctx = context.WithValue(app.ctx, favoriteSearch, false)
 		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
 	}
 }
@@ -121,11 +123,20 @@ func switchTheme(app *App) http.HandlerFunc {
 	}
 }
 
+func favouriteSearch(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var isFavorite = app.ctx.Value(favoriteSearch).(bool)
+		app.ctx = context.WithValue(app.ctx, favoriteSearch, !isFavorite)
+		getMainPageForProfile(app)(w, r)
+	}
+
+}
+
 func getMainPageForProfile(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
 		sessionId := chi.URLParam(r, "id")
-		isFavorite := r.URL.Query().Get("fav")
+		var isFavorite = app.ctx.Value(favoriteSearch).(bool)
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
 
 		var allItems *models.AllItems
@@ -157,7 +168,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		})
 		profile := allProfiles[allProfilesIdx]
 
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite == "on", &profile)).ServeHTTP(w, r)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile)).ServeHTTP(w, r)
 	}
 }
 
@@ -259,6 +270,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/theme", switchTheme(app))
 	r.Post("/connect", getProfileList(app))
 	r.Get("/connect/{id}", getMainPageForProfile(app))
+	r.Get("/search/{id}", favouriteSearch(app))
 	r.Get("/item/{id}", getItemDetails(app))
 	r.Post("/fav/{id}", toggleFavorite(app))
 	r.Post("/item", addItem(app))
