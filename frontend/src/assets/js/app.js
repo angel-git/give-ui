@@ -124,7 +124,7 @@ htmx.on("showAddItemMessage", (_e) => {
 window.winterEvent = function () {
     const elem = document.getElementById("winter-event");
     const today = new Date();
-    if (elem && today.getMonth() === 11 && today.getDate() >= 20) {
+    if (elem && today.getMonth() === 11 && today.getDate() >= 24) {
         elem.innerHTML = `
        <div class="snowflakes" aria-hidden="true">
         <div class="snowflake">
