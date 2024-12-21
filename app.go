@@ -221,6 +221,28 @@ func addItem(app *App) http.HandlerFunc {
 	}
 }
 
+func getUserWeaponPresets(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
+		profileIdx := slices.IndexFunc(profiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+		weaponBuilds := profiles[profileIdx].UserBuilds.WeaponBuilds
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+
+		templ.Handler(components.UserWeapons(allItems, weaponBuilds)).ServeHTTP(w, r)
+
+	}
+}
+
 func addUserWeaponPreset(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		presetId := chi.URLParam(r, "id")
@@ -276,6 +298,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/item/{id}", getItemDetails(app))
 	r.Post("/fav/{id}", toggleFavorite(app))
 	r.Post("/item", addItem(app))
+	r.Get("/user-weapons", getUserWeaponPresets(app))
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
