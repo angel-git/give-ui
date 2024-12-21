@@ -10,11 +10,12 @@
     <script type="module" src="src/assets/js/app.js"></script>
 </head>
 
-<body>
+<body onload="winterEvent()">
 <div id="app" class="bg-base-100">
     <div id="app-inner" class="flex flex-col h-full justify-between">
         <div id="initial" hx-get="/initial" hx-trigger="load" hx-target="#app-inner"></div>
     </div>
+    <div id="winter-event"></div>
 </div>
 </body>
 </html>

@@ -97,6 +97,7 @@ function filterMagazineLoadout() {
         }
     }
 }
+
 window.setUsernameOnFooter = setUsernameOnFooter;
 window.filterItems = filterItems;
 window.selectItem = selectItem;
@@ -118,4 +119,53 @@ htmx.on("showAddItemMessage", (_e) => {
     previousToast = setTimeout(() => {
         toastElement.classList.add("hidden")
     }, 2000)
-})
+});
+
+window.winterEvent = function () {
+    const elem = document.getElementById("winter-event");
+    const today = new Date();
+    if (elem && today.getMonth() === 11 && today.getDate() >= 24) {
+        elem.innerHTML = `
+       <div class="snowflakes" aria-hidden="true">
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        </div>
+       `;
+    }
+
+}
+
