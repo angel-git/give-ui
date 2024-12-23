@@ -22,7 +22,8 @@ import (
 const contextSessionId = "sessionId"
 const contextProfiles = "profiles"
 const contextAllItems = "allItems"
-const favoriteSearch = "favoriteSearch"
+const contextTraders = "traders"
+const contextFavoriteSearch = "contextFavoriteSearch"
 
 // App struct
 type App struct {
@@ -87,7 +88,8 @@ func getLoginPage(app *App) http.HandlerFunc {
 		app.ctx = context.WithValue(app.ctx, contextSessionId, nil)
 		app.ctx = context.WithValue(app.ctx, contextProfiles, nil)
 		app.ctx = context.WithValue(app.ctx, contextAllItems, nil)
-		app.ctx = context.WithValue(app.ctx, favoriteSearch, false)
+		app.ctx = context.WithValue(app.ctx, contextFavoriteSearch, false)
+		app.ctx = context.WithValue(app.ctx, contextTraders, false)
 		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
 	}
 }
@@ -125,8 +127,8 @@ func switchTheme(app *App) http.HandlerFunc {
 
 func favouriteSearch(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var isFavorite = app.ctx.Value(favoriteSearch).(bool)
-		app.ctx = context.WithValue(app.ctx, favoriteSearch, !isFavorite)
+		var isFavorite = app.ctx.Value(contextFavoriteSearch).(bool)
+		app.ctx = context.WithValue(app.ctx, contextFavoriteSearch, !isFavorite)
 		getMainPageForProfile(app)(w, r)
 	}
 
@@ -136,13 +138,13 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
 		sessionId := chi.URLParam(r, "id")
-		var isFavorite = app.ctx.Value(favoriteSearch).(bool)
+		var isFavorite = app.ctx.Value(contextFavoriteSearch).(bool)
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
+		localeCode := locale.ConvertLocale(app.config.GetLocale())
 
 		var allItems *models.AllItems
 		var err error
 		if app.ctx.Value(contextAllItems) == nil {
-			localeCode := locale.ConvertLocale(app.config.GetLocale())
 			allItems, err = api.LoadItems(app.config.GetSptUrl(), localeCode)
 			if err != nil {
 				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
@@ -168,7 +170,12 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		})
 		profile := allProfiles[allProfilesIdx]
 
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile)).ServeHTTP(w, r)
+		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, localeCode)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders)).ServeHTTP(w, r)
 	}
 }
 
@@ -217,7 +224,53 @@ func addItem(app *App) http.HandlerFunc {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
-		w.Header().Set("HX-Trigger", "showAddItemMessage")
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your item has been sent\"}")
+	}
+}
+
+func updateTrader(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		nickname := r.FormValue("nickname")
+		spend := r.FormValue("spend")
+		rep := r.FormValue("rep")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		floatRep, err := strconv.ParseFloat(rep, 64)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+		}
+		rep = fmt.Sprintf("%d", int(floatRep*100))
+
+		err = api.UpdateTrader(app.config.GetSptUrl(), sessionId, nickname, spend, rep)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+	}
+}
+
+func getTraders(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
+		profileIdx := slices.IndexFunc(profiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+		profile := profiles[profileIdx]
+		localeCode := locale.ConvertLocale(app.config.GetLocale())
+
+		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, localeCode)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		templ.Handler(components.Traders(&profile, traders)).ServeHTTP(w, r)
 	}
 }
 
@@ -252,7 +305,7 @@ func addUserWeaponPreset(app *App) http.HandlerFunc {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
-		w.Header().Set("HX-Trigger", "showAddItemMessage")
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your weapon has been sent\"}")
 	}
 }
 
@@ -298,6 +351,8 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/item/{id}", getItemDetails(app))
 	r.Post("/fav/{id}", toggleFavorite(app))
 	r.Post("/item", addItem(app))
+	r.Post("/trader", updateTrader(app))
+	r.Get("/trader", getTraders(app))
 	r.Get("/user-weapons", getUserWeaponPresets(app))
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	// this is not used as it is disabled in the template

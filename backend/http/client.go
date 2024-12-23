@@ -26,8 +26,9 @@ func DoPost(url string, sessionId string, body interface{}) (*http.Response, err
 	return myClient.Do(req)
 }
 
-func DoGet(url string) (*http.Response, error) {
+func DoGet(url string, sessionId string) (*http.Response, error) {
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("responsecompressed", "0")
+	req.Header.Set("Cookie", fmt.Sprintf("PHPSESSID=%s", sessionId))
 	return myClient.Do(req)
 }

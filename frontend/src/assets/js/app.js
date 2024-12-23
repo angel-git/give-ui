@@ -108,13 +108,13 @@ window.filterMagazineLoadout = filterMagazineLoadout;
 
 let previousToast = null;
 
-htmx.on("showAddItemMessage", (_e) => {
+htmx.on("showAddItemMessage", (e) => {
     if (previousToast) {
         clearTimeout(previousToast)
     }
     const toastElement = document.getElementById("success-toast")
     const toastBody = document.getElementById("success-toast-message")
-    toastBody.innerText = "Your item has been sent"
+    toastBody.innerText = e.detail.value;
     toastElement.classList.remove("hidden")
     previousToast = setTimeout(() => {
         toastElement.classList.add("hidden")

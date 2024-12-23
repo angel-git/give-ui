@@ -36,4 +36,19 @@ type UserBuilds struct {
 type SPTProfile struct {
 	Info       Info       `json:"info"`
 	UserBuilds UserBuilds `json:"userbuilds"`
+	Characters Characters `json:"characters"`
+}
+
+type Characters struct {
+	PMC PMC `json:"pmc"`
+}
+
+type PMC struct {
+	TradersInfo map[string]TraderProfile `json:"TradersInfo"`
+}
+
+type TraderProfile struct {
+	SalesSum     int     `json:"salesSum"`
+	Standing     float32 `json:"standing"`
+	LoyaltyLevel int     `json:"loyaltyLevel"`
 }
