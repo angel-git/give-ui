@@ -93,6 +93,31 @@ class GiveUI implements IPreSptLoadMod {
                         return Promise.resolve(JSON.stringify({response}));
                     },
                 },
+                {
+                    url: '/give-ui/update-trader',
+                    action: (_url, request, sessionId, _output) => {
+                        const repCommand = `spt trader ${request.nickname} rep ${request.rep}`;
+                        logger.log(`[give-ui] Running command: [${repCommand}]`, LogTextColor.GREEN);
+                        const repMessage: ISendMessageRequest = {
+                            dialogId: sessionId,
+                            type: MessageType.SYSTEM_MESSAGE,
+                            text: repCommand,
+                            replyTo: undefined,
+                        };
+                        commando.handleMessage(sessionId, repMessage);
+
+                        const spendCommand = `spt trader ${request.nickname} spend ${request.spend}`;
+                        logger.log(`[give-ui] Running command: [${spendCommand}]`, LogTextColor.GREEN);
+                        const spendMessage: ISendMessageRequest = {
+                            dialogId: sessionId,
+                            type: MessageType.SYSTEM_MESSAGE,
+                            text: spendCommand,
+                            replyTo: undefined,
+                        };
+                        commando.handleMessage(sessionId, spendMessage);
+                        return Promise.resolve(JSON.stringify({}));
+                    },
+                },
             ],
             'give-ui-top-level-route',
         );
