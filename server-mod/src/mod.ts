@@ -118,6 +118,40 @@ class GiveUI implements IPreSptLoadMod {
                         return Promise.resolve(JSON.stringify({}));
                     },
                 },
+                {
+                    url: '/give-ui/update-level',
+                    action: (_url, request, sessionId, _output) => {
+                        const command = `spt profile level ${request.level}`;
+                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
+                        const message: ISendMessageRequest = {
+                            dialogId: sessionId,
+                            type: MessageType.SYSTEM_MESSAGE,
+                            text: command,
+                            replyTo: undefined,
+                        };
+                        commando.handleMessage(sessionId, message);
+
+                        const response = commando.handleMessage(sessionId, message);
+                        return Promise.resolve(JSON.stringify({response}));
+                    },
+                },
+                {
+                    url: '/give-ui/update-skill',
+                    action: (_url, request, sessionId, _output) => {
+                        const command = `spt profile skill ${request.skill} ${request.progress}`;
+                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
+                        const message: ISendMessageRequest = {
+                            dialogId: sessionId,
+                            type: MessageType.SYSTEM_MESSAGE,
+                            text: command,
+                            replyTo: undefined,
+                        };
+                        commando.handleMessage(sessionId, message);
+
+                        const response = commando.handleMessage(sessionId, message);
+                        return Promise.resolve(JSON.stringify({response}));
+                    },
+                },
             ],
             'give-ui-top-level-route',
         );

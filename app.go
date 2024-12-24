@@ -170,12 +170,18 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		})
 		profile := allProfiles[allProfilesIdx]
 
+		skills, err := api.LoadSkills(app.config.GetSptUrl(), profile, localeCode)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+
 		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, localeCode)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders)).ServeHTTP(w, r)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills)).ServeHTTP(w, r)
 	}
 }
 
@@ -274,6 +280,60 @@ func getTraders(app *App) http.HandlerFunc {
 	}
 }
 
+func getSkills(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
+		profileIdx := slices.IndexFunc(profiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+		profile := profiles[profileIdx]
+		localeCode := locale.ConvertLocale(app.config.GetLocale())
+
+		skills, err := api.LoadSkills(app.config.GetSptUrl(), profile, localeCode)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+
+		templ.Handler(components.Skills(profile.Characters.PMC.InfoPMC.Level, skills)).ServeHTTP(w, r)
+	}
+}
+func setLevel(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		level, _ := strconv.Atoi(r.FormValue("level"))
+
+		err := api.UpdateLevel(app.config.GetSptUrl(), sessionId, level)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+
+	}
+}
+
+func updateSkill(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		progress, _ := strconv.Atoi(r.FormValue("progress"))
+		skill := r.FormValue("skill")
+
+		err := api.UpdateSkill(app.config.GetSptUrl(), sessionId, skill, progress)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+
+	}
+}
+
 func getUserWeaponPresets(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
@@ -353,6 +413,9 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/item", addItem(app))
 	r.Post("/trader", updateTrader(app))
 	r.Get("/trader", getTraders(app))
+	r.Get("/skill", getSkills(app))
+	r.Post("/skill", updateSkill(app))
+	r.Post("/level", setLevel(app))
 	r.Get("/user-weapons", getUserWeaponPresets(app))
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	// this is not used as it is disabled in the template

@@ -31,6 +31,10 @@ body {
     text-align: center;
 }
 
+.toast {
+    z-index: 1000;
+}
+
 /* <div id="loader" class="button-loader">
            <span class="loading loading-spinner"></span>
            <span class="button-hide">Give</span>
