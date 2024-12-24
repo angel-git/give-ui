@@ -71,6 +71,30 @@ func AddUserWeapon(url string, sessionId string, presetId string) (e error) {
 	return err
 }
 
+func LoadSkills(url string, profile models.SPTProfile, locale string) (r []models.Skill, e error) {
+	locales, err := getLocaleFromServer(url, locale)
+	if err != nil {
+		return nil, err
+	}
+	var skills []models.Skill
+	for _, skill := range profile.Characters.PMC.Skills.Common {
+		name, foundName := locales.Data[fmt.Sprintf("%s", skill.Id)]
+		if !foundName {
+			continue
+		}
+		skills = append(skills, models.Skill{
+			Id:       skill.Id,
+			Name:     name,
+			Progress: fmt.Sprintf("%d", int(skill.Progress/100)),
+		})
+	}
+	sort.SliceStable(skills, func(i, j int) bool {
+		return skills[i].Name < skills[j].Name
+	})
+
+	return skills, nil
+}
+
 func LoadTraders(url string, profile models.SPTProfile, sessionId string, locale string) (r []models.Trader, e error) {
 	tradersResponse := &models.AllTradersResponse{}
 	err := util.GetJson(fmt.Sprintf("%s/client/trading/api/traderSettings", url), sessionId, tradersResponse)
@@ -92,6 +116,23 @@ func UpdateTrader(url string, sessionId string, nickname string, spend string, r
 		Rep:      rep,
 	}
 	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/update-trader", url), sessionId, request)
+	return err
+}
+
+func UpdateLevel(url string, sessionId string, level int) (e error) {
+	request := models.UpdateLevelRequest{
+		Level: level,
+	}
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/update-level", url), sessionId, request)
+	return err
+}
+
+func UpdateSkill(url string, sessionId string, skill string, progress int) (e error) {
+	request := models.UpdateSkillRequest{
+		Progress: progress,
+		Skill:    skill,
+	}
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/update-skill", url), sessionId, request)
 	return err
 }
 

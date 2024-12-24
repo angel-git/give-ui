@@ -44,7 +44,22 @@ type Characters struct {
 }
 
 type PMC struct {
+	InfoPMC     InfoPMC                  `json:"Info"`
 	TradersInfo map[string]TraderProfile `json:"TradersInfo"`
+	Skills      Skills                   `json:"Skills"`
+}
+
+type InfoPMC struct {
+	Level int `json:"Level"`
+}
+
+type Skills struct {
+	Common []SkillCommon `json:"Common"`
+}
+
+type SkillCommon struct {
+	Id       string  `json:"Id"`
+	Progress float32 `json:"Progress"`
 }
 
 type TraderProfile struct {

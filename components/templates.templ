@@ -66,7 +66,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	</div>
 }
 
-templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader) {
+templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill) {
 	@templ.JSONScript("profile-selected-username", profile.Info.Username)
 	<script>
         setUsernameOnFooter();
@@ -80,6 +80,10 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="User weapons"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@UserWeapons(allItems, profile.UserBuilds.WeaponBuilds)
+			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Skills"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@Skills(profile.Characters.PMC.InfoPMC.Level, skills)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Traders"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
@@ -302,6 +306,59 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 	</div>
 }
 
+templ Skills(profileLevel int, skills []models.Skill) {
+	<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="skills">
+		<div role="alert" class="alert alert-info">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				class="h-6 w-6 shrink-0 stroke-current"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+				></path>
+			</svg>
+			<span>Some skills that you see here might not be in the game yet. Make sure to refresh this page before doing any modification to get latest changes from the server.</span>
+			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/skill" hx-target="#skills" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
+		</div>
+		<div class="flex flex-row flex-wrap gap-2 mb-2">
+			<form class="w-full p-2 card bg-base-300" hx-post="/level" hx-swap="none" hx-disabled-elt="find button">
+				<h2 class="divider">Profile level</h2>
+				<div class="flex flex-row justify-between items-center p-2 gap-2">
+					<div class="form-control grow">
+						<label class="label">
+							<span class="label-text">Level</span>
+							<span class="label-text">{ fmt.Sprintf("%d", profileLevel) }</span>
+						</label>
+						<input type="range" name="level" min="0" max="71" value={ fmt.Sprintf("%d", profileLevel) } class="range range-primary" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value"/>
+					</div>
+					<button type="submit" class="btn btn-primary">Set level</button>
+				</div>
+			</form>
+			for _, skill := range skills {
+				<form class="w-full p-2 card bg-base-300" hx-post="/skill" hx-swap="none" hx-disabled-elt="find button">
+					<h2 class="divider">{ skill.Name }</h2>
+					<div class="flex flex-row justify-between items-center p-2 gap-2">
+						<div class="form-control grow">
+							<label class="label">
+								<span class="label-text">Level</span>
+								<span class="label-text">{ skill.Progress }</span>
+							</label>
+							<input type="range" name="progress" min="0" max="51" value={ skill.Progress } class="range" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value"/>
+							<input type="hidden" name="skill" value={ skill.Id }/>
+						</div>
+						<button class="btn btn-primary">Update skill</button>
+					</div>
+				</form>
+			}
+		</div>
+	</div>
+}
+
 templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 	<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="traders">
 		<div role="alert" class="alert alert-info">
@@ -318,7 +375,7 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 				></path>
 			</svg>
-			<span>Make sure to refresh this page before doing any modification and after accepting the trader modification message inside Tarkov.</span>
+			<span>Make sure to refresh this page before doing any modification to get latest changes from the server.</span>
 			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/trader" hx-target="#traders" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
 		</div>
 		for _, trader := range traders {
