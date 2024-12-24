@@ -360,63 +360,84 @@ templ Skills(profileLevel int, skills []models.Skill) {
 }
 
 templ Traders(profile *models.SPTProfile, traders []models.Trader) {
-	<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="traders">
-		<div role="alert" class="alert alert-info">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				fill="none"
-				viewBox="0 0 24 24"
-				class="h-6 w-6 shrink-0 stroke-current"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-				></path>
-			</svg>
-			<span>Make sure to refresh this page before doing any modification to get latest changes from the server.</span>
-			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/trader" hx-target="#traders" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
+	if len(traders) == 0 {
+		<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="traders">
+			<div role="alert" class="alert alert-warning">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-6 w-6 shrink-0 stroke-current"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+					></path>
+				</svg>
+				<span>Your SPT version is not compatible with this page. You have to upgrade to 3.10.4 or later</span>
+			</div>
 		</div>
-		for _, trader := range traders {
-			<div class="hero bg-base-300 w-72">
-				<div class="hero-content flex-col">
-					<img
-						src={ trader.Image }
-						class="max-w-sm rounded-lg shadow-2xl"
-					/>
-					<div>
-						<h1 class="text-xl font-bold">{ trader.NicknameLocale }</h1>
-						<div class="rating">
-							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 1 }/>
-							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 2 }/>
-							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 3 }/>
-							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 4 }/>
+	} else {
+		<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="traders">
+			<div role="alert" class="alert alert-info">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					class="h-6 w-6 shrink-0 stroke-current"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<span>Make sure to refresh this page before doing any modification to get latest changes from the server.</span>
+				<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/trader" hx-target="#traders" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
+			</div>
+			for _, trader := range traders {
+				<div class="hero bg-base-300 w-72">
+					<div class="hero-content flex-col">
+						<img
+							src={ trader.Image }
+							class="max-w-sm rounded-lg shadow-2xl"
+						/>
+						<div>
+							<h1 class="text-xl font-bold">{ trader.NicknameLocale }</h1>
+							<div class="rating">
+								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 1 }/>
+								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 2 }/>
+								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 3 }/>
+								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 4 }/>
+							</div>
+							<form class="card-body" hx-swap="none" hx-post="/trader" hx-disabled-elt="find button">
+								<input type="hidden" name="nickname" required value={ trader.Nickname }/>
+								<div class="form-control">
+									<label class="label">
+										<span class="label-text">Money spent</span>
+									</label>
+									<input type="number" name="spend" class="input input-bordered" min="0" max="9999999" required value={ trader.SalesSum }/>
+								</div>
+								<div class="form-control">
+									<label class="label">
+										<span class="label-text">Reputation</span>
+									</label>
+									<input type="range" name="rep" min="0" max="1" value={ trader.Reputation } class="range" step="0.1" oninput="this.nextElementSibling.value = this.value"/>
+									<output>{ trader.Reputation }</output>
+								</div>
+								<div class="form-control mt-6">
+									<button type="submit" class="btn btn-primary">Update</button>
+								</div>
+							</form>
 						</div>
-						<form class="card-body" hx-swap="none" hx-post="/trader" hx-disabled-elt="find button">
-							<input type="hidden" name="nickname" required value={ trader.Nickname }/>
-							<div class="form-control">
-								<label class="label">
-									<span class="label-text">Money spent</span>
-								</label>
-								<input type="number" name="spend" class="input input-bordered" min="0" max="9999999" required value={ trader.SalesSum }/>
-							</div>
-							<div class="form-control">
-								<label class="label">
-									<span class="label-text">Reputation</span>
-								</label>
-								<input type="range" name="rep" min="0" max="1" value={ trader.Reputation } class="range" step="0.1" oninput="this.nextElementSibling.value = this.value"/>
-								<output>{ trader.Reputation }</output>
-							</div>
-							<div class="form-control mt-6">
-								<button type="submit" class="btn btn-primary">Update</button>
-							</div>
-						</form>
 					</div>
 				</div>
-			</div>
-		}
-	</div>
+			}
+		</div>
+	}
 }
 
 templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
