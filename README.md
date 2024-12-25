@@ -17,19 +17,11 @@ Simple UI for the `SPT GIVE` command.
 
 - Select the item you want to receive. The quantity, by default, is always set to the maximum stack size
 
-
 #### User weapons presets
 
 ![user-presets.png](user-presets.png)
 
 - When you have saved weapons presets you can add them to your character with a single click
-
-### Traders
-
-![traders.png](traders.png)
-
-- Update the reputation of the traders
-- Update the money spent on the traders
 
 ### Skills
 
@@ -38,9 +30,15 @@ Simple UI for the `SPT GIVE` command.
 - Update profile level
 - Update skills level
 
+### Traders
+
+![traders.png](traders.png)
+
+- Update the reputation of the traders
+- Update the money spent on the traders
+
 ### Installation
 - unzip it in your SPT root folder
-
 
 ### Development
 
