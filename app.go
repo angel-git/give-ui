@@ -16,6 +16,7 @@ import (
 	"spt-give-ui/backend/models"
 	"spt-give-ui/components"
 	"strconv"
+	"strings"
 )
 
 // ctx variables
@@ -24,6 +25,7 @@ const contextProfiles = "profiles"
 const contextAllItems = "allItems"
 const contextTraders = "traders"
 const contextFavoriteSearch = "contextFavoriteSearch"
+const contextServerInfo = "contextServerInfo"
 
 // App struct
 type App struct {
@@ -90,6 +92,7 @@ func getLoginPage(app *App) http.HandlerFunc {
 		app.ctx = context.WithValue(app.ctx, contextAllItems, nil)
 		app.ctx = context.WithValue(app.ctx, contextFavoriteSearch, false)
 		app.ctx = context.WithValue(app.ctx, contextTraders, false)
+		app.ctx = context.WithValue(app.ctx, contextServerInfo, nil)
 		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
 	}
 }
@@ -114,6 +117,7 @@ func getProfileList(app *App) http.HandlerFunc {
 			return
 		}
 		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
+		app.ctx = context.WithValue(app.ctx, contextServerInfo, serverInfo)
 
 		templ.Handler(components.ProfileList(app.name, app.version, profiles)).ServeHTTP(w, r)
 	}
@@ -175,11 +179,16 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
-
-		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, localeCode)
-		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
-			return
+		serverInfo := app.ctx.Value(contextServerInfo).(*models.ServerInfo)
+		// trader reputation fix https://github.com/sp-tarkov/server/pull/994 is not available in versions 3.10.0, 3.10.1, 3.10.2, 3.10.3
+		// TODO remove me after 3.11.0 release
+		var traders []models.Trader
+		if !strings.Contains(serverInfo.Version, "3.10.0") && !strings.Contains(serverInfo.Version, "3.10.1") && !strings.Contains(serverInfo.Version, "3.10.2") && !strings.Contains(serverInfo.Version, "3.10.3") {
+			traders, err = api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, localeCode)
+			if err != nil {
+				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				return
+			}
 		}
 		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills)).ServeHTTP(w, r)
 	}
