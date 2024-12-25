@@ -419,12 +419,14 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 									<label class="label">
 										<span class="label-text">Money spent</span>
 									</label>
+									<input type="hidden" name="spend-original" value={ trader.SalesSum }/>
 									<input type="number" name="spend" class="input input-bordered" min="0" max="9999999" required value={ trader.SalesSum }/>
 								</div>
 								<div class="form-control">
 									<label class="label">
 										<span class="label-text">Reputation</span>
 									</label>
+									<input type="hidden" name="rep-original" value={ trader.Reputation }/>
 									<input type="range" name="rep" min="0" max="1" value={ trader.Reputation } class="range" step="0.1" oninput="this.nextElementSibling.value = this.value"/>
 									<output>{ trader.Reputation }</output>
 								</div>

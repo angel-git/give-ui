@@ -94,7 +94,7 @@ class GiveUI implements IPreSptLoadMod {
                     },
                 },
                 {
-                    url: '/give-ui/update-trader',
+                    url: '/give-ui/update-trader-rep',
                     action: (_url, request, sessionId, _output) => {
                         const repCommand = `spt trader ${request.nickname} rep ${request.rep}`;
                         logger.log(`[give-ui] Running command: [${repCommand}]`, LogTextColor.GREEN);
@@ -104,8 +104,13 @@ class GiveUI implements IPreSptLoadMod {
                             text: repCommand,
                             replyTo: undefined,
                         };
-                        commando.handleMessage(sessionId, repMessage);
-
+                        const response =  commando.handleMessage(sessionId, repMessage);
+                        return Promise.resolve(JSON.stringify({response}));
+                    },
+                },
+                {
+                    url: '/give-ui/update-trader-spend',
+                    action: (_url, request, sessionId, _output) => {
                         const spendCommand = `spt trader ${request.nickname} spend ${request.spend}`;
                         logger.log(`[give-ui] Running command: [${spendCommand}]`, LogTextColor.GREEN);
                         const spendMessage: ISendMessageRequest = {
@@ -114,8 +119,8 @@ class GiveUI implements IPreSptLoadMod {
                             text: spendCommand,
                             replyTo: undefined,
                         };
-                        commando.handleMessage(sessionId, spendMessage);
-                        return Promise.resolve(JSON.stringify({}));
+                        const response =  commando.handleMessage(sessionId, spendMessage);
+                        return Promise.resolve(JSON.stringify({response}));
                     },
                 },
                 {
