@@ -261,7 +261,7 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 	maybePresetId = allItems.GlobalPresets[globalIdx].Id
 }
 					}}
-					<div class="card bg-base-200 w-72 max-h-96 shadow-xl card-to-filter">
+					<div class="card bg-base-200 min-w-72 max-w-96 flex-auto max-h-96 shadow-xl card-to-filter">
 						<figure class="bg-base-300 h-28">
 							if maybePresetId != "" {
 								<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
@@ -399,7 +399,7 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 				<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/trader" hx-target="#traders" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
 			</div>
 			for _, trader := range traders {
-				<div class="card bg-base-300 w-72">
+				<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
 					<div class="hero-content flex-col">
 						<img
 							src={ trader.Image }

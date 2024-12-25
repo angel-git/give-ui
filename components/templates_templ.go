@@ -615,7 +615,7 @@ func UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) t
 				if globalIdx != -1 {
 					maybePresetId = allItems.GlobalPresets[globalIdx].Id
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"card bg-base-200 w-72 max-h-96 shadow-xl card-to-filter\"><figure class=\"bg-base-300 h-28\">")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"card bg-base-200 min-w-72 max-w-96 flex-auto max-h-96 shadow-xl card-to-filter\"><figure class=\"bg-base-300 h-28\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -944,7 +944,7 @@ func Traders(profile *models.SPTProfile, traders []models.Trader) templ.Componen
 				return templ_7745c5c3_Err
 			}
 			for _, trader := range traders {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"card bg-base-300 w-72\"><div class=\"hero-content flex-col\"><img src=\"")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"card bg-base-300 min-w-72 max-w-96 flex-auto\"><div class=\"hero-content flex-col\"><img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
