@@ -190,7 +190,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 				return
 			}
 		}
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills)).ServeHTTP(w, r)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo.MaxLevel)).ServeHTTP(w, r)
 	}
 }
 
@@ -248,19 +248,40 @@ func updateTrader(app *App) http.HandlerFunc {
 		nickname := r.FormValue("nickname")
 		spend := r.FormValue("spend")
 		rep := r.FormValue("rep")
+		spendOriginal := r.FormValue("spend-original")
+		repOriginal := r.FormValue("rep-original")
 		sessionId := app.ctx.Value(contextSessionId).(string)
+		fmt.Println(rep, repOriginal)
+		fmt.Println(spend, spendOriginal)
 
-		floatRep, err := strconv.ParseFloat(rep, 64)
-		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
-		}
-		rep = fmt.Sprintf("%d", int(floatRep*100))
+		// Convert strings to float32
+		floatRep, err1 := strconv.ParseFloat(rep, 32)
+		floatOriginalRep, err2 := strconv.ParseFloat(repOriginal, 32)
 
-		err = api.UpdateTrader(app.config.GetSptUrl(), sessionId, nickname, spend, rep)
-		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+		if err1 != nil {
+			templ.Handler(getErrorComponent(app, err1.Error())).ServeHTTP(w, r)
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+		if err2 != nil {
+			templ.Handler(getErrorComponent(app, err2.Error())).ServeHTTP(w, r)
+		}
+
+		if float32(floatRep) != float32(floatOriginalRep) {
+			rep = fmt.Sprintf("%d", int(floatRep*100))
+
+			err := api.UpdateTraderRep(app.config.GetSptUrl(), sessionId, nickname, rep)
+			if err != nil {
+				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			}
+			w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+		}
+
+		if spend != spendOriginal {
+			err := api.UpdateTraderSpend(app.config.GetSptUrl(), sessionId, nickname, spend)
+			if err != nil {
+				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			}
+			w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+		}
 	}
 }
 
@@ -310,8 +331,8 @@ func getSkills(app *App) http.HandlerFunc {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
-
-		templ.Handler(components.Skills(profile.Characters.PMC.InfoPMC.Level, skills)).ServeHTTP(w, r)
+		serverInfo := app.ctx.Value(contextServerInfo).(*models.ServerInfo)
+		templ.Handler(components.Skills(profile.Characters.PMC.InfoPMC.Level, skills, serverInfo.MaxLevel)).ServeHTTP(w, r)
 	}
 }
 func setLevel(app *App) http.HandlerFunc {

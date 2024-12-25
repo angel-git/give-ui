@@ -109,13 +109,20 @@ func LoadTraders(url string, profile models.SPTProfile, sessionId string, locale
 	return traders, nil
 }
 
-func UpdateTrader(url string, sessionId string, nickname string, spend string, rep string) (e error) {
-	request := models.UpdateTraderRequest{
+func UpdateTraderSpend(url string, sessionId string, nickname string, spend string) (e error) {
+	request := models.UpdateTraderSpendRequest{
 		Nickname: nickname,
 		Spend:    spend,
+	}
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/update-trader-spend", url), sessionId, request)
+	return err
+}
+func UpdateTraderRep(url string, sessionId string, nickname string, rep string) (e error) {
+	request := models.UpdateTraderRepRequest{
+		Nickname: nickname,
 		Rep:      rep,
 	}
-	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/update-trader", url), sessionId, request)
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/update-trader-rep", url), sessionId, request)
 	return err
 }
 

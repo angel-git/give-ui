@@ -66,7 +66,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	</div>
 }
 
-templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill) {
+templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, maxLevel int) {
 	@templ.JSONScript("profile-selected-username", profile.Info.Username)
 	<script>
         setUsernameOnFooter();
@@ -83,7 +83,7 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Skills"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@Skills(profile.Characters.PMC.InfoPMC.Level, skills)
+				@Skills(profile.Characters.PMC.InfoPMC.Level, skills, maxLevel)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Traders"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
@@ -253,7 +253,7 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 					@_RefreshPreset()
 				</label>
 			</div>
-			<div class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto" id="weapons-list">
+			<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="weapons-list">
 				for _, weaponBuild := range weaponBuilds {
 					{{ globalIdx := slices.IndexFunc(allItems.GlobalPresets, func(i models.ViewPreset) bool { return weaponBuild.Items[0].Tpl == i.Encyclopedia }) }}
 					{{ maybePresetId := "" }}
@@ -261,7 +261,7 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 	maybePresetId = allItems.GlobalPresets[globalIdx].Id
 }
 					}}
-					<div class="card bg-base-200 w-72 max-h-96 shadow-xl card-to-filter">
+					<div class="card bg-base-200 min-w-72 max-w-96 flex-auto max-h-96 shadow-xl card-to-filter">
 						<figure class="bg-base-300 h-28">
 							if maybePresetId != "" {
 								<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
@@ -306,7 +306,7 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 	</div>
 }
 
-templ Skills(profileLevel int, skills []models.Skill) {
+templ Skills(profileLevel int, skills []models.Skill, maxLevel int) {
 	<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="skills">
 		<div role="alert" class="alert alert-info">
 			<svg
@@ -334,9 +334,9 @@ templ Skills(profileLevel int, skills []models.Skill) {
 							<span class="label-text">Level</span>
 							<span class="label-text">{ fmt.Sprintf("%d", profileLevel) }</span>
 						</label>
-						<input type="range" name="level" min="0" max="71" value={ fmt.Sprintf("%d", profileLevel) } class="range range-primary" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value"/>
+						<input type="range" name="level" min="0" max={ fmt.Sprintf("%d", maxLevel) } value={ fmt.Sprintf("%d", profileLevel) } class="range range-primary" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value; this.parentNode.nextElementSibling.disabled = false"/>
 					</div>
-					<button type="submit" class="btn btn-primary">Set level</button>
+					<button type="submit" disabled class="btn btn-primary">Set level</button>
 				</div>
 			</form>
 			for _, skill := range skills {
@@ -348,10 +348,10 @@ templ Skills(profileLevel int, skills []models.Skill) {
 								<span class="label-text">Level</span>
 								<span class="label-text">{ skill.Progress }</span>
 							</label>
-							<input type="range" name="progress" min="0" max="51" value={ skill.Progress } class="range" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value"/>
+							<input type="range" name="progress" min="0" max="51" value={ skill.Progress } class="range" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value; this.parentNode.nextElementSibling.disabled = false"/>
 							<input type="hidden" name="skill" value={ skill.Id }/>
 						</div>
-						<button class="btn btn-primary">Update skill</button>
+						<button disabled class="btn btn-primary">Update skill</button>
 					</div>
 				</form>
 			}
@@ -399,7 +399,7 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 				<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/trader" hx-target="#traders" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
 			</div>
 			for _, trader := range traders {
-				<div class="hero bg-base-300 w-72">
+				<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
 					<div class="hero-content flex-col">
 						<img
 							src={ trader.Image }
@@ -419,17 +419,19 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 									<label class="label">
 										<span class="label-text">Money spent</span>
 									</label>
-									<input type="number" name="spend" class="input input-bordered" min="0" max="9999999" required value={ trader.SalesSum }/>
+									<input type="hidden" name="spend-original" value={ trader.SalesSum }/>
+									<input type="number" name="spend" class="input input-bordered" min="0" max="9999999" required value={ trader.SalesSum } oninput="this.parentNode.nextElementSibling.nextElementSibling.firstElementChild.disabled = false"/>
 								</div>
 								<div class="form-control">
 									<label class="label">
 										<span class="label-text">Reputation</span>
 									</label>
-									<input type="range" name="rep" min="0" max="1" value={ trader.Reputation } class="range" step="0.1" oninput="this.nextElementSibling.value = this.value"/>
+									<input type="hidden" name="rep-original" value={ trader.Reputation }/>
+									<input type="range" name="rep" min="0" max="1" value={ trader.Reputation } class="range" step="0.1" oninput="this.nextElementSibling.value = this.value; this.parentNode.nextElementSibling.firstElementChild.disabled = false"/>
 									<output>{ trader.Reputation }</output>
 								</div>
 								<div class="form-control mt-6">
-									<button type="submit" class="btn btn-primary">Update</button>
+									<button type="submit" disabled class="btn btn-primary">Update</button>
 								</div>
 							</form>
 						</div>

@@ -12,6 +12,7 @@ import type {StaticRouterModService} from '@spt/services/mod/staticRouter/Static
 import {MessageType} from "@spt/models/enums/MessageType";
 import {ISendMessageRequest} from "@spt/models/eft/dialog/ISendMessageRequest";
 import {SptCommandoCommands} from "@spt/helpers/Dialogue/Commando/SptCommandoCommands";
+import { ProfileHelper } from "@spt/helpers/ProfileHelper";
 import {GiveUserPresetSptCommand} from './GiveUserPresetSptCommand';
 
 class GiveUI implements IPreSptLoadMod {
@@ -26,6 +27,7 @@ class GiveUI implements IPreSptLoadMod {
         const watermark = container.resolve<Watermark>('Watermark');
         const preAkiModLoader = container.resolve<PreSptModLoader>('PreSptModLoader');
         const commando = container.resolve<CommandoDialogueChatBot>('CommandoDialogueChatBot');
+        const profileHelper = container.resolve<ProfileHelper>('ProfileHelper');
 
         const staticRouterModService =
             container.resolve<StaticRouterModService>('StaticRouterModService');
@@ -43,7 +45,8 @@ class GiveUI implements IPreSptLoadMod {
                         const modsInstalled = Object.values(preAkiModLoader.getImportedModDetails());
                         const giveUiMod = modsInstalled.find((m) => m.name === 'give-ui');
                         const modVersion = giveUiMod?.version;
-                        return Promise.resolve(JSON.stringify({version, path: serverPath, modVersion}));
+                        const maxLevel = profileHelper.getMaxLevel();
+                        return Promise.resolve(JSON.stringify({version, path: serverPath, modVersion, maxLevel}));
                     },
                 },
                 {
@@ -94,7 +97,7 @@ class GiveUI implements IPreSptLoadMod {
                     },
                 },
                 {
-                    url: '/give-ui/update-trader',
+                    url: '/give-ui/update-trader-rep',
                     action: (_url, request, sessionId, _output) => {
                         const repCommand = `spt trader ${request.nickname} rep ${request.rep}`;
                         logger.log(`[give-ui] Running command: [${repCommand}]`, LogTextColor.GREEN);
@@ -104,8 +107,13 @@ class GiveUI implements IPreSptLoadMod {
                             text: repCommand,
                             replyTo: undefined,
                         };
-                        commando.handleMessage(sessionId, repMessage);
-
+                        const response =  commando.handleMessage(sessionId, repMessage);
+                        return Promise.resolve(JSON.stringify({response}));
+                    },
+                },
+                {
+                    url: '/give-ui/update-trader-spend',
+                    action: (_url, request, sessionId, _output) => {
                         const spendCommand = `spt trader ${request.nickname} spend ${request.spend}`;
                         logger.log(`[give-ui] Running command: [${spendCommand}]`, LogTextColor.GREEN);
                         const spendMessage: ISendMessageRequest = {
@@ -114,8 +122,8 @@ class GiveUI implements IPreSptLoadMod {
                             text: spendCommand,
                             replyTo: undefined,
                         };
-                        commando.handleMessage(sessionId, spendMessage);
-                        return Promise.resolve(JSON.stringify({}));
+                        const response =  commando.handleMessage(sessionId, spendMessage);
+                        return Promise.resolve(JSON.stringify({response}));
                     },
                 },
                 {
