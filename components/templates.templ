@@ -595,7 +595,7 @@ templ _FavSwitcher(sessionId string, filterFavorites bool) {
 }
 
 templ _RefreshPreset() {
-	<button class="btn btn-circle btn-sm" hx-get="/user-weapons" hx-target="#user-weapons" hx-swap="outerHTML" hx-disabled-elt="button">
+	<button class="btn btn-circle btn-sm" hx-get="/user-weapons" hx-target="#user-weapons" hx-swap="outerHTML" hx-disabled-elt="#user-weapons button">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			fill="currentColor"
