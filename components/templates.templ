@@ -399,7 +399,7 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 				<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/trader" hx-target="#traders" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
 			</div>
 			for _, trader := range traders {
-				<div class="hero bg-base-300 w-72">
+				<div class="card bg-base-300 w-72">
 					<div class="hero-content flex-col">
 						<img
 							src={ trader.Image }

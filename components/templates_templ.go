@@ -944,7 +944,7 @@ func Traders(profile *models.SPTProfile, traders []models.Trader) templ.Componen
 				return templ_7745c5c3_Err
 			}
 			for _, trader := range traders {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"hero bg-base-300 w-72\"><div class=\"hero-content flex-col\"><img src=\"")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"card bg-base-300 w-72\"><div class=\"hero-content flex-col\"><img src=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
