@@ -256,7 +256,7 @@ func updateTrader(app *App) http.HandlerFunc {
 
 		// Convert strings to float32
 		floatRep, err1 := strconv.ParseFloat(rep, 32)
-		float2, err2 := strconv.ParseFloat(repOriginal, 32)
+		floatOriginalRep, err2 := strconv.ParseFloat(repOriginal, 32)
 
 		if err1 != nil {
 			templ.Handler(getErrorComponent(app, err1.Error())).ServeHTTP(w, r)
@@ -265,14 +265,13 @@ func updateTrader(app *App) http.HandlerFunc {
 			templ.Handler(getErrorComponent(app, err2.Error())).ServeHTTP(w, r)
 		}
 
-		if float32(floatRep) != float32(float2) {
+		if float32(floatRep) != float32(floatOriginalRep) {
 			rep = fmt.Sprintf("%d", int(floatRep*100))
 
 			err := api.UpdateTraderRep(app.config.GetSptUrl(), sessionId, nickname, rep)
 			if err != nil {
 				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			}
-			fmt.Println("sent rep!")
 			w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
 		}
 
@@ -281,7 +280,6 @@ func updateTrader(app *App) http.HandlerFunc {
 			if err != nil {
 				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			}
-			fmt.Println("sent spend!")
 			w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
 		}
 	}
