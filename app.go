@@ -190,7 +190,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 				return
 			}
 		}
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills)).ServeHTTP(w, r)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo.MaxLevel)).ServeHTTP(w, r)
 	}
 }
 
@@ -331,8 +331,8 @@ func getSkills(app *App) http.HandlerFunc {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
-
-		templ.Handler(components.Skills(profile.Characters.PMC.InfoPMC.Level, skills)).ServeHTTP(w, r)
+		serverInfo := app.ctx.Value(contextServerInfo).(*models.ServerInfo)
+		templ.Handler(components.Skills(profile.Characters.PMC.InfoPMC.Level, skills, serverInfo.MaxLevel)).ServeHTTP(w, r)
 	}
 }
 func setLevel(app *App) http.HandlerFunc {

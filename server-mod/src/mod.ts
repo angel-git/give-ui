@@ -12,6 +12,7 @@ import type {StaticRouterModService} from '@spt/services/mod/staticRouter/Static
 import {MessageType} from "@spt/models/enums/MessageType";
 import {ISendMessageRequest} from "@spt/models/eft/dialog/ISendMessageRequest";
 import {SptCommandoCommands} from "@spt/helpers/Dialogue/Commando/SptCommandoCommands";
+import { ProfileHelper } from "@spt/helpers/ProfileHelper";
 import {GiveUserPresetSptCommand} from './GiveUserPresetSptCommand';
 
 class GiveUI implements IPreSptLoadMod {
@@ -26,6 +27,7 @@ class GiveUI implements IPreSptLoadMod {
         const watermark = container.resolve<Watermark>('Watermark');
         const preAkiModLoader = container.resolve<PreSptModLoader>('PreSptModLoader');
         const commando = container.resolve<CommandoDialogueChatBot>('CommandoDialogueChatBot');
+        const profileHelper = container.resolve<ProfileHelper>('ProfileHelper');
 
         const staticRouterModService =
             container.resolve<StaticRouterModService>('StaticRouterModService');
@@ -43,7 +45,8 @@ class GiveUI implements IPreSptLoadMod {
                         const modsInstalled = Object.values(preAkiModLoader.getImportedModDetails());
                         const giveUiMod = modsInstalled.find((m) => m.name === 'give-ui');
                         const modVersion = giveUiMod?.version;
-                        return Promise.resolve(JSON.stringify({version, path: serverPath, modVersion}));
+                        const maxLevel = profileHelper.getMaxLevel();
+                        return Promise.resolve(JSON.stringify({version, path: serverPath, modVersion, maxLevel}));
                     },
                 },
                 {
