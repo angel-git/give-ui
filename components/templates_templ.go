@@ -832,7 +832,7 @@ func Skills(profileLevel int, skills []models.Skill) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"range range-primary\" step=\"1\" oninput=\"this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value\"></div><button type=\"submit\" class=\"btn btn-primary\">Set level</button></div></form>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"range range-primary\" step=\"1\" oninput=\"this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value; this.parentNode.nextElementSibling.disabled = false\"></div><button type=\"submit\" disabled class=\"btn btn-primary\">Set level</button></div></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -876,7 +876,7 @@ func Skills(profileLevel int, skills []models.Skill) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"range\" step=\"1\" oninput=\"this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value\"> <input type=\"hidden\" name=\"skill\" value=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"range\" step=\"1\" oninput=\"this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value; this.parentNode.nextElementSibling.disabled = false\"> <input type=\"hidden\" name=\"skill\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -889,7 +889,7 @@ func Skills(profileLevel int, skills []models.Skill) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"></div><button class=\"btn btn-primary\">Update skill</button></div></form>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"></div><button disabled class=\"btn btn-primary\">Update skill</button></div></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1088,7 +1088,7 @@ func Traders(profile *models.SPTProfile, traders []models.Trader) templ.Componen
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"></div><div class=\"form-control\"><label class=\"label\"><span class=\"label-text\">Reputation</span></label> <input type=\"hidden\" name=\"rep-original\" value=\"")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" oninput=\"this.parentNode.nextElementSibling.nextElementSibling.firstElementChild.disabled = false\"></div><div class=\"form-control\"><label class=\"label\"><span class=\"label-text\">Reputation</span></label> <input type=\"hidden\" name=\"rep-original\" value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1114,7 +1114,7 @@ func Traders(profile *models.SPTProfile, traders []models.Trader) templ.Componen
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"range\" step=\"0.1\" oninput=\"this.nextElementSibling.value = this.value\"> <output>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"range\" step=\"0.1\" oninput=\"this.nextElementSibling.value = this.value; this.parentNode.nextElementSibling.firstElementChild.disabled = false\"> <output>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1127,7 +1127,7 @@ func Traders(profile *models.SPTProfile, traders []models.Trader) templ.Componen
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</output></div><div class=\"form-control mt-6\"><button type=\"submit\" class=\"btn btn-primary\">Update</button></div></form></div></div></div>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</output></div><div class=\"form-control mt-6\"><button type=\"submit\" disabled class=\"btn btn-primary\">Update</button></div></form></div></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

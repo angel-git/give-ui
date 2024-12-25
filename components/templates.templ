@@ -334,9 +334,9 @@ templ Skills(profileLevel int, skills []models.Skill) {
 							<span class="label-text">Level</span>
 							<span class="label-text">{ fmt.Sprintf("%d", profileLevel) }</span>
 						</label>
-						<input type="range" name="level" min="0" max="71" value={ fmt.Sprintf("%d", profileLevel) } class="range range-primary" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value"/>
+						<input type="range" name="level" min="0" max="71" value={ fmt.Sprintf("%d", profileLevel) } class="range range-primary" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value; this.parentNode.nextElementSibling.disabled = false"/>
 					</div>
-					<button type="submit" class="btn btn-primary">Set level</button>
+					<button type="submit" disabled class="btn btn-primary">Set level</button>
 				</div>
 			</form>
 			for _, skill := range skills {
@@ -348,10 +348,10 @@ templ Skills(profileLevel int, skills []models.Skill) {
 								<span class="label-text">Level</span>
 								<span class="label-text">{ skill.Progress }</span>
 							</label>
-							<input type="range" name="progress" min="0" max="51" value={ skill.Progress } class="range" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value"/>
+							<input type="range" name="progress" min="0" max="51" value={ skill.Progress } class="range" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value; this.parentNode.nextElementSibling.disabled = false"/>
 							<input type="hidden" name="skill" value={ skill.Id }/>
 						</div>
-						<button class="btn btn-primary">Update skill</button>
+						<button disabled class="btn btn-primary">Update skill</button>
 					</div>
 				</form>
 			}
@@ -420,18 +420,18 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 										<span class="label-text">Money spent</span>
 									</label>
 									<input type="hidden" name="spend-original" value={ trader.SalesSum }/>
-									<input type="number" name="spend" class="input input-bordered" min="0" max="9999999" required value={ trader.SalesSum }/>
+									<input type="number" name="spend" class="input input-bordered" min="0" max="9999999" required value={ trader.SalesSum } oninput="this.parentNode.nextElementSibling.nextElementSibling.firstElementChild.disabled = false"/>
 								</div>
 								<div class="form-control">
 									<label class="label">
 										<span class="label-text">Reputation</span>
 									</label>
 									<input type="hidden" name="rep-original" value={ trader.Reputation }/>
-									<input type="range" name="rep" min="0" max="1" value={ trader.Reputation } class="range" step="0.1" oninput="this.nextElementSibling.value = this.value"/>
+									<input type="range" name="rep" min="0" max="1" value={ trader.Reputation } class="range" step="0.1" oninput="this.nextElementSibling.value = this.value; this.parentNode.nextElementSibling.firstElementChild.disabled = false"/>
 									<output>{ trader.Reputation }</output>
 								</div>
 								<div class="form-control mt-6">
-									<button type="submit" class="btn btn-primary">Update</button>
+									<button type="submit" disabled class="btn btn-primary">Update</button>
 								</div>
 							</form>
 						</div>
