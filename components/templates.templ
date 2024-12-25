@@ -253,7 +253,7 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 					@_RefreshPreset()
 				</label>
 			</div>
-			<div class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto" id="weapons-list">
+			<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="weapons-list">
 				for _, weaponBuild := range weaponBuilds {
 					{{ globalIdx := slices.IndexFunc(allItems.GlobalPresets, func(i models.ViewPreset) bool { return weaponBuild.Items[0].Tpl == i.Encyclopedia }) }}
 					{{ maybePresetId := "" }}

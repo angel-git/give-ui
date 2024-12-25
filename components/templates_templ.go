@@ -605,7 +605,7 @@ func UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) t
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label></div><div class=\"flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto\" id=\"weapons-list\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</label></div><div class=\"flex flex-wrap gap-2 h-full content-start overflow-y-auto\" id=\"weapons-list\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
