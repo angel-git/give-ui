@@ -326,7 +326,7 @@ templ Skills(profileLevel int, skills []models.Skill, maxLevel int) {
 			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/skill" hx-target="#skills" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
 		</div>
 		<div class="flex flex-row flex-wrap gap-2 mb-2">
-			<form class="w-full p-2 card bg-base-300" hx-post="/level" hx-swap="none" hx-disabled-elt="find button">
+			<form class="w-full p-2 card bg-base-300" hx-post="/level" hx-swap="none" hx-disabled-elt="find button" hx-on::after-request="this.lastElementChild.lastElementChild.disabled = true">
 				<h2 class="divider">Profile level</h2>
 				<div class="flex flex-row justify-between items-center p-2 gap-2">
 					<div class="form-control grow">
@@ -340,7 +340,7 @@ templ Skills(profileLevel int, skills []models.Skill, maxLevel int) {
 				</div>
 			</form>
 			for _, skill := range skills {
-				<form class="w-full p-2 card bg-base-300" hx-post="/skill" hx-swap="none" hx-disabled-elt="find button">
+				<form class="w-full p-2 card bg-base-300" hx-post="/skill" hx-swap="none" hx-disabled-elt="find button" hx-on::after-request="this.lastElementChild.lastElementChild.disabled = true">
 					<h2 class="divider">{ skill.Name }</h2>
 					<div class="flex flex-row justify-between items-center p-2 gap-2">
 						<div class="form-control grow">
@@ -351,7 +351,7 @@ templ Skills(profileLevel int, skills []models.Skill, maxLevel int) {
 							<input type="range" name="progress" min="0" max="51" value={ skill.Progress } class="range" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value; this.parentNode.nextElementSibling.disabled = false"/>
 							<input type="hidden" name="skill" value={ skill.Id }/>
 						</div>
-						<button disabled class="btn btn-primary">Update skill</button>
+						<button type="submit" disabled class="btn btn-primary">Update skill</button>
 					</div>
 				</form>
 			}
@@ -413,7 +413,7 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 3 }/>
 								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 4 }/>
 							</div>
-							<form class="card-body" hx-swap="none" hx-post="/trader" hx-disabled-elt="find button">
+							<form class="card-body" hx-swap="none" hx-post="/trader" hx-disabled-elt="find button" hx-on::after-request="this.lastElementChild.lastElementChild.disabled = true">
 								<input type="hidden" name="nickname" required value={ trader.Nickname }/>
 								<div class="form-control">
 									<label class="label">
