@@ -31,3 +31,6 @@ give-ui.error.log
 
 # Go workspace file
 go.work
+
+# templ templates
+components/templates_templ.go
