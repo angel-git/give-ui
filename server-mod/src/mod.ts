@@ -137,8 +137,6 @@ class GiveUI implements IPreSptLoadMod {
                             text: command,
                             replyTo: undefined,
                         };
-                        commando.handleMessage(sessionId, message);
-
                         const response = commando.handleMessage(sessionId, message);
                         return Promise.resolve(JSON.stringify({response}));
                     },
@@ -154,8 +152,6 @@ class GiveUI implements IPreSptLoadMod {
                             text: command,
                             replyTo: undefined,
                         };
-                        commando.handleMessage(sessionId, message);
-
                         const response = commando.handleMessage(sessionId, message);
                         return Promise.resolve(JSON.stringify({response}));
                     },
