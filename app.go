@@ -251,8 +251,6 @@ func updateTrader(app *App) http.HandlerFunc {
 		spendOriginal := r.FormValue("spend-original")
 		repOriginal := r.FormValue("rep-original")
 		sessionId := app.ctx.Value(contextSessionId).(string)
-		fmt.Println(rep, repOriginal)
-		fmt.Println(spend, spendOriginal)
 
 		// Convert strings to float32
 		floatRep, err1 := strconv.ParseFloat(rep, 32)

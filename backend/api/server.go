@@ -157,7 +157,7 @@ func parseTraders(url string, tradersResponse *models.AllTradersResponse, profil
 			Nickname:       trader.Nickname,
 			NicknameLocale: nicknameLocale,
 			Reputation:     fmt.Sprintf("%.2f", traderProfile.Standing),
-			SalesSum:       fmt.Sprintf("%d", traderProfile.SalesSum),
+			SalesSum:       fmt.Sprintf("%.0f", traderProfile.SalesSum),
 			Image:          fmt.Sprintf("%s%s", url, trader.Avatar),
 			LoyaltyLevel:   traderProfile.LoyaltyLevel,
 		})
