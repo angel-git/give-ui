@@ -63,7 +63,7 @@ type SkillCommon struct {
 }
 
 type TraderProfile struct {
-	SalesSum     int     `json:"salesSum"`
+	SalesSum     float32 `json:"salesSum"`
 	Standing     float32 `json:"standing"`
 	LoyaltyLevel int     `json:"loyaltyLevel"`
 }
