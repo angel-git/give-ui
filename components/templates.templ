@@ -110,9 +110,9 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 	<div class="card w-full">
 		<figure class="bg-base-300 min-h-[6rem] p-4">
 			if maybePresetId != "" {
-				<img alt="item" class="max-h-52" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
+				<img alt="item" class="max-h-52" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-512.webp", maybePresetId) }/>
 			} else {
-				<img alt="item" class="max-h-52" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
+				<img alt="item" class="max-h-52" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-512.webp", item.Id) }/>
 			}
 		</figure>
 		<div class="card-body">
@@ -264,9 +264,9 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 					<div class="card bg-base-200 min-w-72 max-w-96 flex-auto max-h-96 card-to-filter">
 						<figure class="bg-base-300 h-28">
 							if maybePresetId != "" {
-								<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
+								<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-512.webp", maybePresetId) }/>
 							} else {
-								<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", weaponBuild.Items[0].Tpl) }/>
+								<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-512.webp", weaponBuild.Items[0].Tpl) }/>
 							}
 						</figure>
 						<div class="card-body overflow-y-auto">
@@ -280,7 +280,7 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 											for _, item := range weaponBuild.Items {
 												<div>
 													<div class="w-16 h-16 table-cell align-middle">
-														<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Tpl) }/>
+														<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-512.webp", item.Tpl) }/>
 													</div>
 													<div class="pl-2 text-start table-cell align-middle">{ allItems.Items[item.Tpl].Name }</div>
 												</div>
@@ -482,7 +482,7 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 							<div class="flex gap-4 flex-wrap">
 								for _, bullet := range magazineLoadout.Items {
 									if bullet.TemplateId != "" {
-										<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", bullet.TemplateId) }/>
+										<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-512.webp", bullet.TemplateId) }/>
 									}
 								}
 							</div>
