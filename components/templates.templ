@@ -482,7 +482,7 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 							<div class="flex gap-4 flex-wrap">
 								for _, bullet := range magazineLoadout.Items {
 									if bullet.TemplateId != "" {
-										<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-512.webp", bullet.TemplateId) }/>
+										<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", bullet.TemplateId) }/>
 									}
 								}
 							</div>
