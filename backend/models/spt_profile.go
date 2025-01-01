@@ -47,6 +47,7 @@ type PMC struct {
 	InfoPMC     InfoPMC                  `json:"Info"`
 	TradersInfo map[string]TraderProfile `json:"TradersInfo"`
 	Skills      Skills                   `json:"Skills"`
+	Inventory   Inventory                `json:"Inventory"`
 }
 
 type InfoPMC struct {
@@ -66,4 +67,30 @@ type TraderProfile struct {
 	SalesSum     float32 `json:"salesSum"`
 	Standing     float32 `json:"standing"`
 	LoyaltyLevel int     `json:"loyaltyLevel"`
+}
+
+type Inventory struct {
+	Items []*InventoryItem `json:"items"`
+}
+
+type InventoryItem struct {
+	ID       string  `json:"_id"`
+	Tpl      string  `json:"_tpl"`
+	ParentID *string `json:"parent_id"`
+	SlotID   *string `json:"slot_id"`
+	Upd      *Upd    `json:"upd"`
+}
+
+type Upd struct {
+	Togglable         *Togglable `json:"Togglable"`
+	Foldable          *Foldable  `json:"Foldable"`
+	StackObjectsCount int        `json:"StackObjectsCount"`
+}
+
+type Togglable struct {
+	On bool `json:"on"`
+}
+
+type Foldable struct {
+	Folded bool `json:"folded"`
 }

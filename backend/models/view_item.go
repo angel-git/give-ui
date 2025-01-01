@@ -20,3 +20,10 @@ type AllItems struct {
 	Items         map[string]ViewItem
 	GlobalPresets []ViewPreset
 }
+
+type ViewWeaponBuild struct {
+	Id          string
+	Name        string
+	ImageBase64 *string
+	Items       []Item
+}

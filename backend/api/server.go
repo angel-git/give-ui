@@ -39,6 +39,19 @@ func LoadProfiles(url string) (r []models.SPTProfile, e error) {
 	return sessions, nil
 }
 
+func LoadRawItems(url string) (r *models.ItemsRawResponse, e error) {
+	itemsBytes, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/items", url), "")
+	if err != nil {
+		return nil, err
+	}
+	var itemsMap *models.ItemsRawResponse
+	err = util.ParseByteResponse(itemsBytes, &itemsMap)
+	if err != nil {
+		return nil, err
+	}
+	return itemsMap, nil
+}
+
 func LoadItems(url string, locale string) (r *models.AllItems, e error) {
 	items, err := getItemsFromServer(url)
 	if err != nil {
@@ -141,6 +154,18 @@ func UpdateSkill(url string, sessionId string, skill string, progress int) (e er
 	}
 	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/update-skill", url), sessionId, request)
 	return err
+}
+
+func LoadImage(url string, sessionId string, imageHash string) (r string, e error) {
+	response := &models.CacheImageResponse{}
+	err := util.GetJson(fmt.Sprintf("%s/give-ui/cache/%s", url, imageHash), sessionId, response)
+	if err != nil {
+		return "", err
+	}
+	if response.Error != nil {
+		return "", fmt.Errorf(*response.Error)
+	}
+	return *response.ImageBase64, nil
 }
 
 func parseTraders(url string, tradersResponse *models.AllTradersResponse, profile models.SPTProfile, locales *models.Locales) []models.Trader {
