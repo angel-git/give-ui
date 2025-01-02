@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"slices"
 	"spt-give-ui/backend/api"
+	"spt-give-ui/backend/cache"
+	"spt-give-ui/backend/cache_presets"
 	"spt-give-ui/backend/config"
 	"spt-give-ui/backend/locale"
 	"spt-give-ui/backend/logger"
@@ -150,25 +152,19 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 
 		var allItems *models.AllItems
 		var err error
-		if app.ctx.Value(contextAllItems) == nil {
-			allItems, err = api.LoadItems(app.config.GetSptUrl(), localeCode)
-			if err != nil {
-				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
-				return
-			}
-		} else {
-			allItems = app.ctx.Value(contextAllItems).(*models.AllItems)
+
+		itemsResponse, err := api.LoadItems(app.config.GetSptUrl())
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
 		}
 
-		if app.ctx.Value(contextAllUnfilteredItems) == nil {
-			allUnfilteredItems, err := api.LoadRawItems(app.config.GetSptUrl())
-			if err != nil {
-				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
-				return
-			}
-			app.ctx = context.WithValue(app.ctx, contextAllUnfilteredItems, allUnfilteredItems)
+		app.ctx = context.WithValue(app.ctx, contextAllUnfilteredItems, itemsResponse.Items)
+		allItems, err = api.ParseItems(itemsResponse, app.config.GetSptUrl(), localeCode)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
 		}
-
 		favoriteItems := app.config.GetFavoriteItems()
 		for _, favoriteItem := range favoriteItems {
 			item, exists := allItems.Items[favoriteItem]
@@ -208,7 +204,9 @@ func getItemDetails(app *App) http.HandlerFunc {
 		w.Header().Set("Cache-Control", "no-cache")
 		itemId := chi.URLParam(r, "id")
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		bsgItems := app.ctx.Value(contextAllUnfilteredItems).(map[string]models.BSGItem)
 		item := allItems.Items[itemId]
+		bsgItem := bsgItems[itemId]
 
 		globalIdx := slices.IndexFunc(allItems.GlobalPresets, func(i models.ViewPreset) bool {
 			return item.Id == i.Encyclopedia
@@ -216,6 +214,14 @@ func getItemDetails(app *App) http.HandlerFunc {
 		maybePresetId := ""
 		if globalIdx != -1 {
 			maybePresetId = allItems.GlobalPresets[globalIdx].Id
+		} else {
+			hash := cache.GetItemHash(bsgItem, bsgItems)
+			fmt.Println("hash", hash)
+			imageBase64, err := api.LoadImage(app.config.GetSptUrl(), app.ctx.Value(contextSessionId).(string), fmt.Sprint(hash))
+			if err == nil {
+				item.ImageBase64 = imageBase64
+				fmt.Println("found image for hash", hash)
+			}
 		}
 
 		templ.Handler(components.ItemDetail(item, maybePresetId)).ServeHTTP(w, r)
@@ -443,17 +449,18 @@ func getProfileFromSession(app *App) models.SPTProfile {
 func mapUserWeapons(app *App, weaponBuilds []models.WeaponBuild) []models.ViewWeaponBuild {
 	sessionId := app.ctx.Value(contextSessionId).(string)
 	var viewWeaponBuild []models.ViewWeaponBuild
-	//profile := getProfileFromSession(app)
+	bsgItems := app.ctx.Value(contextAllUnfilteredItems).(map[string]models.BSGItem)
+
 	for _, weaponBuild := range weaponBuilds {
-		//bsgItems := app.ctx.Value(contextAllUnfilteredItems).(*models.ItemsRawResponse)
-		imageHash := "123" // tODO
-		image, err := api.LoadImage(app.config.GetSptUrl(), sessionId, imageHash)
-		var ImageBase64 *string
+		imageHash := cache_presets.GetItemHash(weaponBuild.Items[0], weaponBuild.Items, bsgItems)
+		imageBase64, err := api.LoadImage(app.config.GetSptUrl(), sessionId, fmt.Sprint(imageHash))
+		var ImageBase64 string
 		if err != nil {
-			ImageBase64 = nil
+			ImageBase64 = ""
 		} else {
-			ImageBase64 = &image
+			ImageBase64 = imageBase64
 		}
+
 		viewWeaponBuild = append(viewWeaponBuild, models.ViewWeaponBuild{
 			Id:          weaponBuild.Id,
 			Name:        weaponBuild.Name,

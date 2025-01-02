@@ -181,15 +181,11 @@ class GiveUI implements IPreSptLoadMod {
                             const file = fs.readFileSync(path.join(cachePath, `${image}.png`),  {encoding: 'base64'});
                             return Promise.resolve(JSON.stringify({imageBase64: file}));
                         } catch (e) {
-                            console.log(`${cacheID} cache not found in index.json`)
                             return Promise.resolve(JSON.stringify({error: 404}));
                         }
                     } catch (e) {
-                        console.log('sptappdata not found')
                         return Promise.resolve(JSON.stringify({error: 404}));
                     }
-
-
                 },
             }],
             'give-ui-top-level-dynamic-route',

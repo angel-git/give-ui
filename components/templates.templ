@@ -111,6 +111,8 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 		<figure class="bg-base-300 min-h-[6rem] p-4">
 			if maybePresetId != "" {
 				<img alt="item" class="max-h-52" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
+			} else if item.ImageBase64 != "" {
+				<img alt="item" class="max-h-52" src={ fmt.Sprintf("data:image/png;base64, %s", item.ImageBase64) }/>
 			} else {
 				<img alt="item" class="max-h-52" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
 			}
@@ -263,8 +265,8 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.ViewWeaponBui
 					}}
 					<div class="card bg-base-200 min-w-72 max-w-96 flex-auto max-h-96 card-to-filter">
 						<figure class="bg-base-300 h-28">
-							if weaponBuild.ImageBase64 != nil {
-								<img alt="item" class="max-h-full" src={ fmt.Sprintf("data:image/png;base64, %s", *weaponBuild.ImageBase64) }/>
+							if weaponBuild.ImageBase64 != "" {
+								<img alt="item" class="max-h-full" src={ fmt.Sprintf("data:image/png;base64, %s", weaponBuild.ImageBase64) }/>
 							} else {
 								if maybePresetId != "" {
 									<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>

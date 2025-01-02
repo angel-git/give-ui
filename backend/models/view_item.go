@@ -8,6 +8,7 @@ type ViewItem struct {
 	Category    string
 	MaxStock    int
 	Favorite    bool
+	ImageBase64 string
 }
 
 type ViewPreset struct {
@@ -24,6 +25,6 @@ type AllItems struct {
 type ViewWeaponBuild struct {
 	Id          string
 	Name        string
-	ImageBase64 *string
-	Items       []Item
+	ImageBase64 string
+	Items       []WeaponBuildItem
 }

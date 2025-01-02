@@ -39,32 +39,23 @@ func LoadProfiles(url string) (r []models.SPTProfile, e error) {
 	return sessions, nil
 }
 
-func LoadRawItems(url string) (r *models.ItemsRawResponse, e error) {
-	itemsBytes, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/items", url), "")
-	if err != nil {
-		return nil, err
-	}
-	var itemsMap *models.ItemsRawResponse
-	err = util.ParseByteResponse(itemsBytes, &itemsMap)
-	if err != nil {
-		return nil, err
-	}
-	return itemsMap, nil
-}
-
-func LoadItems(url string, locale string) (r *models.AllItems, e error) {
+func LoadItems(url string) (r *models.ItemsResponse, e error) {
 	items, err := getItemsFromServer(url)
 	if err != nil {
 		return nil, err
 	}
+	return items, nil
+}
+
+func ParseItems(allItems *models.ItemsResponse, url string, locale string) (r *models.AllItems, e error) {
 	locales, err := getLocaleFromServer(url, locale)
 	if err != nil {
 		return nil, err
 	}
 
-	allItems := parseItems(items, *locales)
+	items := parseItems(allItems, *locales)
 
-	return &allItems, nil
+	return &items, nil
 }
 
 func AddItem(url string, sessionId string, itemId string, amount int) (e error) {
@@ -273,6 +264,7 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 			Name:        name,
 			Type:        bsgItem.Type,
 			Description: description,
+			ImageBase64: "",
 			Category:    category,
 			MaxStock:    bsgItem.Props.StackMaxSize,
 			Favorite:    false,

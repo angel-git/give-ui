@@ -5,15 +5,18 @@ type Info struct {
 	Username string `json:"username"`
 }
 
-type Item struct {
-	Id  string `json:"_id"`
-	Tpl string `json:"_tpl"`
+type WeaponBuildItem struct {
+	Id       string  `json:"_id"`
+	Tpl      string  `json:"_tpl"`
+	ParentID *string `json:"parentId"`
+	SlotID   *string `json:"slotId"`
+	Upd      *Upd    `json:"upd"`
 }
 
 type WeaponBuild struct {
-	Id    string `json:"Id"`
-	Name  string `json:"Name"`
-	Items []Item `json:"Items"`
+	Id    string            `json:"Id"`
+	Name  string            `json:"Name"`
+	Items []WeaponBuildItem `json:"Items"`
 }
 
 type MagazineBuild struct {
@@ -47,7 +50,6 @@ type PMC struct {
 	InfoPMC     InfoPMC                  `json:"Info"`
 	TradersInfo map[string]TraderProfile `json:"TradersInfo"`
 	Skills      Skills                   `json:"Skills"`
-	Inventory   Inventory                `json:"Inventory"`
 }
 
 type InfoPMC struct {
@@ -67,18 +69,6 @@ type TraderProfile struct {
 	SalesSum     float32 `json:"salesSum"`
 	Standing     float32 `json:"standing"`
 	LoyaltyLevel int     `json:"loyaltyLevel"`
-}
-
-type Inventory struct {
-	Items []*InventoryItem `json:"items"`
-}
-
-type InventoryItem struct {
-	ID       string  `json:"_id"`
-	Tpl      string  `json:"_tpl"`
-	ParentID *string `json:"parent_id"`
-	SlotID   *string `json:"slot_id"`
-	Upd      *Upd    `json:"upd"`
 }
 
 type Upd struct {

@@ -1,106 +1,111 @@
 package cache
 
 import (
+	"iter"
+	"maps"
 	"spt-give-ui/backend/models"
 	"strconv"
 	"strings"
 )
 
-func GetItemHash(item models.InventoryItem, items []models.InventoryItem, bsgItemsRoot map[string]interface{}) int32 {
+func GetItemHash(item models.BSGItem, bsgItemsRoot map[string]models.BSGItem) int32 {
 	var hash int32 = 17
-	for _, h := range smethod0(item, items, bsgItemsRoot, 1) {
+	for _, h := range smethod0(item, bsgItemsRoot, 1) {
 		hash ^= h
 	}
 
-	if isAmmoItem(item.Tpl, bsgItemsRoot) {
+	if IsAmmoItem(item.Id, bsgItemsRoot) {
 		hash ^= 27 * 56
 	}
 
 	return hash
 }
 
-func smethod0(topLevelItem models.InventoryItem, items []models.InventoryItem, bsgItemsRoot map[string]interface{}, hashSeed int32) []int32 {
+func smethod0(topLevelItem models.BSGItem, bsgItemsRoot map[string]models.BSGItem, hashSeed int32) []int32 {
 	var hashes []int32
 
-	hashes = append(hashes, smethod1(topLevelItem, items, bsgItemsRoot)*hashSeed)
+	hashes = append(hashes, smethod1(topLevelItem, bsgItemsRoot)*hashSeed)
 
-	if isHideEntrails(topLevelItem.Tpl, bsgItemsRoot) {
+	if IsHideEntrails(topLevelItem.Id, bsgItemsRoot) {
 		return hashes
 	}
 
+	bsgItemsRootValues := maps.Values(bsgItemsRoot)
+
 	hashSeed *= 6529
-	childrenItems := getChildren(topLevelItem, items)
+	childrenItems := getChildren(topLevelItem, bsgItemsRootValues)
 	if len(childrenItems) > 0 {
 		for _, child := range childrenItems {
 			var num int32 = 0
-			var num2 = hashSeed ^ getHashSum(child, items)
-			if isSlackSlot(topLevelItem.Tpl, bsgItemsRoot) {
+			var num2 = hashSeed ^ getHashSum(child, bsgItemsRootValues)
+			if isSlackSlot(topLevelItem.Id, bsgItemsRoot) {
 				num++
 				num2 ^= 2879 * num
 			}
-			hashes = append(hashes, smethod0(child, items, bsgItemsRoot, num2)...)
+			hashes = append(hashes, smethod0(child, bsgItemsRoot, num2)...)
 		}
 	}
 
 	return hashes
 }
 
-func getHashSum(item models.InventoryItem, items []models.InventoryItem) int32 {
+func getHashSum(item models.BSGItem, items iter.Seq[models.BSGItem]) int32 {
 	parentItem := getParentItem(item, items)
-	containerID := item.SlotID
-	num := 2777 * getDeterministicHashCode(*containerID)
-	num += 7901 * getHashCodeFromMongoID(parentItem.Tpl)
+	containerID := "hideout"
+	num := 2777 * GetDeterministicHashCode(containerID)
+	num += 7901 * GetHashCodeFromMongoID(parentItem.Id)
 	return num
 }
 
-func isSlackSlot(tpl string, bsgItemsRoot map[string]interface{}) bool {
-	container := bsgItemsRoot[tpl].(map[string]interface{})
-	if cartridges, ok := container["_props"].(map[string]interface{})["Cartridges"].([]interface{}); ok {
-		return len(cartridges) > 0
+func isSlackSlot(tpl string, bsgItemsRoot map[string]models.BSGItem) bool {
+	container := bsgItemsRoot[tpl]
+	if container.Props.Cartridges != nil {
+		return len(*container.Props.Cartridges) > 0
+	} else {
+		return false
 	}
-	return false
 }
 
-func smethod1(item models.InventoryItem, items []models.InventoryItem, bsgItemsRoot map[string]interface{}) int32 {
-	hash := getHashCodeFromMongoID(item.Tpl)
+func smethod1(item models.BSGItem, bsgItemsRoot map[string]models.BSGItem) int32 {
+	hash := GetHashCodeFromMongoID(item.Id)
 
-	node := bsgItemsRoot[item.Tpl].(map[string]interface{})
-	if hasHinge, ok := node["_props"].(map[string]interface{})["HasHinge"].(bool); ok && hasHinge {
+	node := bsgItemsRoot[item.Id]
+	if node.Props.HasHinge {
 		isToggled := true
-		if item.Upd != nil && item.Upd.Togglable != nil {
-			isToggled = item.Upd.Togglable.On
-		}
-		hash ^= 23 + boolToInt(isToggled)
+		//if item.Upd != nil && item.Upd.Togglable != nil {
+		//	isToggled = item.Upd.Togglable.On
+		//}
+		hash ^= 23 + BoolToInt(isToggled)
 	}
 
-	if isFoldableItem(item.Tpl, bsgItemsRoot) {
+	if IsFoldableItem(item.Id, bsgItemsRoot) {
 		isFolded := false
-		if item.Upd != nil && item.Upd.Foldable != nil {
-			isFolded = item.Upd.Foldable.Folded
-		}
-		hash ^= (23 + boolToInt(isFolded)) << 1
+		//if item.Upd != nil && item.Upd.Foldable != nil {
+		//	isFolded = item.Upd.Foldable.Folded
+		//}
+		hash ^= (23 + BoolToInt(isFolded)) << 1
 	}
 
-	if isMagazineItem(item.Tpl, bsgItemsRoot) {
+	if IsMagazineItem(item.Id, bsgItemsRoot) {
 		allAmmoInsideMagazine := 0
-		for _, i := range items {
-			if i.ParentID != nil && *i.ParentID == item.ID {
-				if i.Upd != nil {
-					allAmmoInsideMagazine += i.Upd.StackObjectsCount
-				} else {
-					allAmmoInsideMagazine++
-				}
-			}
-		}
+		//for _, i := range items {
+		//	if i.ParentID != nil && *i.ParentID == item.ID {
+		//		if i.Upd != nil {
+		//			allAmmoInsideMagazine += i.Upd.StackObjectsCount
+		//		} else {
+		//			allAmmoInsideMagazine++
+		//		}
+		//	}
+		//}
 
-		maxVisibleAmmo := getMaxVisibleAmmo(uint16(allAmmoInsideMagazine), node["_props"].(map[string]interface{})["VisibleAmmoRangesString"].(string))
+		maxVisibleAmmo := GetMaxVisibleAmmo(uint16(allAmmoInsideMagazine), node.Props.VisibleAmmoRangesString)
 		hash ^= (23 + int32(maxVisibleAmmo)) << 2
 	}
 
 	return hash
 }
 
-func getMaxVisibleAmmo(bullets uint16, visibleAmmoRangesString string) uint16 {
+func GetMaxVisibleAmmo(bullets uint16, visibleAmmoRangesString string) uint16 {
 	visibleAmmoRanges := getMaxVisibleAmmoRanges(visibleAmmoRangesString)
 
 	for i, r := range visibleAmmoRanges {
@@ -135,7 +140,7 @@ func getMaxVisibleAmmoRanges(visibleAmmoRangesString string) [][2]uint16 {
 	return ranges
 }
 
-func getDeterministicHashCode(s string) int32 {
+func GetDeterministicHashCode(s string) int32 {
 	var hash1 int32 = 5381
 	var hash2 int32 = hash1
 
@@ -150,7 +155,7 @@ func getDeterministicHashCode(s string) int32 {
 	return hash1 + hash2*1566083941
 }
 
-func getHashCodeFromMongoID(mongoID string) int32 {
+func GetHashCodeFromMongoID(mongoID string) int32 {
 	timestamp := getMongoIDTimestamp(mongoID)
 	counter := getMongoIDCounter(mongoID)
 	counterHigh := int32((counter >> 32) * 3637)
@@ -175,62 +180,57 @@ func getMongoIDCounter(mongoID string) uint64 {
 	return counter
 }
 
-func isAmmoItem(tpl string, bsgItemsRoot map[string]interface{}) bool {
+func IsAmmoItem(tpl string, bsgItemsRoot map[string]models.BSGItem) bool {
 	return findParentByName(bsgItemsRoot, tpl, "Ammo") != nil
 }
 
-func isMagazineItem(tpl string, bsgItemsRoot map[string]interface{}) bool {
+func IsMagazineItem(tpl string, bsgItemsRoot map[string]models.BSGItem) bool {
 	return findParentByName(bsgItemsRoot, tpl, "Magazine") != nil
 }
 
-func isFoldableItem(tpl string, bsgItemsRoot map[string]interface{}) bool {
-	node := bsgItemsRoot[tpl].(map[string]interface{})
-	if foldable, ok := node["_props"].(map[string]interface{})["Foldable"].(bool); ok {
-		return foldable
-	}
-	return false
+func IsFoldableItem(tpl string, bsgItemsRoot map[string]models.BSGItem) bool {
+	node := bsgItemsRoot[tpl]
+	return node.Props.Foldable
 }
 
-func getParentItem(item models.InventoryItem, items []models.InventoryItem) models.InventoryItem {
-	for _, i := range items {
-		if i.ID == *item.ParentID {
-			return i
+func getParentItem(item models.BSGItem, items iter.Seq[models.BSGItem]) *models.BSGItem {
+	for i := range items {
+		if i.Id == item.Parent {
+			return &i
 		}
 	}
 	return nil
 }
 
-func isHideEntrails(tpl string, bsgItemsRoot map[string]interface{}) bool {
-	node := bsgItemsRoot[tpl].(map[string]interface{})
-	if hideEntrails, ok := node["_props"].(map[string]interface{})["HideEntrails"].(bool); ok {
-		return hideEntrails
-	}
-	return false
+func IsHideEntrails(tpl string, bsgItemsRoot map[string]models.BSGItem) bool {
+	node := bsgItemsRoot[tpl]
+	return node.Props.HideEntrails
 }
 
-func getChildren(item models.InventoryItem, items []models.InventoryItem) []models.InventoryItem {
-	var children []models.InventoryItem
-	for _, i := range items {
-		if i.ParentID != nil && *i.ParentID == item.ID {
+func getChildren(item models.BSGItem, items iter.Seq[models.BSGItem]) []models.BSGItem {
+	var children []models.BSGItem
+	for i := range items {
+		if i.Parent != "" && i.Parent == item.Id {
 			children = append(children, i)
 		}
 	}
 	return children
 }
 
-func findParentByName(bsgItemsRoot map[string]interface{}, currentID, targetName string) interface{} {
-	node := bsgItemsRoot[currentID].(map[string]interface{})
-	name := node["_name"].(string)
+func findParentByName(bsgItemsRoot map[string]models.BSGItem, currentID string, targetName string) *models.BSGItem {
+	node := bsgItemsRoot[currentID]
+	name := node.Name
 	if name == targetName {
-		return node
+		return &node
 	}
-	if parentID, ok := node["_parent"].(string); ok {
-		return findParentByName(bsgItemsRoot, parentID, targetName)
+	parent := node.Parent
+	if parent == "" {
+		return nil
 	}
-	return nil
+	return findParentByName(bsgItemsRoot, node.Parent, targetName)
 }
 
-func boolToInt(b bool) int32 {
+func BoolToInt(b bool) int32 {
 	if b {
 		return 1
 	}
