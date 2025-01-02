@@ -8,8 +8,37 @@ Simple UI for the `SPT GIVE` command.
 
 1. With the server and preferably with Tarkov running, open the app
 2. Use the form to connect to the server and select your character
-3. Select the item you want to receive. The quantity, by default, is always set to the maximum stack size
-4. You will receive a message with the item/s
+
+### Features
+
+#### Adding items
+
+![items.png](items.png)
+
+- Select the item you want to receive. The quantity, by default, is always set to the maximum stack size
+
+#### User weapons presets
+
+![user-presets.png](user-presets.png)
+
+- When you have saved weapons presets you can add them to your character with a single click
+
+### Skills
+
+![skills.png](skills.png)
+
+- Update profile level
+- Update skills level
+
+### Traders
+
+![traders.png](traders.png)
+
+- Update the reputation of the traders
+- Update the money spent on the traders
+
+### Installation
+- unzip it in your SPT root folder
 
 ### Development
 

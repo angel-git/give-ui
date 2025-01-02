@@ -16,12 +16,16 @@ import (
 	"spt-give-ui/backend/models"
 	"spt-give-ui/components"
 	"strconv"
+	"strings"
 )
 
 // ctx variables
 const contextSessionId = "sessionId"
 const contextProfiles = "profiles"
 const contextAllItems = "allItems"
+const contextTraders = "traders"
+const contextFavoriteSearch = "contextFavoriteSearch"
+const contextServerInfo = "contextServerInfo"
 
 // App struct
 type App struct {
@@ -86,6 +90,9 @@ func getLoginPage(app *App) http.HandlerFunc {
 		app.ctx = context.WithValue(app.ctx, contextSessionId, nil)
 		app.ctx = context.WithValue(app.ctx, contextProfiles, nil)
 		app.ctx = context.WithValue(app.ctx, contextAllItems, nil)
+		app.ctx = context.WithValue(app.ctx, contextFavoriteSearch, false)
+		app.ctx = context.WithValue(app.ctx, contextTraders, false)
+		app.ctx = context.WithValue(app.ctx, contextServerInfo, nil)
 		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
 	}
 }
@@ -110,6 +117,7 @@ func getProfileList(app *App) http.HandlerFunc {
 			return
 		}
 		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
+		app.ctx = context.WithValue(app.ctx, contextServerInfo, serverInfo)
 
 		templ.Handler(components.ProfileList(app.name, app.version, profiles)).ServeHTTP(w, r)
 	}
@@ -121,17 +129,26 @@ func switchTheme(app *App) http.HandlerFunc {
 	}
 }
 
+func favouriteSearch(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var isFavorite = app.ctx.Value(contextFavoriteSearch).(bool)
+		app.ctx = context.WithValue(app.ctx, contextFavoriteSearch, !isFavorite)
+		getMainPageForProfile(app)(w, r)
+	}
+
+}
+
 func getMainPageForProfile(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
 		sessionId := chi.URLParam(r, "id")
-		isFavorite := r.URL.Query().Get("fav")
+		var isFavorite = app.ctx.Value(contextFavoriteSearch).(bool)
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
+		localeCode := locale.ConvertLocale(app.config.GetLocale())
 
 		var allItems *models.AllItems
 		var err error
 		if app.ctx.Value(contextAllItems) == nil {
-			localeCode := locale.ConvertLocale(app.config.GetLocale())
 			allItems, err = api.LoadItems(app.config.GetSptUrl(), localeCode)
 			if err != nil {
 				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
@@ -157,7 +174,23 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		})
 		profile := allProfiles[allProfilesIdx]
 
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite == "on", &profile)).ServeHTTP(w, r)
+		skills, err := api.LoadSkills(app.config.GetSptUrl(), profile, localeCode)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		serverInfo := app.ctx.Value(contextServerInfo).(*models.ServerInfo)
+		// trader reputation fix https://github.com/sp-tarkov/server/pull/994 is not available in versions 3.10.0, 3.10.1, 3.10.2, 3.10.3
+		// TODO remove me after 3.11.0 release
+		var traders []models.Trader
+		if !strings.Contains(serverInfo.Version, "3.10.0") && !strings.Contains(serverInfo.Version, "3.10.1") && !strings.Contains(serverInfo.Version, "3.10.2") && !strings.Contains(serverInfo.Version, "3.10.3") {
+			traders, err = api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, localeCode)
+			if err != nil {
+				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				return
+			}
+		}
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo.MaxLevel)).ServeHTTP(w, r)
 	}
 }
 
@@ -206,6 +239,148 @@ func addItem(app *App) http.HandlerFunc {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your item has been sent\"}")
+	}
+}
+
+func updateTrader(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		nickname := r.FormValue("nickname")
+		spend := r.FormValue("spend")
+		rep := r.FormValue("rep")
+		spendOriginal := r.FormValue("spend-original")
+		repOriginal := r.FormValue("rep-original")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		// Convert strings to float32
+		floatRep, err1 := strconv.ParseFloat(rep, 32)
+		floatOriginalRep, err2 := strconv.ParseFloat(repOriginal, 32)
+
+		if err1 != nil {
+			templ.Handler(getErrorComponent(app, err1.Error())).ServeHTTP(w, r)
+		}
+		if err2 != nil {
+			templ.Handler(getErrorComponent(app, err2.Error())).ServeHTTP(w, r)
+		}
+
+		if float32(floatRep) != float32(floatOriginalRep) {
+			rep = fmt.Sprintf("%d", int(floatRep*100))
+
+			err := api.UpdateTraderRep(app.config.GetSptUrl(), sessionId, nickname, rep)
+			if err != nil {
+				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			}
+			w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+		}
+
+		if spend != spendOriginal {
+			err := api.UpdateTraderSpend(app.config.GetSptUrl(), sessionId, nickname, spend)
+			if err != nil {
+				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			}
+			w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+		}
+	}
+}
+
+func getTraders(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
+		profileIdx := slices.IndexFunc(profiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+		profile := profiles[profileIdx]
+		localeCode := locale.ConvertLocale(app.config.GetLocale())
+
+		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, localeCode)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		templ.Handler(components.Traders(&profile, traders)).ServeHTTP(w, r)
+	}
+}
+
+func getSkills(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
+		profileIdx := slices.IndexFunc(profiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+		profile := profiles[profileIdx]
+		localeCode := locale.ConvertLocale(app.config.GetLocale())
+
+		skills, err := api.LoadSkills(app.config.GetSptUrl(), profile, localeCode)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		serverInfo := app.ctx.Value(contextServerInfo).(*models.ServerInfo)
+		templ.Handler(components.Skills(profile.Characters.PMC.InfoPMC.Level, skills, serverInfo.MaxLevel)).ServeHTTP(w, r)
+	}
+}
+func setLevel(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		level, _ := strconv.Atoi(r.FormValue("level"))
+
+		err := api.UpdateLevel(app.config.GetSptUrl(), sessionId, level)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+
+	}
+}
+
+func updateSkill(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		progress, _ := strconv.Atoi(r.FormValue("progress"))
+		skill := r.FormValue("skill")
+
+		err := api.UpdateSkill(app.config.GetSptUrl(), sessionId, skill, progress)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+
+	}
+}
+
+func getUserWeaponPresets(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
+		profileIdx := slices.IndexFunc(profiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+		weaponBuilds := profiles[profileIdx].UserBuilds.WeaponBuilds
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+
+		templ.Handler(components.UserWeapons(allItems, weaponBuilds)).ServeHTTP(w, r)
+
 	}
 }
 
@@ -218,6 +393,7 @@ func addUserWeaponPreset(app *App) http.HandlerFunc {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your weapon has been sent\"}")
 	}
 }
 
@@ -259,9 +435,16 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/theme", switchTheme(app))
 	r.Post("/connect", getProfileList(app))
 	r.Get("/connect/{id}", getMainPageForProfile(app))
+	r.Get("/search/{id}", favouriteSearch(app))
 	r.Get("/item/{id}", getItemDetails(app))
 	r.Post("/fav/{id}", toggleFavorite(app))
 	r.Post("/item", addItem(app))
+	r.Post("/trader", updateTrader(app))
+	r.Get("/trader", getTraders(app))
+	r.Get("/skill", getSkills(app))
+	r.Post("/skill", updateSkill(app))
+	r.Post("/level", setLevel(app))
+	r.Get("/user-weapons", getUserWeaponPresets(app))
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49

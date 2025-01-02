@@ -1,17 +1,5 @@
 package models
 
-type PmcInfo struct {
-	Nickname string `json:"Nickname"`
-}
-
-type Pmc struct {
-	Info PmcInfo `json:"Info"`
-}
-
-type Characters struct {
-	Pmc Pmc `json:"pmc"`
-}
-
 type Info struct {
 	Id       string `json:"id"`
 	Username string `json:"username"`
@@ -47,6 +35,35 @@ type UserBuilds struct {
 
 type SPTProfile struct {
 	Info       Info       `json:"info"`
-	Characters Characters `json:"characters"`
 	UserBuilds UserBuilds `json:"userbuilds"`
+	Characters Characters `json:"characters"`
+}
+
+type Characters struct {
+	PMC PMC `json:"pmc"`
+}
+
+type PMC struct {
+	InfoPMC     InfoPMC                  `json:"Info"`
+	TradersInfo map[string]TraderProfile `json:"TradersInfo"`
+	Skills      Skills                   `json:"Skills"`
+}
+
+type InfoPMC struct {
+	Level int `json:"Level"`
+}
+
+type Skills struct {
+	Common []SkillCommon `json:"Common"`
+}
+
+type SkillCommon struct {
+	Id       string  `json:"Id"`
+	Progress float32 `json:"Progress"`
+}
+
+type TraderProfile struct {
+	SalesSum     float32 `json:"salesSum"`
+	Standing     float32 `json:"standing"`
+	LoyaltyLevel int     `json:"loyaltyLevel"`
 }

@@ -12,6 +12,7 @@ import type {StaticRouterModService} from '@spt/services/mod/staticRouter/Static
 import {MessageType} from "@spt/models/enums/MessageType";
 import {ISendMessageRequest} from "@spt/models/eft/dialog/ISendMessageRequest";
 import {SptCommandoCommands} from "@spt/helpers/Dialogue/Commando/SptCommandoCommands";
+import { ProfileHelper } from "@spt/helpers/ProfileHelper";
 import {GiveUserPresetSptCommand} from './GiveUserPresetSptCommand';
 
 class GiveUI implements IPreSptLoadMod {
@@ -26,6 +27,7 @@ class GiveUI implements IPreSptLoadMod {
         const watermark = container.resolve<Watermark>('Watermark');
         const preAkiModLoader = container.resolve<PreSptModLoader>('PreSptModLoader');
         const commando = container.resolve<CommandoDialogueChatBot>('CommandoDialogueChatBot');
+        const profileHelper = container.resolve<ProfileHelper>('ProfileHelper');
 
         const staticRouterModService =
             container.resolve<StaticRouterModService>('StaticRouterModService');
@@ -43,7 +45,8 @@ class GiveUI implements IPreSptLoadMod {
                         const modsInstalled = Object.values(preAkiModLoader.getImportedModDetails());
                         const giveUiMod = modsInstalled.find((m) => m.name === 'give-ui');
                         const modVersion = giveUiMod?.version;
-                        return Promise.resolve(JSON.stringify({version, path: serverPath, modVersion}));
+                        const maxLevel = profileHelper.getMaxLevel();
+                        return Promise.resolve(JSON.stringify({version, path: serverPath, modVersion, maxLevel}));
                     },
                 },
                 {
@@ -82,6 +85,66 @@ class GiveUI implements IPreSptLoadMod {
                     url: '/give-ui/give-user-preset',
                     action: (_url, request, sessionId, _output) => {
                         const command = `spt give-user-preset ${request.itemId}`;
+                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
+                        const message: ISendMessageRequest = {
+                            dialogId: sessionId,
+                            type: MessageType.SYSTEM_MESSAGE,
+                            text: command,
+                            replyTo: undefined,
+                        };
+                        const response = commando.handleMessage(sessionId, message);
+                        return Promise.resolve(JSON.stringify({response}));
+                    },
+                },
+                {
+                    url: '/give-ui/update-trader-rep',
+                    action: (_url, request, sessionId, _output) => {
+                        const repCommand = `spt trader ${request.nickname} rep ${request.rep}`;
+                        logger.log(`[give-ui] Running command: [${repCommand}]`, LogTextColor.GREEN);
+                        const repMessage: ISendMessageRequest = {
+                            dialogId: sessionId,
+                            type: MessageType.SYSTEM_MESSAGE,
+                            text: repCommand,
+                            replyTo: undefined,
+                        };
+                        const response =  commando.handleMessage(sessionId, repMessage);
+                        return Promise.resolve(JSON.stringify({response}));
+                    },
+                },
+                {
+                    url: '/give-ui/update-trader-spend',
+                    action: (_url, request, sessionId, _output) => {
+                        const spendCommand = `spt trader ${request.nickname} spend ${request.spend}`;
+                        logger.log(`[give-ui] Running command: [${spendCommand}]`, LogTextColor.GREEN);
+                        const spendMessage: ISendMessageRequest = {
+                            dialogId: sessionId,
+                            type: MessageType.SYSTEM_MESSAGE,
+                            text: spendCommand,
+                            replyTo: undefined,
+                        };
+                        const response =  commando.handleMessage(sessionId, spendMessage);
+                        return Promise.resolve(JSON.stringify({response}));
+                    },
+                },
+                {
+                    url: '/give-ui/update-level',
+                    action: (_url, request, sessionId, _output) => {
+                        const command = `spt profile level ${request.level}`;
+                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
+                        const message: ISendMessageRequest = {
+                            dialogId: sessionId,
+                            type: MessageType.SYSTEM_MESSAGE,
+                            text: command,
+                            replyTo: undefined,
+                        };
+                        const response = commando.handleMessage(sessionId, message);
+                        return Promise.resolve(JSON.stringify({response}));
+                    },
+                },
+                {
+                    url: '/give-ui/update-skill',
+                    action: (_url, request, sessionId, _output) => {
+                        const command = `spt profile skill ${request.skill} ${request.progress}`;
                         logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
                         const message: ISendMessageRequest = {
                             dialogId: sessionId,

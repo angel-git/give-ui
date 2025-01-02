@@ -1,7 +1,6 @@
 function setUsernameOnFooter() {
     const username = JSON.parse(document.getElementById("profile-selected-username").textContent);
-    const nickname = JSON.parse(document.getElementById("profile-selected-nickname").textContent);
-    document.getElementById('profile-selected').innerText = ": " + username + " - " + nickname;
+    document.getElementById('profile-selected').innerText = ": " + username;
 }
 
 let previousSelectedItem = null;
@@ -52,6 +51,12 @@ function selectItem(element) {
     previousSelectedItem = element;
 }
 
+function selectItemFromKeyboard(event, element) {
+    if (event.key === 'Enter') {
+        selectItem(element);
+    }
+}
+
 function filterUserWeapons() {
     const input = document.getElementById('filter-user-weapons-input');
     const filter = input.value.toUpperCase().trim();
@@ -92,9 +97,75 @@ function filterMagazineLoadout() {
         }
     }
 }
+
 window.setUsernameOnFooter = setUsernameOnFooter;
 window.filterItems = filterItems;
 window.selectItem = selectItem;
+window.selectItemFromKeyboard = selectItemFromKeyboard;
 window.filterUserWeapons = filterUserWeapons;
 window.showModal = showModal;
 window.filterMagazineLoadout = filterMagazineLoadout;
+
+let previousToast = null;
+
+htmx.on("showAddItemMessage", (e) => {
+    if (previousToast) {
+        clearTimeout(previousToast)
+    }
+    const toastElement = document.getElementById("success-toast")
+    const toastBody = document.getElementById("success-toast-message")
+    toastBody.innerText = e.detail.value;
+    toastElement.classList.remove("hidden")
+    previousToast = setTimeout(() => {
+        toastElement.classList.add("hidden")
+    }, 2000)
+});
+
+window.winterEvent = function () {
+    const elem = document.getElementById("winter-event");
+    const today = new Date();
+    if (elem && today.getMonth() === 11 && today.getDate() >= 24) {
+        elem.innerHTML = `
+       <div class="snowflakes" aria-hidden="true">
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        <div class="snowflake">
+            <div class="inner">❅</div>
+        </div>
+        </div>
+       `;
+    }
+
+}
+

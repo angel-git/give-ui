@@ -12,7 +12,7 @@ import (
 
 func ConnectToSptServer(url string) (r *models.ServerInfo, e error) {
 	serverInfo := &models.ServerInfo{}
-	err := util.GetJson(fmt.Sprintf("%s/give-ui/server", url), serverInfo)
+	err := util.GetJson(fmt.Sprintf("%s/give-ui/server", url), "", serverInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -20,7 +20,7 @@ func ConnectToSptServer(url string) (r *models.ServerInfo, e error) {
 }
 
 func LoadProfiles(url string) (r []models.SPTProfile, e error) {
-	profiles, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/profiles", url))
+	profiles, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/profiles", url), "")
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +71,106 @@ func AddUserWeapon(url string, sessionId string, presetId string) (e error) {
 	return err
 }
 
+func LoadSkills(url string, profile models.SPTProfile, locale string) (r []models.Skill, e error) {
+	locales, err := getLocaleFromServer(url, locale)
+	if err != nil {
+		return nil, err
+	}
+	var skills []models.Skill
+	for _, skill := range profile.Characters.PMC.Skills.Common {
+		name, foundName := locales.Data[fmt.Sprintf("%s", skill.Id)]
+		if !foundName {
+			continue
+		}
+		skills = append(skills, models.Skill{
+			Id:       skill.Id,
+			Name:     name,
+			Progress: fmt.Sprintf("%d", int(skill.Progress/100)),
+		})
+	}
+	sort.SliceStable(skills, func(i, j int) bool {
+		return skills[i].Name < skills[j].Name
+	})
+
+	return skills, nil
+}
+
+func LoadTraders(url string, profile models.SPTProfile, sessionId string, locale string) (r []models.Trader, e error) {
+	tradersResponse := &models.AllTradersResponse{}
+	err := util.GetJson(fmt.Sprintf("%s/client/trading/api/traderSettings", url), sessionId, tradersResponse)
+	if err != nil {
+		return nil, err
+	}
+	locales, err := getLocaleFromServer(url, locale)
+	if err != nil {
+		return nil, err
+	}
+	traders := parseTraders(url, tradersResponse, profile, locales)
+	return traders, nil
+}
+
+func UpdateTraderSpend(url string, sessionId string, nickname string, spend string) (e error) {
+	request := models.UpdateTraderSpendRequest{
+		Nickname: nickname,
+		Spend:    spend,
+	}
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/update-trader-spend", url), sessionId, request)
+	return err
+}
+func UpdateTraderRep(url string, sessionId string, nickname string, rep string) (e error) {
+	request := models.UpdateTraderRepRequest{
+		Nickname: nickname,
+		Rep:      rep,
+	}
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/update-trader-rep", url), sessionId, request)
+	return err
+}
+
+func UpdateLevel(url string, sessionId string, level int) (e error) {
+	request := models.UpdateLevelRequest{
+		Level: level,
+	}
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/update-level", url), sessionId, request)
+	return err
+}
+
+func UpdateSkill(url string, sessionId string, skill string, progress int) (e error) {
+	request := models.UpdateSkillRequest{
+		Progress: progress,
+		Skill:    skill,
+	}
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/update-skill", url), sessionId, request)
+	return err
+}
+
+func parseTraders(url string, tradersResponse *models.AllTradersResponse, profile models.SPTProfile, locales *models.Locales) []models.Trader {
+
+	var traders []models.Trader
+	for _, trader := range tradersResponse.Traders {
+		traderProfile, foundTrader := profile.Characters.PMC.TradersInfo[trader.Id]
+		if !foundTrader || trader.AvailableInRaid {
+			continue
+		}
+		var nicknameLocale = locales.Data[fmt.Sprintf("%s Nickname", trader.Id)]
+		traders = append(traders, models.Trader{
+			Id:             trader.Id,
+			Nickname:       trader.Nickname,
+			NicknameLocale: nicknameLocale,
+			Reputation:     fmt.Sprintf("%.2f", traderProfile.Standing),
+			SalesSum:       fmt.Sprintf("%.0f", traderProfile.SalesSum),
+			Image:          fmt.Sprintf("%s%s", url, trader.Avatar),
+			LoyaltyLevel:   traderProfile.LoyaltyLevel,
+		})
+	}
+	sort.SliceStable(traders, func(i, j int) bool {
+		return traders[i].Id < traders[j].Id
+	})
+
+	return traders
+}
+
 func getLocaleFromServer(url string, locale string) (*models.Locales, error) {
-	localeBytes, err := util.GetRawBytes(fmt.Sprintf("%s/client/locale/%s", url, locale))
+	localeBytes, err := util.GetRawBytes(fmt.Sprintf("%s/client/locale/%s", url, locale), "")
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +183,7 @@ func getLocaleFromServer(url string, locale string) (*models.Locales, error) {
 }
 
 func getItemsFromServer(url string) (*models.ItemsResponse, error) {
-	itemsBytes, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/items", url))
+	itemsBytes, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/items", url), "")
 	if err != nil {
 		return nil, err
 	}
