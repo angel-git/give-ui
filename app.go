@@ -25,7 +25,7 @@ import (
 const contextSessionId = "sessionId"
 const contextProfiles = "profiles"
 const contextAllItems = "allItems"
-const contextAllUnfilteredItems = "allUnfilteredItems"
+const contextAllBSGItems = "AllBSGItems"
 const contextTraders = "traders"
 const contextFavoriteSearch = "contextFavoriteSearch"
 const contextServerInfo = "contextServerInfo"
@@ -93,7 +93,7 @@ func getLoginPage(app *App) http.HandlerFunc {
 		app.ctx = context.WithValue(app.ctx, contextSessionId, nil)
 		app.ctx = context.WithValue(app.ctx, contextProfiles, nil)
 		app.ctx = context.WithValue(app.ctx, contextAllItems, nil)
-		app.ctx = context.WithValue(app.ctx, contextAllUnfilteredItems, nil)
+		app.ctx = context.WithValue(app.ctx, contextAllBSGItems, nil)
 		app.ctx = context.WithValue(app.ctx, contextFavoriteSearch, false)
 		app.ctx = context.WithValue(app.ctx, contextTraders, false)
 		app.ctx = context.WithValue(app.ctx, contextServerInfo, nil)
@@ -159,7 +159,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 			return
 		}
 
-		app.ctx = context.WithValue(app.ctx, contextAllUnfilteredItems, itemsResponse.Items)
+		app.ctx = context.WithValue(app.ctx, contextAllBSGItems, itemsResponse.Items)
 		allItems, err = api.ParseItems(itemsResponse, app.config.GetSptUrl(), localeCode)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
@@ -204,7 +204,7 @@ func getItemDetails(app *App) http.HandlerFunc {
 		w.Header().Set("Cache-Control", "no-cache")
 		itemId := chi.URLParam(r, "id")
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
-		bsgItems := app.ctx.Value(contextAllUnfilteredItems).(map[string]models.BSGItem)
+		bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
 		item := allItems.Items[itemId]
 		bsgItem := bsgItems[itemId]
 
@@ -216,11 +216,9 @@ func getItemDetails(app *App) http.HandlerFunc {
 			maybePresetId = allItems.GlobalPresets[globalIdx].Id
 		} else {
 			hash := cache.GetItemHash(bsgItem, bsgItems)
-			fmt.Println("hash", hash)
 			imageBase64, err := api.LoadImage(app.config.GetSptUrl(), app.ctx.Value(contextSessionId).(string), fmt.Sprint(hash))
 			if err == nil {
 				item.ImageBase64 = imageBase64
-				fmt.Println("found image for hash", hash)
 			}
 		}
 
@@ -449,7 +447,7 @@ func getProfileFromSession(app *App) models.SPTProfile {
 func mapUserWeapons(app *App, weaponBuilds []models.WeaponBuild) []models.ViewWeaponBuild {
 	sessionId := app.ctx.Value(contextSessionId).(string)
 	var viewWeaponBuild []models.ViewWeaponBuild
-	bsgItems := app.ctx.Value(contextAllUnfilteredItems).(map[string]models.BSGItem)
+	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
 
 	for _, weaponBuild := range weaponBuilds {
 		imageHash := cache_presets.GetItemHash(weaponBuild.Items[0], weaponBuild.Items, bsgItems)
