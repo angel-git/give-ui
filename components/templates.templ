@@ -111,6 +111,8 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 		<figure class="bg-base-300 min-h-[6rem] p-4">
 			if maybePresetId != "" {
 				<img alt="item" class="max-h-52" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
+			} else if item.ImageBase64 != "" {
+				<img alt="item" class="max-h-52" src={ fmt.Sprintf("data:image/png;base64, %s", item.ImageBase64) }/>
 			} else {
 				<img alt="item" class="max-h-52" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
 			}
@@ -255,7 +257,7 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 			</div>
 			<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="weapons-list">
 				for _, weaponBuild := range weaponBuilds {
-					{{ globalIdx := slices.IndexFunc(allItems.GlobalPresets, func(i models.ViewPreset) bool { return weaponBuild.Items[0].Tpl == i.Encyclopedia }) }}
+					{{ globalIdx := slices.IndexFunc(allItems.GlobalPresets, func(i models.ViewPreset) bool { return (*weaponBuild.Items)[0].Tpl == i.Encyclopedia }) }}
 					{{ maybePresetId := "" }}
 					{{if globalIdx != -1 {
 	maybePresetId = allItems.GlobalPresets[globalIdx].Id
@@ -263,34 +265,21 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 					}}
 					<div class="card bg-base-200 min-w-72 max-w-96 flex-auto max-h-96 card-to-filter">
 						<figure class="bg-base-300 h-28">
-							if maybePresetId != "" {
-								<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
+							if weaponBuild.ImageBase64 != "" {
+								<img alt="item" class="max-h-full" src={ fmt.Sprintf("data:image/png;base64, %s", weaponBuild.ImageBase64) }/>
 							} else {
-								<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", weaponBuild.Items[0].Tpl) }/>
+								if maybePresetId != "" {
+									<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
+								} else {
+									<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", (*weaponBuild.Items)[0].Tpl) }/>
+								}
 							}
 						</figure>
 						<div class="card-body overflow-y-auto">
 							<h2 class="card-title text-start">{ weaponBuild.Name }</h2>
-							<button class="w-max p-0 btn btn-link" data-dialog-target={ weaponBuild.Id } onclick="showModal(this)">{ fmt.Sprintf("See %d parts", len(weaponBuild.Items)) }</button>
+							<button class="w-max p-0 btn btn-link" hx-trigger="click" hx-target={ fmt.Sprintf("#wb-%s", weaponBuild.Id) } hx-get={ fmt.Sprintf("/user-weapons-modal/%s", weaponBuild.Id) }>{ fmt.Sprintf("See %d parts", len(*weaponBuild.Items)) }</button>
 							<div class="card-actions justify-end items-end grow">
-								<dialog id={ weaponBuild.Id } class="modal">
-									<div class="modal-box flex flex-col">
-										<h3 class="text-lg font-bold">{ weaponBuild.Name }</h3>
-										<div class="flex flex-col gap-4 overflow-y-auto">
-											for _, item := range weaponBuild.Items {
-												<div>
-													<div class="w-16 h-16 table-cell align-middle">
-														<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Tpl) }/>
-													</div>
-													<div class="pl-2 text-start table-cell align-middle">{ allItems.Items[item.Tpl].Name }</div>
-												</div>
-											}
-										</div>
-									</div>
-									<form method="dialog" class="modal-backdrop">
-										<button tabIndex="-1">close</button>
-									</form>
-								</dialog>
+								<dialog id={ fmt.Sprintf("wb-%s", weaponBuild.Id) } class="modal" hx-on::after-swap="showModal(this)"></dialog>
 								<button class="btn btn-primary" hx-post={ fmt.Sprintf("/user-weapons/%s", weaponBuild.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
 									<div id="loader" class="button-loader">
 										<span class="loading loading-spinner"></span>
@@ -304,6 +293,29 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 			</div>
 		}
 	</div>
+}
+
+templ UserWeaponModal(allItems *models.AllItems, weaponBuild models.WeaponBuild) {
+	<div class="modal-box flex flex-col">
+		<h3 class="text-lg font-bold">{ weaponBuild.Name }</h3>
+		<div class="flex flex-col gap-4 overflow-y-auto">
+			for _, item := range *weaponBuild.Items {
+				<div>
+					<div class="w-16 h-16 table-cell align-middle">
+						if item.ImageBase64 != "" {
+							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("data:image/png;base64, %s", item.ImageBase64) }/>
+						} else {
+							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Tpl) }/>
+						}
+					</div>
+					<div class="pl-2 text-start table-cell align-middle">{ allItems.Items[item.Tpl].Name }</div>
+				</div>
+			}
+		</div>
+	</div>
+	<form method="dialog" class="modal-backdrop">
+		<button tabIndex="-1">close</button>
+	</form>
 }
 
 templ Skills(profileLevel int, skills []models.Skill, maxLevel int) {
