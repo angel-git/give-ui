@@ -153,18 +153,23 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		var allItems *models.AllItems
 		var err error
 
-		itemsResponse, err := api.LoadItems(app.config.GetSptUrl())
-		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
-			return
+		if app.ctx.Value(contextAllItems) == nil {
+			itemsResponse, err := api.LoadItems(app.config.GetSptUrl())
+			if err != nil {
+				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				return
+			}
+			allItems, err = api.ParseItems(itemsResponse, app.config.GetSptUrl(), localeCode)
+			if err != nil {
+				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				return
+			}
+			app.ctx = context.WithValue(app.ctx, contextAllBSGItems, itemsResponse.Items)
+			app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
+		} else {
+			allItems = app.ctx.Value(contextAllItems).(*models.AllItems)
 		}
 
-		app.ctx = context.WithValue(app.ctx, contextAllBSGItems, itemsResponse.Items)
-		allItems, err = api.ParseItems(itemsResponse, app.config.GetSptUrl(), localeCode)
-		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
-			return
-		}
 		favoriteItems := app.config.GetFavoriteItems()
 		for _, favoriteItem := range favoriteItems {
 			item, exists := allItems.Items[favoriteItem]
@@ -173,7 +178,6 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 				allItems.Items[favoriteItem] = item
 			}
 		}
-		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
 
 		profile := getProfileFromSession(app)
 
