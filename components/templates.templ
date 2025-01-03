@@ -66,7 +66,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	</div>
 }
 
-templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, weaponsBuilds []models.ViewWeaponBuild, traders []models.Trader, skills []models.Skill, maxLevel int) {
+templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, maxLevel int) {
 	@templ.JSONScript("profile-selected-username", profile.Info.Username)
 	<script>
         setUsernameOnFooter();
@@ -79,7 +79,7 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="User weapons"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@UserWeapons(allItems, weaponsBuilds)
+				@UserWeapons(allItems, profile.UserBuilds.WeaponBuilds)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Skills"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
@@ -221,7 +221,7 @@ templ _Items(allItems *models.AllItems, sessionId string, filterFavorites bool) 
 	</div>
 }
 
-templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.ViewWeaponBuild) {
+templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) {
 	<div class="h-full flex flex-col" id="user-weapons">
 		if len(weaponBuilds) == 0 {
 			<div role="alert" class="alert alert-info">

@@ -14,9 +14,10 @@ type WeaponBuildItem struct {
 }
 
 type WeaponBuild struct {
-	Id    string            `json:"Id"`
-	Name  string            `json:"Name"`
-	Items []WeaponBuildItem `json:"Items"`
+	Id          string            `json:"Id"`
+	Name        string            `json:"Name"`
+	Items       []WeaponBuildItem `json:"Items"`
+	ImageBase64 string
 }
 
 type MagazineBuild struct {

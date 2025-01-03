@@ -193,9 +193,9 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 				return
 			}
 		}
-		viewWeaponBuilds := mapUserWeapons(app, profile.UserBuilds.WeaponBuilds)
+		addImageToWeaponBuild(app, &profile.UserBuilds.WeaponBuilds)
 
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, viewWeaponBuilds, traders, skills, serverInfo.MaxLevel)).ServeHTTP(w, r)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo.MaxLevel)).ServeHTTP(w, r)
 	}
 }
 
@@ -378,11 +378,11 @@ func getUserWeaponPresets(app *App) http.HandlerFunc {
 		}
 		profile := getProfileFromSession(app)
 		weaponBuilds := profile.UserBuilds.WeaponBuilds
-		viewWeaponBuilds := mapUserWeapons(app, weaponBuilds)
+		addImageToWeaponBuild(app, &weaponBuilds)
 
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
 
-		templ.Handler(components.UserWeapons(allItems, viewWeaponBuilds)).ServeHTTP(w, r)
+		templ.Handler(components.UserWeapons(allItems, weaponBuilds)).ServeHTTP(w, r)
 
 	}
 }
@@ -444,12 +444,12 @@ func getProfileFromSession(app *App) models.SPTProfile {
 	return allProfiles[profileIdx]
 }
 
-func mapUserWeapons(app *App, weaponBuilds []models.WeaponBuild) []models.ViewWeaponBuild {
+func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 	sessionId := app.ctx.Value(contextSessionId).(string)
-	var viewWeaponBuild []models.ViewWeaponBuild
 	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
 
-	for _, weaponBuild := range weaponBuilds {
+	for i := range *weaponBuilds {
+		weaponBuild := &(*weaponBuilds)[i]
 		imageHash := cache_presets.GetItemHash(weaponBuild.Items[0], weaponBuild.Items, bsgItems)
 		imageBase64, err := api.LoadImage(app.config.GetSptUrl(), sessionId, fmt.Sprint(imageHash))
 		var ImageBase64 string
@@ -458,15 +458,8 @@ func mapUserWeapons(app *App, weaponBuilds []models.WeaponBuild) []models.ViewWe
 		} else {
 			ImageBase64 = imageBase64
 		}
-
-		viewWeaponBuild = append(viewWeaponBuild, models.ViewWeaponBuild{
-			Id:          weaponBuild.Id,
-			Name:        weaponBuild.Name,
-			ImageBase64: ImageBase64,
-			Items:       weaponBuild.Items,
-		})
+		weaponBuild.ImageBase64 = ImageBase64
 	}
-	return viewWeaponBuild
 }
 
 func NewChiRouter(app *App) *chi.Mux {
