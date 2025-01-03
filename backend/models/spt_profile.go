@@ -6,17 +6,18 @@ type Info struct {
 }
 
 type WeaponBuildItem struct {
-	Id       string  `json:"_id"`
-	Tpl      string  `json:"_tpl"`
-	ParentID *string `json:"parentId"`
-	SlotID   *string `json:"slotId"`
-	Upd      *Upd    `json:"upd"`
+	Id          string  `json:"_id"`
+	Tpl         string  `json:"_tpl"`
+	ParentID    *string `json:"parentId"`
+	SlotID      *string `json:"slotId"`
+	Upd         *Upd    `json:"upd"`
+	ImageBase64 string
 }
 
 type WeaponBuild struct {
-	Id          string            `json:"Id"`
-	Name        string            `json:"Name"`
-	Items       []WeaponBuildItem `json:"Items"`
+	Id          string             `json:"Id"`
+	Name        string             `json:"Name"`
+	Items       *[]WeaponBuildItem `json:"Items"`
 	ImageBase64 string
 }
 

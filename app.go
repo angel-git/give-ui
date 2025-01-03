@@ -450,7 +450,7 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 
 	for i := range *weaponBuilds {
 		weaponBuild := &(*weaponBuilds)[i]
-		imageHash := cache_presets.GetItemHash(weaponBuild.Items[0], weaponBuild.Items, bsgItems)
+		imageHash := cache_presets.GetItemHash((*weaponBuild.Items)[0], *weaponBuild.Items, bsgItems)
 		imageBase64, err := api.LoadImage(app.config.GetSptUrl(), sessionId, fmt.Sprint(imageHash))
 		var ImageBase64 string
 		if err != nil {
@@ -459,6 +459,18 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 			ImageBase64 = imageBase64
 		}
 		weaponBuild.ImageBase64 = ImageBase64
+		for j := range *weaponBuild.Items {
+			weaponAttachment := &(*weaponBuild.Items)[j]
+			attachmentHash := cache.GetItemHash(bsgItems[weaponAttachment.Tpl], bsgItems)
+			attachmentImageBase64, err := api.LoadImage(app.config.GetSptUrl(), sessionId, fmt.Sprint(attachmentHash))
+			var AttachmentImageBase64 string
+			if err != nil {
+				AttachmentImageBase64 = ""
+			} else {
+				AttachmentImageBase64 = attachmentImageBase64
+			}
+			weaponAttachment.ImageBase64 = AttachmentImageBase64
+		}
 	}
 }
 
