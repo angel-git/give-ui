@@ -76,7 +76,7 @@ function filterUserWeapons() {
 }
 
 function showModal(event) {
-    const dialog = document.getElementById(event.getAttribute('data-dialog-target'));
+    const dialog = document.getElementById(event.getAttribute('id'));
     dialog.showModal();
 }
 

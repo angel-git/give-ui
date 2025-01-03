@@ -387,6 +387,24 @@ func getUserWeaponPresets(app *App) http.HandlerFunc {
 	}
 }
 
+func getUserWeaponModal(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		weaponBuildId := chi.URLParam(r, "id")
+
+		profile := getProfileFromSession(app)
+		weaponBuilds := profile.UserBuilds.WeaponBuilds
+		weaponBuildsIdx := slices.IndexFunc(weaponBuilds, func(i models.WeaponBuild) bool {
+			return i.Id == weaponBuildId
+		})
+		weaponBuild := weaponBuilds[weaponBuildsIdx]
+		addImageToWeaponBuildAttachments(app, &weaponBuild)
+
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+
+		templ.Handler(components.UserWeaponModal(allItems, weaponBuild)).ServeHTTP(w, r)
+	}
+}
+
 func addUserWeaponPreset(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		presetId := chi.URLParam(r, "id")
@@ -459,18 +477,24 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 			ImageBase64 = imageBase64
 		}
 		weaponBuild.ImageBase64 = ImageBase64
-		for j := range *weaponBuild.Items {
-			weaponAttachment := &(*weaponBuild.Items)[j]
-			attachmentHash := cache.GetItemHash(bsgItems[weaponAttachment.Tpl], bsgItems)
-			attachmentImageBase64, err := api.LoadImage(app.config.GetSptUrl(), sessionId, fmt.Sprint(attachmentHash))
-			var AttachmentImageBase64 string
-			if err != nil {
-				AttachmentImageBase64 = ""
-			} else {
-				AttachmentImageBase64 = attachmentImageBase64
-			}
-			weaponAttachment.ImageBase64 = AttachmentImageBase64
+	}
+}
+
+func addImageToWeaponBuildAttachments(app *App, weaponBuild *models.WeaponBuild) {
+	sessionId := app.ctx.Value(contextSessionId).(string)
+	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
+
+	for j := range *weaponBuild.Items {
+		weaponAttachment := &(*weaponBuild.Items)[j]
+		attachmentHash := cache.GetItemHash(bsgItems[weaponAttachment.Tpl], bsgItems)
+		attachmentImageBase64, err := api.LoadImage(app.config.GetSptUrl(), sessionId, fmt.Sprint(attachmentHash))
+		var AttachmentImageBase64 string
+		if err != nil {
+			AttachmentImageBase64 = ""
+		} else {
+			AttachmentImageBase64 = attachmentImageBase64
 		}
+		weaponAttachment.ImageBase64 = AttachmentImageBase64
 	}
 }
 
@@ -494,6 +518,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/level", setLevel(app))
 	r.Get("/user-weapons", getUserWeaponPresets(app))
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
+	r.Get("/user-weapons-modal/{id}", getUserWeaponModal(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))
