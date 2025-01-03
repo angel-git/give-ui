@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"github.com/tidwall/gjson"
@@ -136,6 +137,7 @@ func (a *App) setLocale(data *menu.CallbackData) {
 		return
 	}
 	a.config.SetLocale(data.MenuItem.Label)
+	a.ctx = context.WithValue(a.ctx, contextLocales, nil)
 	for _, localeMenu := range a.localeMenu.Items {
 		localeMenu.Checked = false
 	}

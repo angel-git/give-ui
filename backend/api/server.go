@@ -47,14 +47,8 @@ func LoadItems(url string) (r *models.ItemsResponse, e error) {
 	return items, nil
 }
 
-func ParseItems(allItems *models.ItemsResponse, url string, locale string) (r *models.AllItems, e error) {
-	locales, err := getLocaleFromServer(url, locale)
-	if err != nil {
-		return nil, err
-	}
-
+func ParseItems(allItems *models.ItemsResponse, locales *models.Locales) (r *models.AllItems, e error) {
 	items := parseItems(allItems, *locales)
-
 	return &items, nil
 }
 
@@ -75,11 +69,7 @@ func AddUserWeapon(url string, sessionId string, presetId string) (e error) {
 	return err
 }
 
-func LoadSkills(url string, profile models.SPTProfile, locale string) (r []models.Skill, e error) {
-	locales, err := getLocaleFromServer(url, locale)
-	if err != nil {
-		return nil, err
-	}
+func LoadSkills(profile models.SPTProfile, locales *models.Locales) (r []models.Skill, e error) {
 	var skills []models.Skill
 	for _, skill := range profile.Characters.PMC.Skills.Common {
 		name, foundName := locales.Data[fmt.Sprintf("%s", skill.Id)]
@@ -99,13 +89,9 @@ func LoadSkills(url string, profile models.SPTProfile, locale string) (r []model
 	return skills, nil
 }
 
-func LoadTraders(url string, profile models.SPTProfile, sessionId string, locale string) (r []models.Trader, e error) {
+func LoadTraders(url string, profile models.SPTProfile, sessionId string, locales *models.Locales) (r []models.Trader, e error) {
 	tradersResponse := &models.AllTradersResponse{}
 	err := util.GetJson(fmt.Sprintf("%s/client/trading/api/traderSettings", url), sessionId, tradersResponse)
-	if err != nil {
-		return nil, err
-	}
-	locales, err := getLocaleFromServer(url, locale)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +171,7 @@ func parseTraders(url string, tradersResponse *models.AllTradersResponse, profil
 	return traders
 }
 
-func getLocaleFromServer(url string, locale string) (*models.Locales, error) {
+func GetLocaleFromServer(url string, locale string) (*models.Locales, error) {
 	localeBytes, err := util.GetRawBytes(fmt.Sprintf("%s/client/locale/%s", url, locale), "")
 	if err != nil {
 		return nil, err

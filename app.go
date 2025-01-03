@@ -29,6 +29,7 @@ const contextAllBSGItems = "AllBSGItems"
 const contextTraders = "traders"
 const contextFavoriteSearch = "contextFavoriteSearch"
 const contextServerInfo = "contextServerInfo"
+const contextLocales = "contextLocales"
 
 // App struct
 type App struct {
@@ -97,6 +98,7 @@ func getLoginPage(app *App) http.HandlerFunc {
 		app.ctx = context.WithValue(app.ctx, contextFavoriteSearch, false)
 		app.ctx = context.WithValue(app.ctx, contextTraders, false)
 		app.ctx = context.WithValue(app.ctx, contextServerInfo, nil)
+		app.ctx = context.WithValue(app.ctx, contextLocales, nil)
 		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
 	}
 }
@@ -148,7 +150,16 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		sessionId := chi.URLParam(r, "id")
 		var isFavorite = app.ctx.Value(contextFavoriteSearch).(bool)
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
-		localeCode := locale.ConvertLocale(app.config.GetLocale())
+		if app.ctx.Value(contextLocales) == nil {
+			localeCode := locale.ConvertLocale(app.config.GetLocale())
+			locales, err := api.GetLocaleFromServer(app.config.GetSptUrl(), localeCode)
+			if err != nil {
+				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				return
+			}
+			app.ctx = context.WithValue(app.ctx, contextLocales, locales)
+		}
+		locales := app.ctx.Value(contextLocales).(*models.Locales)
 
 		var allItems *models.AllItems
 		var err error
@@ -159,7 +170,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 				return
 			}
-			allItems, err = api.ParseItems(itemsResponse, app.config.GetSptUrl(), localeCode)
+			allItems, err = api.ParseItems(itemsResponse, locales)
 			if err != nil {
 				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 				return
@@ -181,7 +192,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 
 		profile := getProfileFromSession(app)
 
-		skills, err := api.LoadSkills(app.config.GetSptUrl(), profile, localeCode)
+		skills, err := api.LoadSkills(profile, locales)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
@@ -191,7 +202,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		// TODO remove me after 3.11.0 release
 		var traders []models.Trader
 		if !strings.Contains(serverInfo.Version, "3.10.0") && !strings.Contains(serverInfo.Version, "3.10.1") && !strings.Contains(serverInfo.Version, "3.10.2") && !strings.Contains(serverInfo.Version, "3.10.3") {
-			traders, err = api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, localeCode)
+			traders, err = api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 			if err != nil {
 				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 				return
@@ -303,6 +314,7 @@ func updateTrader(app *App) http.HandlerFunc {
 func getTraders(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sessionId := app.ctx.Value(contextSessionId).(string)
+		locales := app.ctx.Value(contextLocales).(*models.Locales)
 
 		err := reloadProfiles(app)
 		if err != nil {
@@ -311,9 +323,8 @@ func getTraders(app *App) http.HandlerFunc {
 		}
 
 		profile := getProfileFromSession(app)
-		localeCode := locale.ConvertLocale(app.config.GetLocale())
 
-		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, localeCode)
+		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
@@ -324,6 +335,8 @@ func getTraders(app *App) http.HandlerFunc {
 
 func getSkills(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locales := app.ctx.Value(contextLocales).(*models.Locales)
+
 		err := reloadProfiles(app)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
@@ -331,9 +344,7 @@ func getSkills(app *App) http.HandlerFunc {
 		}
 
 		profile := getProfileFromSession(app)
-		localeCode := locale.ConvertLocale(app.config.GetLocale())
-
-		skills, err := api.LoadSkills(app.config.GetSptUrl(), profile, localeCode)
+		skills, err := api.LoadSkills(profile, locales)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
