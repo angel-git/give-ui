@@ -109,12 +109,10 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 templ ItemDetail(item models.ViewItem, maybePresetId string) {
 	<div class="card w-full">
 		<figure class="bg-base-300 min-h-[6rem] p-4">
-			if maybePresetId != "" {
-				<img alt="item" class="max-h-52" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
-			} else if item.ImageBase64 != "" {
+			if item.ImageBase64 != "" {
 				<img alt="item" class="max-h-52" src={ fmt.Sprintf("data:image/png;base64, %s", item.ImageBase64) }/>
 			} else {
-				<img alt="item" class="max-h-52" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Id) }/>
+				<img src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) } data-item-id={ item.Id } onerror="replaceImage(this)" alt="item"/>
 			}
 		</figure>
 		<div class="card-body">
@@ -145,6 +143,24 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 				</label>
 			</div>
 			<p class="text-justify text-sm">{ item.Id }</p>
+			if maybePresetId != "" {
+				<div role="alert" class="alert alert-info">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						class="h-6 w-6 shrink-0 stroke-current"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+						></path>
+					</svg>
+					<span>This item is part of a bundle. It <em>may</em> include all the necessary attachments to be functional.</span>
+				</div>
+			}
 			<p class="text-justify">{ item.Description }</p>
 			<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit, keydown[ctrlKey&&shiftKey&&key=='A'] from:body">
 				<input name="quantity" type="number" min="1" max="2147483647" class="input input-bordered bg-base-200 max-w-24" value={ fmt.Sprintf("%d", item.MaxStock) }/>

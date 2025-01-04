@@ -17,6 +17,7 @@ type WeaponBuildItem struct {
 type WeaponBuild struct {
 	Id          string             `json:"Id"`
 	Name        string             `json:"Name"`
+	Root        string             `json:"Root"`
 	Items       *[]WeaponBuildItem `json:"Items"`
 	ImageBase64 string
 }

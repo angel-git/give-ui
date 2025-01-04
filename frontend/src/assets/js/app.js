@@ -98,6 +98,11 @@ function filterMagazineLoadout() {
     }
 }
 
+function replaceImage(element) {
+    const itemId = element.getAttribute('data-item-id')
+    element.src = `https://assets.tarkov.dev/${itemId}-base-image.png`;
+}
+
 window.setUsernameOnFooter = setUsernameOnFooter;
 window.filterItems = filterItems;
 window.selectItem = selectItem;
@@ -105,6 +110,7 @@ window.selectItemFromKeyboard = selectItemFromKeyboard;
 window.filterUserWeapons = filterUserWeapons;
 window.showModal = showModal;
 window.filterMagazineLoadout = filterMagazineLoadout;
+window.replaceImage = replaceImage;
 
 let previousToast = null;
 

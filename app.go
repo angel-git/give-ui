@@ -229,12 +229,11 @@ func getItemDetails(app *App) http.HandlerFunc {
 		maybePresetId := ""
 		if globalIdx != -1 {
 			maybePresetId = allItems.GlobalPresets[globalIdx].Id
-		} else {
-			hash := cache.GetItemHash(bsgItem, bsgItems)
-			imageBase64, err := api.LoadImage(app.config.GetSptUrl(), app.ctx.Value(contextSessionId).(string), fmt.Sprint(hash))
-			if err == nil {
-				item.ImageBase64 = imageBase64
-			}
+		}
+		hash := cache.GetItemHash(bsgItem, bsgItems)
+		imageBase64, err := api.LoadImage(app.config.GetSptUrl(), app.ctx.Value(contextSessionId).(string), fmt.Sprint(hash))
+		if err == nil {
+			item.ImageBase64 = imageBase64
 		}
 
 		templ.Handler(components.ItemDetail(item, maybePresetId)).ServeHTTP(w, r)
@@ -404,6 +403,7 @@ func getUserWeaponPresets(app *App) http.HandlerFunc {
 
 func getUserWeaponModal(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
 		weaponBuildId := chi.URLParam(r, "id")
 
 		profile := getProfileFromSession(app)
@@ -483,7 +483,12 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 
 	for i := range *weaponBuilds {
 		weaponBuild := &(*weaponBuilds)[i]
-		imageHash := cache_presets.GetItemHash((*weaponBuild.Items)[0], *weaponBuild.Items, bsgItems)
+
+		idx := slices.IndexFunc(*weaponBuild.Items, func(i models.WeaponBuildItem) bool {
+			return i.Id == weaponBuild.Root
+		})
+
+		imageHash := cache_presets.GetItemHash((*weaponBuild.Items)[idx], *weaponBuild.Items, bsgItems)
 		imageBase64, err := api.LoadImage(app.config.GetSptUrl(), sessionId, fmt.Sprint(imageHash))
 		var ImageBase64 string
 		if err != nil {
