@@ -1,4 +1,5 @@
 import path from 'node:path';
+import fs from "node:fs";
 import {DependencyContainer} from 'tsyringe';
 import {DatabaseServer} from '@spt/servers/DatabaseServer';
 import {SaveServer} from '@spt/servers/SaveServer';
@@ -9,10 +10,11 @@ import {CommandoDialogueChatBot} from "@spt/helpers/Dialogue/CommandoDialogueCha
 import type {IPreSptLoadMod} from '@spt/models/external/IPreSptLoadMod';
 import type {ILogger} from '@spt/models/spt/utils/ILogger';
 import type {StaticRouterModService} from '@spt/services/mod/staticRouter/StaticRouterModService';
+import type {DynamicRouterModService} from '@spt/services/mod/dynamicRouter/DynamicRouterModService';
 import {MessageType} from "@spt/models/enums/MessageType";
 import {ISendMessageRequest} from "@spt/models/eft/dialog/ISendMessageRequest";
 import {SptCommandoCommands} from "@spt/helpers/Dialogue/Commando/SptCommandoCommands";
-import { ProfileHelper } from "@spt/helpers/ProfileHelper";
+import {ProfileHelper} from "@spt/helpers/ProfileHelper";
 import {GiveUserPresetSptCommand} from './GiveUserPresetSptCommand';
 
 class GiveUI implements IPreSptLoadMod {
@@ -31,6 +33,9 @@ class GiveUI implements IPreSptLoadMod {
 
         const staticRouterModService =
             container.resolve<StaticRouterModService>('StaticRouterModService');
+
+        const dynamicRouterModService =
+            container.resolve<DynamicRouterModService>('DynamicRouterModService');
 
         // Hook up a new static route
         staticRouterModService.registerStaticRouter(
@@ -107,7 +112,7 @@ class GiveUI implements IPreSptLoadMod {
                             text: repCommand,
                             replyTo: undefined,
                         };
-                        const response =  commando.handleMessage(sessionId, repMessage);
+                        const response = commando.handleMessage(sessionId, repMessage);
                         return Promise.resolve(JSON.stringify({response}));
                     },
                 },
@@ -122,7 +127,7 @@ class GiveUI implements IPreSptLoadMod {
                             text: spendCommand,
                             replyTo: undefined,
                         };
-                        const response =  commando.handleMessage(sessionId, spendMessage);
+                        const response = commando.handleMessage(sessionId, spendMessage);
                         return Promise.resolve(JSON.stringify({response}));
                     },
                 },
@@ -159,6 +164,32 @@ class GiveUI implements IPreSptLoadMod {
             ],
             'give-ui-top-level-route',
         );
+
+        dynamicRouterModService.registerDynamicRouter(
+            'GiveUIDynamicModRouter',
+            [{
+                url: '/give-ui/cache',
+                action: (url, _request, _sessionId, _output) => {
+                    const cacheID = url.replace('/give-ui/cache/', '');
+                    const serverPath = path.resolve();
+                    const cachePath = path.join(serverPath, 'user', 'sptappdata', 'live');
+                    try {
+                        const indexJson = fs.readFileSync(path.join(cachePath, 'index.json'), 'utf8');
+                        const index = JSON.parse(indexJson);
+                        const image= index[cacheID]
+                        try {
+                            const file = fs.readFileSync(path.join(cachePath, `${image}.png`),  {encoding: 'base64'});
+                            return Promise.resolve(JSON.stringify({imageBase64: file}));
+                        } catch (e) {
+                            return Promise.resolve(JSON.stringify({error: 404}));
+                        }
+                    } catch (e) {
+                        return Promise.resolve(JSON.stringify({error: 404}));
+                    }
+                },
+            }],
+            'give-ui-top-level-dynamic-route',
+        )
     }
 }
 

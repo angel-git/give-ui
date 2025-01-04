@@ -5,15 +5,21 @@ type Info struct {
 	Username string `json:"username"`
 }
 
-type Item struct {
-	Id  string `json:"_id"`
-	Tpl string `json:"_tpl"`
+type WeaponBuildItem struct {
+	Id          string  `json:"_id"`
+	Tpl         string  `json:"_tpl"`
+	ParentID    *string `json:"parentId"`
+	SlotID      *string `json:"slotId"`
+	Upd         *Upd    `json:"upd"`
+	ImageBase64 string
 }
 
 type WeaponBuild struct {
-	Id    string `json:"Id"`
-	Name  string `json:"Name"`
-	Items []Item `json:"Items"`
+	Id          string             `json:"Id"`
+	Name        string             `json:"Name"`
+	Root        string             `json:"Root"`
+	Items       *[]WeaponBuildItem `json:"Items"`
+	ImageBase64 string
 }
 
 type MagazineBuild struct {
@@ -66,4 +72,18 @@ type TraderProfile struct {
 	SalesSum     float32 `json:"salesSum"`
 	Standing     float32 `json:"standing"`
 	LoyaltyLevel int     `json:"loyaltyLevel"`
+}
+
+type Upd struct {
+	Togglable         *Togglable `json:"Togglable"`
+	Foldable          *Foldable  `json:"Foldable"`
+	StackObjectsCount int        `json:"StackObjectsCount"`
+}
+
+type Togglable struct {
+	On bool `json:"on"`
+}
+
+type Foldable struct {
+	Folded bool `json:"folded"`
 }

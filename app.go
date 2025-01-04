@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"slices"
 	"spt-give-ui/backend/api"
+	"spt-give-ui/backend/cache"
+	"spt-give-ui/backend/cache_presets"
 	"spt-give-ui/backend/config"
 	"spt-give-ui/backend/locale"
 	"spt-give-ui/backend/logger"
@@ -23,9 +25,11 @@ import (
 const contextSessionId = "sessionId"
 const contextProfiles = "profiles"
 const contextAllItems = "allItems"
+const contextAllBSGItems = "AllBSGItems"
 const contextTraders = "traders"
 const contextFavoriteSearch = "contextFavoriteSearch"
 const contextServerInfo = "contextServerInfo"
+const contextLocales = "contextLocales"
 
 // App struct
 type App struct {
@@ -90,9 +94,11 @@ func getLoginPage(app *App) http.HandlerFunc {
 		app.ctx = context.WithValue(app.ctx, contextSessionId, nil)
 		app.ctx = context.WithValue(app.ctx, contextProfiles, nil)
 		app.ctx = context.WithValue(app.ctx, contextAllItems, nil)
+		app.ctx = context.WithValue(app.ctx, contextAllBSGItems, nil)
 		app.ctx = context.WithValue(app.ctx, contextFavoriteSearch, false)
 		app.ctx = context.WithValue(app.ctx, contextTraders, false)
 		app.ctx = context.WithValue(app.ctx, contextServerInfo, nil)
+		app.ctx = context.WithValue(app.ctx, contextLocales, nil)
 		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
 	}
 }
@@ -144,16 +150,33 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		sessionId := chi.URLParam(r, "id")
 		var isFavorite = app.ctx.Value(contextFavoriteSearch).(bool)
 		app.ctx = context.WithValue(app.ctx, contextSessionId, sessionId)
-		localeCode := locale.ConvertLocale(app.config.GetLocale())
-
-		var allItems *models.AllItems
-		var err error
-		if app.ctx.Value(contextAllItems) == nil {
-			allItems, err = api.LoadItems(app.config.GetSptUrl(), localeCode)
+		if app.ctx.Value(contextLocales) == nil {
+			localeCode := locale.ConvertLocale(app.config.GetLocale())
+			locales, err := api.GetLocaleFromServer(app.config.GetSptUrl(), localeCode)
 			if err != nil {
 				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 				return
 			}
+			app.ctx = context.WithValue(app.ctx, contextLocales, locales)
+		}
+		locales := app.ctx.Value(contextLocales).(*models.Locales)
+
+		var allItems *models.AllItems
+		var err error
+
+		if app.ctx.Value(contextAllItems) == nil {
+			itemsResponse, err := api.LoadItems(app.config.GetSptUrl())
+			if err != nil {
+				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				return
+			}
+			allItems, err = api.ParseItems(itemsResponse, locales)
+			if err != nil {
+				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				return
+			}
+			app.ctx = context.WithValue(app.ctx, contextAllBSGItems, itemsResponse.Items)
+			app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
 		} else {
 			allItems = app.ctx.Value(contextAllItems).(*models.AllItems)
 		}
@@ -166,15 +189,10 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 				allItems.Items[favoriteItem] = item
 			}
 		}
-		app.ctx = context.WithValue(app.ctx, contextAllItems, allItems)
 
-		allProfiles := app.ctx.Value(contextProfiles).([]models.SPTProfile)
-		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
-			return i.Info.Id == sessionId
-		})
-		profile := allProfiles[allProfilesIdx]
+		profile := getProfileFromSession(app)
 
-		skills, err := api.LoadSkills(app.config.GetSptUrl(), profile, localeCode)
+		skills, err := api.LoadSkills(profile, locales)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
@@ -184,12 +202,14 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		// TODO remove me after 3.11.0 release
 		var traders []models.Trader
 		if !strings.Contains(serverInfo.Version, "3.10.0") && !strings.Contains(serverInfo.Version, "3.10.1") && !strings.Contains(serverInfo.Version, "3.10.2") && !strings.Contains(serverInfo.Version, "3.10.3") {
-			traders, err = api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, localeCode)
+			traders, err = api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 			if err != nil {
 				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 				return
 			}
 		}
+		addImageToWeaponBuild(app, &profile.UserBuilds.WeaponBuilds)
+
 		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo.MaxLevel)).ServeHTTP(w, r)
 	}
 }
@@ -199,7 +219,9 @@ func getItemDetails(app *App) http.HandlerFunc {
 		w.Header().Set("Cache-Control", "no-cache")
 		itemId := chi.URLParam(r, "id")
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
 		item := allItems.Items[itemId]
+		bsgItem := bsgItems[itemId]
 
 		globalIdx := slices.IndexFunc(allItems.GlobalPresets, func(i models.ViewPreset) bool {
 			return item.Id == i.Encyclopedia
@@ -207,6 +229,11 @@ func getItemDetails(app *App) http.HandlerFunc {
 		maybePresetId := ""
 		if globalIdx != -1 {
 			maybePresetId = allItems.GlobalPresets[globalIdx].Id
+		}
+		hash := cache.GetItemHash(bsgItem, bsgItems)
+		imageBase64, err := api.LoadImage(app.config.GetSptUrl(), app.ctx.Value(contextSessionId).(string), fmt.Sprint(hash))
+		if err == nil {
+			item.ImageBase64 = imageBase64
 		}
 
 		templ.Handler(components.ItemDetail(item, maybePresetId)).ServeHTTP(w, r)
@@ -286,20 +313,17 @@ func updateTrader(app *App) http.HandlerFunc {
 func getTraders(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sessionId := app.ctx.Value(contextSessionId).(string)
+		locales := app.ctx.Value(contextLocales).(*models.Locales)
 
-		profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+		err := reloadProfiles(app)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
-		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
-		profileIdx := slices.IndexFunc(profiles, func(i models.SPTProfile) bool {
-			return i.Info.Id == sessionId
-		})
-		profile := profiles[profileIdx]
-		localeCode := locale.ConvertLocale(app.config.GetLocale())
 
-		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, localeCode)
+		profile := getProfileFromSession(app)
+
+		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
@@ -310,21 +334,16 @@ func getTraders(app *App) http.HandlerFunc {
 
 func getSkills(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		sessionId := app.ctx.Value(contextSessionId).(string)
+		locales := app.ctx.Value(contextLocales).(*models.Locales)
 
-		profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+		err := reloadProfiles(app)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
-		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
-		profileIdx := slices.IndexFunc(profiles, func(i models.SPTProfile) bool {
-			return i.Info.Id == sessionId
-		})
-		profile := profiles[profileIdx]
-		localeCode := locale.ConvertLocale(app.config.GetLocale())
 
-		skills, err := api.LoadSkills(app.config.GetSptUrl(), profile, localeCode)
+		profile := getProfileFromSession(app)
+		skills, err := api.LoadSkills(profile, locales)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
@@ -365,22 +384,39 @@ func updateSkill(app *App) http.HandlerFunc {
 func getUserWeaponPresets(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
-		sessionId := app.ctx.Value(contextSessionId).(string)
 
-		profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+		err := reloadProfiles(app)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
-		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
-		profileIdx := slices.IndexFunc(profiles, func(i models.SPTProfile) bool {
-			return i.Info.Id == sessionId
-		})
-		weaponBuilds := profiles[profileIdx].UserBuilds.WeaponBuilds
+		profile := getProfileFromSession(app)
+		weaponBuilds := profile.UserBuilds.WeaponBuilds
+		addImageToWeaponBuild(app, &weaponBuilds)
+
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
 
 		templ.Handler(components.UserWeapons(allItems, weaponBuilds)).ServeHTTP(w, r)
 
+	}
+}
+
+func getUserWeaponModal(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		weaponBuildId := chi.URLParam(r, "id")
+
+		profile := getProfileFromSession(app)
+		weaponBuilds := profile.UserBuilds.WeaponBuilds
+		weaponBuildsIdx := slices.IndexFunc(weaponBuilds, func(i models.WeaponBuild) bool {
+			return i.Id == weaponBuildId
+		})
+		weaponBuild := weaponBuilds[weaponBuildsIdx]
+		addImageToWeaponBuildAttachments(app, &weaponBuild)
+
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+
+		templ.Handler(components.UserWeaponModal(allItems, weaponBuild)).ServeHTTP(w, r)
 	}
 }
 
@@ -426,6 +462,62 @@ func addMagazineLoadout(app *App) http.HandlerFunc {
 	}
 }
 
+func reloadProfiles(app *App) error {
+	profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+	app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
+	return err
+}
+
+func getProfileFromSession(app *App) models.SPTProfile {
+	sessionId := app.ctx.Value(contextSessionId).(string)
+	allProfiles := app.ctx.Value(contextProfiles).([]models.SPTProfile)
+	profileIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
+		return i.Info.Id == sessionId
+	})
+	return allProfiles[profileIdx]
+}
+
+func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
+	sessionId := app.ctx.Value(contextSessionId).(string)
+	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
+
+	for i := range *weaponBuilds {
+		weaponBuild := &(*weaponBuilds)[i]
+
+		idx := slices.IndexFunc(*weaponBuild.Items, func(i models.WeaponBuildItem) bool {
+			return i.Id == weaponBuild.Root
+		})
+
+		imageHash := cache_presets.GetItemHash((*weaponBuild.Items)[idx], *weaponBuild.Items, bsgItems)
+		imageBase64, err := api.LoadImage(app.config.GetSptUrl(), sessionId, fmt.Sprint(imageHash))
+		var ImageBase64 string
+		if err != nil {
+			ImageBase64 = ""
+		} else {
+			ImageBase64 = imageBase64
+		}
+		weaponBuild.ImageBase64 = ImageBase64
+	}
+}
+
+func addImageToWeaponBuildAttachments(app *App, weaponBuild *models.WeaponBuild) {
+	sessionId := app.ctx.Value(contextSessionId).(string)
+	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
+
+	for j := range *weaponBuild.Items {
+		weaponAttachment := &(*weaponBuild.Items)[j]
+		attachmentHash := cache.GetItemHash(bsgItems[weaponAttachment.Tpl], bsgItems)
+		attachmentImageBase64, err := api.LoadImage(app.config.GetSptUrl(), sessionId, fmt.Sprint(attachmentHash))
+		var AttachmentImageBase64 string
+		if err != nil {
+			AttachmentImageBase64 = ""
+		} else {
+			AttachmentImageBase64 = attachmentImageBase64
+		}
+		weaponAttachment.ImageBase64 = AttachmentImageBase64
+	}
+}
+
 func NewChiRouter(app *App) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -446,6 +538,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/level", setLevel(app))
 	r.Get("/user-weapons", getUserWeaponPresets(app))
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
+	r.Get("/user-weapons-modal/{id}", getUserWeaponModal(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))

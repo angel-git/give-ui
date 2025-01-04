@@ -39,19 +39,17 @@ func LoadProfiles(url string) (r []models.SPTProfile, e error) {
 	return sessions, nil
 }
 
-func LoadItems(url string, locale string) (r *models.AllItems, e error) {
+func LoadItems(url string) (r *models.ItemsResponse, e error) {
 	items, err := getItemsFromServer(url)
 	if err != nil {
 		return nil, err
 	}
-	locales, err := getLocaleFromServer(url, locale)
-	if err != nil {
-		return nil, err
-	}
+	return items, nil
+}
 
-	allItems := parseItems(items, *locales)
-
-	return &allItems, nil
+func ParseItems(allItems *models.ItemsResponse, locales *models.Locales) (r *models.AllItems, e error) {
+	items := parseItems(allItems, *locales)
+	return &items, nil
 }
 
 func AddItem(url string, sessionId string, itemId string, amount int) (e error) {
@@ -71,11 +69,7 @@ func AddUserWeapon(url string, sessionId string, presetId string) (e error) {
 	return err
 }
 
-func LoadSkills(url string, profile models.SPTProfile, locale string) (r []models.Skill, e error) {
-	locales, err := getLocaleFromServer(url, locale)
-	if err != nil {
-		return nil, err
-	}
+func LoadSkills(profile models.SPTProfile, locales *models.Locales) (r []models.Skill, e error) {
 	var skills []models.Skill
 	for _, skill := range profile.Characters.PMC.Skills.Common {
 		name, foundName := locales.Data[fmt.Sprintf("%s", skill.Id)]
@@ -95,13 +89,9 @@ func LoadSkills(url string, profile models.SPTProfile, locale string) (r []model
 	return skills, nil
 }
 
-func LoadTraders(url string, profile models.SPTProfile, sessionId string, locale string) (r []models.Trader, e error) {
+func LoadTraders(url string, profile models.SPTProfile, sessionId string, locales *models.Locales) (r []models.Trader, e error) {
 	tradersResponse := &models.AllTradersResponse{}
 	err := util.GetJson(fmt.Sprintf("%s/client/trading/api/traderSettings", url), sessionId, tradersResponse)
-	if err != nil {
-		return nil, err
-	}
-	locales, err := getLocaleFromServer(url, locale)
 	if err != nil {
 		return nil, err
 	}
@@ -143,6 +133,18 @@ func UpdateSkill(url string, sessionId string, skill string, progress int) (e er
 	return err
 }
 
+func LoadImage(url string, sessionId string, imageHash string) (r string, e error) {
+	response := &models.CacheImageResponse{}
+	err := util.GetJson(fmt.Sprintf("%s/give-ui/cache/%s", url, imageHash), sessionId, response)
+	if err != nil {
+		return "", err
+	}
+	if response.Error != nil {
+		return "", fmt.Errorf(*response.Error)
+	}
+	return *response.ImageBase64, nil
+}
+
 func parseTraders(url string, tradersResponse *models.AllTradersResponse, profile models.SPTProfile, locales *models.Locales) []models.Trader {
 
 	var traders []models.Trader
@@ -169,7 +171,7 @@ func parseTraders(url string, tradersResponse *models.AllTradersResponse, profil
 	return traders
 }
 
-func getLocaleFromServer(url string, locale string) (*models.Locales, error) {
+func GetLocaleFromServer(url string, locale string) (*models.Locales, error) {
 	localeBytes, err := util.GetRawBytes(fmt.Sprintf("%s/client/locale/%s", url, locale), "")
 	if err != nil {
 		return nil, err
@@ -248,6 +250,7 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 			Name:        name,
 			Type:        bsgItem.Type,
 			Description: description,
+			ImageBase64: "",
 			Category:    category,
 			MaxStock:    bsgItem.Props.StackMaxSize,
 			Favorite:    false,

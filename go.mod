@@ -1,8 +1,6 @@
 module spt-give-ui
 
-go 1.23
-
-toolchain go1.23.1
+go 1.23.1
 
 require (
 	github.com/a-h/templ v0.3.819

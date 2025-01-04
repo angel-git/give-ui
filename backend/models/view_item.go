@@ -8,6 +8,7 @@ type ViewItem struct {
 	Category    string
 	MaxStock    int
 	Favorite    bool
+	ImageBase64 string
 }
 
 type ViewPreset struct {
