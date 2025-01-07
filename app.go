@@ -10,9 +10,10 @@ import (
 	"net/http"
 	"slices"
 	"spt-give-ui/backend/api"
-	"spt-give-ui/backend/cache"
-	"spt-give-ui/backend/cache_presets"
 	"spt-give-ui/backend/config"
+	"spt-give-ui/backend/images"
+	"spt-give-ui/backend/images/cache"
+	"spt-give-ui/backend/images/cache_presets"
 	"spt-give-ui/backend/locale"
 	"spt-give-ui/backend/logger"
 	"spt-give-ui/backend/models"
@@ -33,12 +34,13 @@ const contextLocales = "contextLocales"
 
 // App struct
 type App struct {
-	config     *config.Config
-	ctx        context.Context
-	localeMenu *menu.Menu
-	menu       *menu.Menu
-	name       string
-	version    string
+	config       *config.Config
+	ctx          context.Context
+	localeMenu   *menu.Menu
+	settingsMenu *menu.Menu
+	menu         *menu.Menu
+	name         string
+	version      string
 }
 
 // NewApp creates a new App application struct
@@ -231,7 +233,7 @@ func getItemDetails(app *App) http.HandlerFunc {
 			maybePresetId = allItems.GlobalPresets[globalIdx].Id
 		}
 		hash := cache.GetItemHash(bsgItem, bsgItems)
-		imageBase64, err := api.LoadImage(app.config.GetSptUrl(), app.ctx.Value(contextSessionId).(string), fmt.Sprint(hash))
+		imageBase64, err := loadImage(app, hash)
 		if err == nil {
 			item.ImageBase64 = imageBase64
 		}
@@ -433,6 +435,21 @@ func addUserWeaponPreset(app *App) http.HandlerFunc {
 	}
 }
 
+func loadImage(app *App, hash int32) (string, error) {
+	session := app.ctx.Value(contextSessionId).(string)
+	var loader images.ImageLoader
+	var url string
+	cacheFolder := app.config.GetCacheFolder()
+	if cacheFolder != "" {
+		loader = &images.LocalImageLoader{}
+		url = cacheFolder
+	} else {
+		loader = &images.ServerImageLoader{}
+		url = app.config.GetSptUrl()
+	}
+	return loader.LoadImage(url, session, fmt.Sprint(hash))
+}
+
 func addMagazineLoadout(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		magazineLoadoutId := chi.URLParam(r, "id")
@@ -478,7 +495,6 @@ func getProfileFromSession(app *App) models.SPTProfile {
 }
 
 func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
-	sessionId := app.ctx.Value(contextSessionId).(string)
 	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
 
 	for i := range *weaponBuilds {
@@ -489,7 +505,7 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 		})
 
 		imageHash := cache_presets.GetItemHash((*weaponBuild.Items)[idx], *weaponBuild.Items, bsgItems)
-		imageBase64, err := api.LoadImage(app.config.GetSptUrl(), sessionId, fmt.Sprint(imageHash))
+		imageBase64, err := loadImage(app, imageHash)
 		var ImageBase64 string
 		if err != nil {
 			ImageBase64 = ""
