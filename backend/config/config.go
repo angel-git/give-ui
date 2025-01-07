@@ -16,6 +16,7 @@ type Config struct {
 	locale        string
 	theme         string
 	sptUrl        string
+	cacheFolder   string
 	favoriteItems []string
 }
 
@@ -25,6 +26,7 @@ func LoadConfig() *Config {
 		Locale:        "English",
 		Theme:         defaultTheme,
 		SptUrl:        "http://127.0.0.1:6969",
+		CacheFolder:   "",
 		FavoriteItems: []string{},
 	}
 	jsonConfig := store.CreateDatabase(defaultJsonConfig)
@@ -35,6 +37,7 @@ func LoadConfig() *Config {
 		theme:         jsonConfig.Theme,
 		sptUrl:        jsonConfig.SptUrl,
 		favoriteItems: jsonConfig.FavoriteItems,
+		cacheFolder:   jsonConfig.CacheFolder,
 	}
 }
 
@@ -88,6 +91,14 @@ func (c *Config) GetSptUrl() string {
 
 func (c *Config) GetFavoriteItems() []string {
 	return c.favoriteItems
+}
+func (c *Config) GetCacheFolder() string {
+	return c.cacheFolder
+}
+
+func (c *Config) SetCacheFolder(folder string) {
+	c.cacheFolder = folder
+	store.SaveValue(store.CacheFolderDbKey, folder)
 }
 
 func (c *Config) Close() error {

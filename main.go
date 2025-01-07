@@ -125,6 +125,13 @@ func (a *App) makeMenu() {
 	a.localeMenu.Append(addRadio("Turkish", localeFromConfig, a.setLocale))
 	a.localeMenu.Append(addRadio("Romanian", localeFromConfig, a.setLocale))
 	a.localeMenu.Append(addRadio("Русский", localeFromConfig, a.setLocale))
+
+	a.settingsMenu = a.menu.AddSubmenu("Settings")
+	if a.config.GetCacheFolder() == "" {
+		a.settingsMenu.Append(menu.Text("Select cache folder", nil, a.selectCacheFolder))
+	} else {
+		a.settingsMenu.Append(menu.Text("Use default cache folder", nil, a.clearCacheFolder))
+	}
 }
 
 func addRadio(label string, selected string, click menu.Callback) *menu.MenuItem {
@@ -142,6 +149,45 @@ func (a *App) setLocale(data *menu.CallbackData) {
 		localeMenu.Checked = false
 	}
 	data.MenuItem.Checked = true
+
+	// refresh menu with the selected locale
+	runtimeWails.MenuSetApplicationMenu(a.ctx, a.menu)
+	runtimeWails.MenuUpdateApplicationMenu(a.ctx)
+
+	// refresh to main screen
+	runtimeWails.WindowReloadApp(a.ctx)
+}
+
+func (a *App) selectCacheFolder(data *menu.CallbackData) {
+	folder, err := runtimeWails.OpenDirectoryDialog(a.ctx, runtimeWails.OpenDialogOptions{
+		Title: "Example c:\\games\\spt\\user\\sptappdata\\live",
+	})
+	if err != nil {
+		runtimeWails.MessageDialog(a.ctx, runtimeWails.MessageDialogOptions{
+			Type:    runtimeWails.ErrorDialog,
+			Title:   "Error",
+			Message: err.Error(),
+		})
+		return
+	}
+	a.config.SetCacheFolder(folder)
+	data.MenuItem.Label = "Use default cache folder"
+	data.MenuItem.OnClick(a.clearCacheFolder)
+
+	// refresh menu with the selected locale
+
+	runtimeWails.MenuSetApplicationMenu(a.ctx, a.menu)
+	runtimeWails.MenuUpdateApplicationMenu(a.ctx)
+
+	// refresh to main screen
+	runtimeWails.WindowReloadApp(a.ctx)
+}
+
+func (a *App) clearCacheFolder(data *menu.CallbackData) {
+	a.config.SetCacheFolder("")
+
+	data.MenuItem.Label = "Select cache folder"
+	data.MenuItem.OnClick(a.selectCacheFolder)
 
 	// refresh menu with the selected locale
 	runtimeWails.MenuSetApplicationMenu(a.ctx, a.menu)

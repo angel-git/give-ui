@@ -1,7 +1,7 @@
 package cache_presets
 
 import (
-	"spt-give-ui/backend/cache"
+	"spt-give-ui/backend/images/cache"
 	"spt-give-ui/backend/models"
 )
 

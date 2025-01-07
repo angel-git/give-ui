@@ -10,6 +10,7 @@ type JsonDatabase struct {
 	Locale        string   `json:"locale"`
 	Theme         string   `json:"theme"`
 	SptUrl        string   `json:"sptUrl"`
+	CacheFolder   string   `json:"cacheFolder"`
 	FavoriteItems []string `json:"favoriteItems"`
 }
 
@@ -17,6 +18,7 @@ const LocaleDbKey = "locale"
 const ThemeDbKey = "theme"
 const SptSeverDbKey = "sptUrl"
 const FavoriteItemsDbKey = "favoriteItems"
+const CacheFolderDbKey = "cacheFolder"
 
 const dbName = "give-ui.config.json"
 
