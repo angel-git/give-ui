@@ -517,13 +517,12 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 }
 
 func addImageToWeaponBuildAttachments(app *App, weaponBuild *models.WeaponBuild) {
-	sessionId := app.ctx.Value(contextSessionId).(string)
 	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
 
 	for j := range *weaponBuild.Items {
 		weaponAttachment := &(*weaponBuild.Items)[j]
 		attachmentHash := cache.GetItemHash(bsgItems[weaponAttachment.Tpl], bsgItems)
-		attachmentImageBase64, err := api.LoadImage(app.config.GetSptUrl(), sessionId, fmt.Sprint(attachmentHash))
+		attachmentImageBase64, err := loadImage(app, attachmentHash)
 		var AttachmentImageBase64 string
 		if err != nil {
 			AttachmentImageBase64 = ""
