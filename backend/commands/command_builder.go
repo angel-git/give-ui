@@ -19,13 +19,13 @@ func AddUserPreset(itemId string) models.Command {
 
 func UpdateTraderRep(nickname string, rep string) models.Command {
 	return models.Command{
-		Message: fmt.Sprintf("spt trader %s %s", nickname, rep),
+		Message: fmt.Sprintf("spt trader %s rep %s", nickname, rep),
 	}
 }
 
 func UpdateTraderSpend(nickname string, spend string) models.Command {
 	return models.Command{
-		Message: fmt.Sprintf("spt trader %s %s", nickname, spend),
+		Message: fmt.Sprintf("spt trader %s spend %s", nickname, spend),
 	}
 }
 
