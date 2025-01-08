@@ -232,7 +232,12 @@ func getItemDetails(app *App) http.HandlerFunc {
 		if globalIdx != -1 {
 			maybePresetId = allItems.GlobalPresets[globalIdx].Id
 		}
-		hash := cache.GetItemHash(bsgItem, bsgItems)
+		var hash int32
+		if maybePresetId != "" {
+			hash = cache_presets.GetItemHash(allItems.GlobalPresets[globalIdx].Items[0], allItems.GlobalPresets[globalIdx].Items, bsgItems)
+		} else {
+			hash = cache.GetItemHash(bsgItem, bsgItems)
+		}
 		imageBase64, err := loadImage(app, hash)
 		if err == nil {
 			item.ImageBase64 = imageBase64
@@ -500,7 +505,7 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 	for i := range *weaponBuilds {
 		weaponBuild := &(*weaponBuilds)[i]
 
-		idx := slices.IndexFunc(*weaponBuild.Items, func(i models.WeaponBuildItem) bool {
+		idx := slices.IndexFunc(*weaponBuild.Items, func(i models.ItemWithUpd) bool {
 			return i.Id == weaponBuild.Root
 		})
 
