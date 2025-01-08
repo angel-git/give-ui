@@ -72,84 +72,9 @@ class GiveUI implements IPreSptLoadMod {
                     },
                 },
                 {
-                    url: '/give-ui/give',
+                    url: '/give-ui/command',
                     action: (_url, request, sessionId, _output) => {
-                        const command = `spt give ${request.itemId} ${request.amount}`;
-                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
-                        const message: ISendMessageRequest = {
-                            dialogId: sessionId,
-                            type: MessageType.SYSTEM_MESSAGE,
-                            text: command,
-                            replyTo: undefined,
-                        };
-                        const response = commando.handleMessage(sessionId, message);
-                        return Promise.resolve(JSON.stringify({response}));
-                    },
-                },
-                {
-                    url: '/give-ui/give-user-preset',
-                    action: (_url, request, sessionId, _output) => {
-                        const command = `spt give-user-preset ${request.itemId}`;
-                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
-                        const message: ISendMessageRequest = {
-                            dialogId: sessionId,
-                            type: MessageType.SYSTEM_MESSAGE,
-                            text: command,
-                            replyTo: undefined,
-                        };
-                        const response = commando.handleMessage(sessionId, message);
-                        return Promise.resolve(JSON.stringify({response}));
-                    },
-                },
-                {
-                    url: '/give-ui/update-trader-rep',
-                    action: (_url, request, sessionId, _output) => {
-                        const repCommand = `spt trader ${request.nickname} rep ${request.rep}`;
-                        logger.log(`[give-ui] Running command: [${repCommand}]`, LogTextColor.GREEN);
-                        const repMessage: ISendMessageRequest = {
-                            dialogId: sessionId,
-                            type: MessageType.SYSTEM_MESSAGE,
-                            text: repCommand,
-                            replyTo: undefined,
-                        };
-                        const response = commando.handleMessage(sessionId, repMessage);
-                        return Promise.resolve(JSON.stringify({response}));
-                    },
-                },
-                {
-                    url: '/give-ui/update-trader-spend',
-                    action: (_url, request, sessionId, _output) => {
-                        const spendCommand = `spt trader ${request.nickname} spend ${request.spend}`;
-                        logger.log(`[give-ui] Running command: [${spendCommand}]`, LogTextColor.GREEN);
-                        const spendMessage: ISendMessageRequest = {
-                            dialogId: sessionId,
-                            type: MessageType.SYSTEM_MESSAGE,
-                            text: spendCommand,
-                            replyTo: undefined,
-                        };
-                        const response = commando.handleMessage(sessionId, spendMessage);
-                        return Promise.resolve(JSON.stringify({response}));
-                    },
-                },
-                {
-                    url: '/give-ui/update-level',
-                    action: (_url, request, sessionId, _output) => {
-                        const command = `spt profile level ${request.level}`;
-                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
-                        const message: ISendMessageRequest = {
-                            dialogId: sessionId,
-                            type: MessageType.SYSTEM_MESSAGE,
-                            text: command,
-                            replyTo: undefined,
-                        };
-                        const response = commando.handleMessage(sessionId, message);
-                        return Promise.resolve(JSON.stringify({response}));
-                    },
-                },
-                {
-                    url: '/give-ui/update-skill',
-                    action: (_url, request, sessionId, _output) => {
-                        const command = `spt profile skill ${request.skill} ${request.progress}`;
+                        const command = request.message;
                         logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
                         const message: ISendMessageRequest = {
                             dialogId: sessionId,
