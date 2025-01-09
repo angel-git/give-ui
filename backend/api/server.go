@@ -207,6 +207,7 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 		viewPreset := models.ViewPreset{
 			Id:           globalPreset.Id,
 			Encyclopedia: globalPreset.Encyclopedia,
+			Items:        globalPreset.Items,
 		}
 		allItems.GlobalPresets = append(allItems.GlobalPresets, viewPreset)
 	}
