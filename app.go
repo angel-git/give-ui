@@ -26,7 +26,6 @@ const contextSessionId = "sessionId"
 const contextProfiles = "profiles"
 const contextAllItems = "allItems"
 const contextAllBSGItems = "AllBSGItems"
-const contextTraders = "traders"
 const contextFavoriteSearch = "contextFavoriteSearch"
 const contextServerInfo = "contextServerInfo"
 const contextLocales = "contextLocales"
@@ -97,7 +96,6 @@ func getLoginPage(app *App) http.HandlerFunc {
 		app.ctx = context.WithValue(app.ctx, contextAllItems, nil)
 		app.ctx = context.WithValue(app.ctx, contextAllBSGItems, nil)
 		app.ctx = context.WithValue(app.ctx, contextFavoriteSearch, false)
-		app.ctx = context.WithValue(app.ctx, contextTraders, false)
 		app.ctx = context.WithValue(app.ctx, contextServerInfo, nil)
 		app.ctx = context.WithValue(app.ctx, contextLocales, nil)
 		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
