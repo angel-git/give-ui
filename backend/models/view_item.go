@@ -14,6 +14,7 @@ type ViewItem struct {
 type ViewPreset struct {
 	Id           string
 	Encyclopedia string
+	Items        []ItemWithUpd
 }
 
 type AllItems struct {

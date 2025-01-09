@@ -5,7 +5,7 @@ import (
 	"spt-give-ui/backend/models"
 )
 
-func GetItemHash(item models.WeaponBuildItem, items []models.WeaponBuildItem, bsgItemsRoot map[string]models.BSGItem) int32 {
+func GetItemHash(item models.ItemWithUpd, items []models.ItemWithUpd, bsgItemsRoot map[string]models.BSGItem) int32 {
 	var hash int32 = 17
 	for _, h := range smethod0(item, items, bsgItemsRoot, 1) {
 		hash ^= h
@@ -18,7 +18,7 @@ func GetItemHash(item models.WeaponBuildItem, items []models.WeaponBuildItem, bs
 	return hash
 }
 
-func smethod0(topLevelItem models.WeaponBuildItem, items []models.WeaponBuildItem, bsgItemsRoot map[string]models.BSGItem, hashSeed int32) []int32 {
+func smethod0(topLevelItem models.ItemWithUpd, items []models.ItemWithUpd, bsgItemsRoot map[string]models.BSGItem, hashSeed int32) []int32 {
 	var hashes []int32
 
 	hashes = append(hashes, smethod1(topLevelItem, items, bsgItemsRoot)*hashSeed)
@@ -44,7 +44,7 @@ func smethod0(topLevelItem models.WeaponBuildItem, items []models.WeaponBuildIte
 	return hashes
 }
 
-func getHashSum(item models.WeaponBuildItem, items []models.WeaponBuildItem) int32 {
+func getHashSum(item models.ItemWithUpd, items []models.ItemWithUpd) int32 {
 	parentItem := getParentItem(item, items)
 	containerID := item.SlotID
 	num := 2777 * cache.GetDeterministicHashCode(*containerID)
@@ -61,7 +61,7 @@ func isSlackSlot(tpl string, bsgItemsRoot map[string]models.BSGItem) bool {
 	}
 }
 
-func smethod1(item models.WeaponBuildItem, items []models.WeaponBuildItem, bsgItemsRoot map[string]models.BSGItem) int32 {
+func smethod1(item models.ItemWithUpd, items []models.ItemWithUpd, bsgItemsRoot map[string]models.BSGItem) int32 {
 	hash := cache.GetHashCodeFromMongoID(item.Tpl)
 
 	node := bsgItemsRoot[item.Tpl]
@@ -100,7 +100,7 @@ func smethod1(item models.WeaponBuildItem, items []models.WeaponBuildItem, bsgIt
 	return hash
 }
 
-func getParentItem(item models.WeaponBuildItem, items []models.WeaponBuildItem) *models.WeaponBuildItem {
+func getParentItem(item models.ItemWithUpd, items []models.ItemWithUpd) *models.ItemWithUpd {
 	for _, i := range items {
 		if i.Id == *item.ParentID {
 			return &i
@@ -109,8 +109,8 @@ func getParentItem(item models.WeaponBuildItem, items []models.WeaponBuildItem) 
 	return nil
 }
 
-func getChildren(item models.WeaponBuildItem, items []models.WeaponBuildItem) []models.WeaponBuildItem {
-	var children []models.WeaponBuildItem
+func getChildren(item models.ItemWithUpd, items []models.ItemWithUpd) []models.ItemWithUpd {
+	var children []models.ItemWithUpd
 	for _, i := range items {
 		if i.ParentID != nil && *i.ParentID == item.Id {
 			children = append(children, i)

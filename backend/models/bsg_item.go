@@ -5,10 +5,11 @@ type GlobalPreset struct {
 	//_type: string
 	//_name: string
 	//_parent: string
-	//_items: Item[]
+	Items []ItemWithUpd `json:"_items"`
 	/** Default presets have this property */
 	Encyclopedia string `json:"_encyclopedia"`
 }
+
 type BSGItem struct {
 	Id     string       `json:"_id"`
 	Parent string       `json:"_parent"`
