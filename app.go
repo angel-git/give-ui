@@ -107,6 +107,7 @@ func getLoginPage(app *App) http.HandlerFunc {
 
 func getProfileList(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
 		url := r.FormValue("url")
 		app.config.SetSptUrl(url)
 		serverInfo, err := api.ConnectToSptServer(url)
@@ -319,6 +320,7 @@ func updateTrader(app *App) http.HandlerFunc {
 
 func getTraders(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
 		sessionId := app.ctx.Value(contextSessionId).(string)
 		locales := app.ctx.Value(contextLocales).(*models.Locales)
 
@@ -341,6 +343,7 @@ func getTraders(app *App) http.HandlerFunc {
 
 func getSkills(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
 		locales := app.ctx.Value(contextLocales).(*models.Locales)
 
 		err := reloadProfiles(app)
