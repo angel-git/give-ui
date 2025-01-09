@@ -40,3 +40,39 @@ func UpdateSkill(skill string, progress int) models.Command {
 		Message: fmt.Sprintf("spt profile skill %s %d", skill, progress),
 	}
 }
+
+func SetWinterSeason() models.Command {
+	return models.Command{
+		Message: "itsonlysnowalan",
+	}
+}
+
+func SetSummerSeason() models.Command {
+	return models.Command{
+		Message: "givemesunshine",
+	}
+}
+
+func SetHalloweenSeason() models.Command {
+	return models.Command{
+		Message: "veryspooky",
+	}
+}
+
+func SetChristmasSeason() models.Command {
+	return models.Command{
+		Message: "hohoho",
+	}
+}
+
+func AddRowsToStash() models.Command {
+	return models.Command{
+		Message: "givemespace",
+	}
+}
+
+func Gift(gifId string) models.Command {
+	return models.Command{
+		Message: gifId,
+	}
+}

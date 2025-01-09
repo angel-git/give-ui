@@ -7,6 +7,7 @@ import {LogTextColor} from '@spt/models/spt/logging/LogTextColor';
 import {Watermark} from '@spt/utils/Watermark';
 import {PreSptModLoader} from '@spt/loaders/PreSptModLoader';
 import {CommandoDialogueChatBot} from "@spt/helpers/Dialogue/CommandoDialogueChatBot";
+import {SptDialogueChatBot} from "@spt/helpers/Dialogue/SptDialogueChatBot";
 import type {IPreSptLoadMod} from '@spt/models/external/IPreSptLoadMod';
 import type {ILogger} from '@spt/models/spt/utils/ILogger';
 import type {StaticRouterModService} from '@spt/services/mod/staticRouter/StaticRouterModService';
@@ -15,6 +16,7 @@ import {MessageType} from "@spt/models/enums/MessageType";
 import {ISendMessageRequest} from "@spt/models/eft/dialog/ISendMessageRequest";
 import {SptCommandoCommands} from "@spt/helpers/Dialogue/Commando/SptCommandoCommands";
 import {ProfileHelper} from "@spt/helpers/ProfileHelper";
+import { GiftService } from "@spt/services/GiftService";
 import {GiveUserPresetSptCommand} from './GiveUserPresetSptCommand';
 
 class GiveUI implements IPreSptLoadMod {
@@ -28,8 +30,10 @@ class GiveUI implements IPreSptLoadMod {
         const saveServer = container.resolve<SaveServer>('SaveServer');
         const watermark = container.resolve<Watermark>('Watermark');
         const preAkiModLoader = container.resolve<PreSptModLoader>('PreSptModLoader');
-        const commando = container.resolve<CommandoDialogueChatBot>('CommandoDialogueChatBot');
+        const commandoDialog = container.resolve<CommandoDialogueChatBot>('CommandoDialogueChatBot');
+        const sptDialog = container.resolve<SptDialogueChatBot>('SptDialogueChatBot');
         const profileHelper = container.resolve<ProfileHelper>('ProfileHelper');
+        const giftService = container.resolve<GiftService>('GiftService');
 
         const staticRouterModService =
             container.resolve<StaticRouterModService>('StaticRouterModService');
@@ -51,7 +55,8 @@ class GiveUI implements IPreSptLoadMod {
                         const giveUiMod = modsInstalled.find((m) => m.name === 'give-ui');
                         const modVersion = giveUiMod?.version;
                         const maxLevel = profileHelper.getMaxLevel();
-                        return Promise.resolve(JSON.stringify({version, path: serverPath, modVersion, maxLevel}));
+                        const gifts = giftService.getGifts();
+                        return Promise.resolve(JSON.stringify({version, path: serverPath, modVersion, maxLevel, gifts}));
                     },
                 },
                 {
@@ -72,17 +77,32 @@ class GiveUI implements IPreSptLoadMod {
                     },
                 },
                 {
-                    url: '/give-ui/command',
+                    url: '/give-ui/commando',
                     action: (_url, request, sessionId, _output) => {
                         const command = request.message;
-                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
+                        logger.log(`[give-ui] Sending to commando: [${command}]`, LogTextColor.GREEN);
                         const message: ISendMessageRequest = {
                             dialogId: sessionId,
                             type: MessageType.SYSTEM_MESSAGE,
                             text: command,
                             replyTo: undefined,
                         };
-                        const response = commando.handleMessage(sessionId, message);
+                        const response = commandoDialog.handleMessage(sessionId, message);
+                        return Promise.resolve(JSON.stringify({response}));
+                    },
+                },
+                {
+                    url: '/give-ui/spt',
+                    action: (_url, request, sessionId, _output) => {
+                        const command = request.message;
+                        logger.log(`[give-ui] Sending to spt: [${command}]`, LogTextColor.GREEN);
+                        const message: ISendMessageRequest = {
+                            dialogId: sessionId,
+                            type: MessageType.SYSTEM_MESSAGE,
+                            text: command,
+                            replyTo: undefined,
+                        };
+                        const response = sptDialog.handleMessage(sessionId, message);
                         return Promise.resolve(JSON.stringify({response}));
                     },
                 },

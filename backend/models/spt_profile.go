@@ -5,7 +5,7 @@ type Info struct {
 	Username string `json:"username"`
 }
 
-type WeaponBuildItem struct {
+type ItemWithUpd struct {
 	Id          string  `json:"_id"`
 	Tpl         string  `json:"_tpl"`
 	ParentID    *string `json:"parentId"`
@@ -15,10 +15,10 @@ type WeaponBuildItem struct {
 }
 
 type WeaponBuild struct {
-	Id          string             `json:"Id"`
-	Name        string             `json:"Name"`
-	Root        string             `json:"Root"`
-	Items       *[]WeaponBuildItem `json:"Items"`
+	Id          string         `json:"Id"`
+	Name        string         `json:"Name"`
+	Root        string         `json:"Root"`
+	Items       *[]ItemWithUpd `json:"Items"`
 	ImageBase64 string
 }
 

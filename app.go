@@ -202,7 +202,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 		addImageToWeaponBuild(app, &profile.UserBuilds.WeaponBuilds)
 
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo.MaxLevel)).ServeHTTP(w, r)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo)).ServeHTTP(w, r)
 	}
 }
 
@@ -304,6 +304,7 @@ func updateTrader(app *App) http.HandlerFunc {
 
 func getTraders(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
 		sessionId := app.ctx.Value(contextSessionId).(string)
 		locales := app.ctx.Value(contextLocales).(*models.Locales)
 
@@ -326,6 +327,7 @@ func getTraders(app *App) http.HandlerFunc {
 
 func getSkills(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
 		locales := app.ctx.Value(contextLocales).(*models.Locales)
 
 		err := reloadProfiles(app)
@@ -354,6 +356,35 @@ func setLevel(app *App) http.HandlerFunc {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
 		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+
+	}
+}
+
+func sendSptMessage(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		message := r.FormValue("message")
+
+		var err error
+		switch message {
+		case "summer":
+			err = api.SetSummerSeason(app.config.GetSptUrl(), sessionId)
+		case "halloween":
+			err = api.SetHalloweenSeason(app.config.GetSptUrl(), sessionId)
+		case "winter":
+			err = api.SetWinterSeason(app.config.GetSptUrl(), sessionId)
+		case "christmas":
+			err = api.SetChristmasSeason(app.config.GetSptUrl(), sessionId)
+		case "stash":
+			err = api.AddRowsToStash(app.config.GetSptUrl(), sessionId)
+		default:
+			err = api.SendGift(app.config.GetSptUrl(), sessionId, message)
+		}
+
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Read the response in Tarkov dialogues-game\"}")
 
 	}
 }
@@ -490,7 +521,7 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 	for i := range *weaponBuilds {
 		weaponBuild := &(*weaponBuilds)[i]
 
-		idx := slices.IndexFunc(*weaponBuild.Items, func(i models.WeaponBuildItem) bool {
+		idx := slices.IndexFunc(*weaponBuild.Items, func(i models.ItemWithUpd) bool {
 			return i.Id == weaponBuild.Root
 		})
 
@@ -544,6 +575,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/user-weapons", getUserWeaponPresets(app))
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	r.Get("/user-weapons-modal/{id}", getUserWeaponModal(app))
+	r.Post("/spt", sendSptMessage(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))

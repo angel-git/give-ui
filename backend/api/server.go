@@ -54,11 +54,11 @@ func ParseItems(allItems *models.ItemsResponse, locales *models.Locales) (r *mod
 }
 
 func AddItem(url string, sessionId string, itemId string, amount int) (e error) {
-	return sendCommand(url, sessionId, commands.AddItem(itemId, amount))
+	return sendToCommando(url, sessionId, commands.AddItem(itemId, amount))
 }
 
 func AddUserWeapon(url string, sessionId string, presetId string) (e error) {
-	return sendCommand(url, sessionId, commands.AddUserPreset(presetId))
+	return sendToCommando(url, sessionId, commands.AddUserPreset(presetId))
 }
 
 func LoadSkills(profile models.SPTProfile, locales *models.Locales) (r []models.Skill, e error) {
@@ -92,18 +92,18 @@ func LoadTraders(url string, profile models.SPTProfile, sessionId string, locale
 }
 
 func UpdateTraderSpend(url string, sessionId string, nickname string, spend string) (e error) {
-	return sendCommand(url, sessionId, commands.UpdateTraderSpend(nickname, spend))
+	return sendToCommando(url, sessionId, commands.UpdateTraderSpend(nickname, spend))
 }
 func UpdateTraderRep(url string, sessionId string, nickname string, rep string) (e error) {
-	return sendCommand(url, sessionId, commands.UpdateTraderRep(nickname, rep))
+	return sendToCommando(url, sessionId, commands.UpdateTraderRep(nickname, rep))
 }
 
 func UpdateLevel(url string, sessionId string, level int) (e error) {
-	return sendCommand(url, sessionId, commands.UpdateLevel(level))
+	return sendToCommando(url, sessionId, commands.UpdateLevel(level))
 }
 
 func UpdateSkill(url string, sessionId string, skill string, progress int) (e error) {
-	return sendCommand(url, sessionId, commands.UpdateSkill(skill, progress))
+	return sendToCommando(url, sessionId, commands.UpdateSkill(skill, progress))
 }
 
 func LoadImage(url string, sessionId string, imageHash string) (r string, e error) {
@@ -168,6 +168,30 @@ func getItemsFromServer(url string) (*models.ItemsResponse, error) {
 		return nil, err
 	}
 	return itemsMap, nil
+}
+
+func SetWinterSeason(url string, sessionId string) (e error) {
+	return sendToSpt(url, sessionId, commands.SetWinterSeason())
+}
+
+func SetSummerSeason(url string, sessionId string) (e error) {
+	return sendToSpt(url, sessionId, commands.SetSummerSeason())
+}
+
+func SetHalloweenSeason(url string, sessionId string) (e error) {
+	return sendToSpt(url, sessionId, commands.SetHalloweenSeason())
+}
+
+func SetChristmasSeason(url string, sessionId string) (e error) {
+	return sendToSpt(url, sessionId, commands.SetChristmasSeason())
+}
+
+func AddRowsToStash(url string, sessionId string) (e error) {
+	return sendToSpt(url, sessionId, commands.AddRowsToStash())
+}
+
+func SendGift(url string, sessionId string, giftId string) (e error) {
+	return sendToSpt(url, sessionId, commands.Gift(giftId))
 }
 
 func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllItems {
@@ -253,7 +277,12 @@ func getHiddenItems() []string {
 	}
 }
 
-func sendCommand(url string, sessionId string, command models.Command) (e error) {
-	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/command", url), sessionId, command)
+func sendToCommando(url string, sessionId string, command models.Command) (e error) {
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/commando", url), sessionId, command)
+	return err
+}
+
+func sendToSpt(url string, sessionId string, command models.Command) (e error) {
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/spt", url), sessionId, command)
 	return err
 }

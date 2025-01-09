@@ -6,6 +6,7 @@ import (
 	"sort"
 	"spt-give-ui/backend/models"
 	"strings"
+	"time"
 )
 
 templ LoginPage(appName string, appVersion string, currentTheme string, sptUrl string) {
@@ -66,7 +67,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	</div>
 }
 
-templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, maxLevel int) {
+templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, serverInfo *models.ServerInfo) {
 	@templ.JSONScript("profile-selected-username", profile.Info.Username)
 	<script>
         setUsernameOnFooter();
@@ -83,11 +84,15 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Skills"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@Skills(profile.Characters.PMC.InfoPMC.Level, skills, maxLevel)
+				@Skills(profile.Characters.PMC.InfoPMC.Level, skills, serverInfo.MaxLevel)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Traders"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Traders(profile, traders)
+			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Other"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@Others(serverInfo)
 			</div>
 			<div class="grow text-right">
 				<div class="dropdown dropdown-hover dropdown-end">
@@ -430,7 +435,7 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 				<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
 					<div class="hero-content flex-col">
 						<img
-							src={ trader.Image }
+							src={ fmt.Sprintf("%s?%d", trader.Image, time.Now().Unix()) }
 							class="max-w-sm rounded-lg shadow-2xl"
 						/>
 						<div>
@@ -468,6 +473,67 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 			}
 		</div>
 	}
+}
+
+templ Others(serverInfo *models.ServerInfo) {
+	<div class="flex flex-col flex-wrap gap-2 mb-2">
+		<div>
+			<h1 class="divider">Seasons</h1>
+			<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+				<label class="label">
+					<span class="label-text">Summer</span>
+				</label>
+				<input type="hidden" name="message" value="summer"/>
+				<button type="submit" class="btn btn-primary">Set</button>
+			</form>
+			<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+				<label class="label">
+					<span class="label-text">Halloween</span>
+				</label>
+				<input type="hidden" name="message" value="halloween"/>
+				<button type="submit" class="btn btn-primary">Set</button>
+			</form>
+			<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+				<label class="label">
+					<span class="label-text">Winter</span>
+				</label>
+				<input type="hidden" name="message" value="winter"/>
+				<button type="submit" class="btn btn-primary">Set</button>
+			</form>
+			<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+				<label class="label">
+					<span class="label-text">Christmas</span>
+				</label>
+				<input type="hidden" name="message" value="christmas"/>
+				<button type="submit" class="btn btn-primary">Set</button>
+			</form>
+		</div>
+		<div>
+			<h1 class="divider">Stash</h1>
+			<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+				<label class="label">
+					<span class="label-text">Add stash rows</span>
+				</label>
+				<input type="hidden" name="message" value="stash"/>
+				<button type="submit" class="btn btn-primary">Add</button>
+			</form>
+		</div>
+		<div>
+			<h1 class="divider">Gifts</h1>
+			<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+				<label class="label">
+					<span class="label-text">Select gift</span>
+				</label>
+				<select name="message" class="select select-bordered">
+					<option disabled selected>Pick one</option>
+					for gift, _ := range serverInfo.Gifts {
+						<option>{ gift }</option>
+					}
+				</select>
+				<button type="submit" class="btn btn-primary">Send gift</button>
+			</form>
+		</div>
+	</div>
 }
 
 templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
