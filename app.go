@@ -390,7 +390,7 @@ func sendSptMessage(app *App) http.HandlerFunc {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Read the response in Tarkov dialogues-game\"}")
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Read the response in Tarkov dialogues\"}")
 
 	}
 }
