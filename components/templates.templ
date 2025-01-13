@@ -453,14 +453,14 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 										<span class="label-text">Money spent</span>
 									</label>
 									<input type="hidden" name="spend-original" value={ trader.SalesSum }/>
-									<input type="number" name="spend" class="input input-bordered" min="0" max="9999999" required value={ trader.SalesSum } oninput="this.parentNode.nextElementSibling.nextElementSibling.firstElementChild.disabled = false"/>
+									<input type="number" name="spend" class="input input-bordered" min="1" max="9999999" required value={ trader.SalesSum } oninput="this.parentNode.nextElementSibling.nextElementSibling.firstElementChild.disabled = false"/>
 								</div>
 								<div class="form-control">
 									<label class="label">
 										<span class="label-text">Reputation</span>
 									</label>
 									<input type="hidden" name="rep-original" value={ trader.Reputation }/>
-									<input type="range" name="rep" min="0" max="1" value={ trader.Reputation } class="range" step="0.1" oninput="this.nextElementSibling.value = this.value; this.parentNode.nextElementSibling.firstElementChild.disabled = false"/>
+									<input type="range" name="rep" min="0.01" max={ trader.MaxRep } value={ trader.Reputation } class="range" step="0.05" oninput="this.nextElementSibling.value = this.value; this.parentNode.nextElementSibling.firstElementChild.disabled = false"/>
 									<output>{ trader.Reputation }</output>
 								</div>
 								<div class="form-control mt-6">
