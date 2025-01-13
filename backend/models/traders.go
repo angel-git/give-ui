@@ -19,4 +19,5 @@ type Trader struct {
 	SalesSum       string `json:"salesSum"`
 	Reputation     string `json:"standing"`
 	LoyaltyLevel   int    `json:"loyaltyLevel"`
+	MaxRep         string
 }

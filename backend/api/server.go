@@ -154,6 +154,17 @@ func parseTraders(url string, tradersResponse *models.AllTradersResponse, profil
 			continue
 		}
 		var nicknameLocale = locales.Data[fmt.Sprintf("%s Nickname", trader.Id)]
+		var maxRep string
+		var loyaltyLevel = traderProfile.LoyaltyLevel
+		if trader.Id == "579dc571d53a0658a154fbec" {
+			// fence
+			maxRep = "7"
+			if loyaltyLevel == 2 {
+				loyaltyLevel = 4
+			}
+		} else {
+			maxRep = "2"
+		}
 		traders = append(traders, models.Trader{
 			Id:             trader.Id,
 			Nickname:       trader.Nickname,
@@ -161,7 +172,8 @@ func parseTraders(url string, tradersResponse *models.AllTradersResponse, profil
 			Reputation:     fmt.Sprintf("%.2f", traderProfile.Standing),
 			SalesSum:       fmt.Sprintf("%.0f", traderProfile.SalesSum),
 			Image:          fmt.Sprintf("%s%s", url, trader.Avatar),
-			LoyaltyLevel:   traderProfile.LoyaltyLevel,
+			MaxRep:         maxRep,
+			LoyaltyLevel:   loyaltyLevel,
 		})
 	}
 	sort.SliceStable(traders, func(i, j int) bool {
