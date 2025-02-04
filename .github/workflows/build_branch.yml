@@ -21,7 +21,7 @@ jobs:
         with:
           bun-version: latest
       - name: Build wails
-        uses: dAppServer/wails-build-action@v2.2
+        uses: dAppServer/wails-build-action@main
         id: build
         with:
           package: false
