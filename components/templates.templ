@@ -111,8 +111,10 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 		<figure class="bg-base-300 min-h-[6rem] p-4">
 			if item.ImageBase64 != "" {
 				<img alt="item" class="max-h-52" src={ fmt.Sprintf("data:image/png;base64, %s", item.ImageBase64) }/>
+			} else if maybePresetId != "" {
+				<img src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", maybePresetId) } alt="item"/>
 			} else {
-				<img src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) } data-item-id={ item.Id } onerror="replaceImage(this)" alt="item"/>
+				<img src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", item.Id) } alt="item"/>
 			}
 		</figure>
 		<div class="card-body">
@@ -285,9 +287,9 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 								<img alt="item" class="max-h-full" src={ fmt.Sprintf("data:image/png;base64, %s", weaponBuild.ImageBase64) }/>
 							} else {
 								if maybePresetId != "" {
-									<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", maybePresetId) }/>
+									<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", maybePresetId) }/>
 								} else {
-									<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", (*weaponBuild.Items)[0].Tpl) }/>
+									<img alt="item" class="max-h-full" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", (*weaponBuild.Items)[0].Tpl) }/>
 								}
 							}
 						</figure>
@@ -321,7 +323,7 @@ templ UserWeaponModal(allItems *models.AllItems, weaponBuild models.WeaponBuild)
 						if item.ImageBase64 != "" {
 							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("data:image/png;base64, %s", item.ImageBase64) }/>
 						} else {
-							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Tpl) }/>
+							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", item.Tpl) }/>
 						}
 					</div>
 					<div class="pl-2 text-start table-cell align-middle">{ allItems.Items[item.Tpl].Name }</div>
@@ -510,7 +512,7 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 							<div class="flex gap-4 flex-wrap">
 								for _, bullet := range magazineLoadout.Items {
 									if bullet.TemplateId != "" {
-										<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", bullet.TemplateId) }/>
+										<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", bullet.TemplateId) }/>
 									}
 								}
 							</div>
@@ -532,7 +534,7 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 
 templ _AddWorkbenchItem(itemId string, itemQuantity string) {
 	<div class="flex items-center gap-4">
-		<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", itemId) }/>
+		<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", itemId) }/>
 		<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this">
 			<input name="quantity" hidden value={ itemQuantity }/>
 			<input name="id" hidden value={ itemId }/>

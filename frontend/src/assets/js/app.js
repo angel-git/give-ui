@@ -98,11 +98,6 @@ function filterMagazineLoadout() {
     }
 }
 
-function replaceImage(element) {
-    const itemId = element.getAttribute('data-item-id')
-    element.src = `https://assets.tarkov.dev/${itemId}-base-image.png`;
-}
-
 window.setUsernameOnFooter = setUsernameOnFooter;
 window.filterItems = filterItems;
 window.selectItem = selectItem;
