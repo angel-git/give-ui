@@ -105,7 +105,6 @@ window.selectItemFromKeyboard = selectItemFromKeyboard;
 window.filterUserWeapons = filterUserWeapons;
 window.showModal = showModal;
 window.filterMagazineLoadout = filterMagazineLoadout;
-window.replaceImage = replaceImage;
 
 let previousToast = null;
 
