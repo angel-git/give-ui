@@ -11,6 +11,7 @@ import (
 	"slices"
 	"spt-give-ui/backend/api"
 	"spt-give-ui/backend/config"
+	client "spt-give-ui/backend/http"
 	"spt-give-ui/backend/images"
 	"spt-give-ui/backend/images/cache"
 	"spt-give-ui/backend/images/cache_presets"
@@ -50,6 +51,8 @@ func NewApp(name string, version string) *App {
 		version: version,
 	}
 	a.config = config.LoadConfig()
+	fmt.Printf("a.config.GetTimeoutSeconds() %d\n", a.config.GetTimeoutSeconds())
+	client.NewClient(a.config.GetTimeoutSeconds())
 	return a
 }
 
