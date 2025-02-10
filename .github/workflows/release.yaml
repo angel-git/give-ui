@@ -29,12 +29,22 @@ jobs:
           go-version: '1.23.1'
           build-name: spt-give-ui.exe
           build-platform: windows/amd64
+      - name: Build wails embed
+        uses: dAppServer/wails-build-action@main
+        id: build
+        with:
+          package: false
+          go-version: '1.23.1'
+          build-name: spt-give-ui-embed.exe
+          build-platform: windows/amd64
+          wails-build-webview2: embed
       - name: Package zip
         run: |
           mkdir "dist/user/mods/give-ui"
           xcopy .\server-mod .\dist\user\mods\give-ui /e
           Remove-Item -Path .\dist\user\mods\give-ui\types -Force -Recurse
           mv ./build/bin/spt-give-ui.exe ./dist/user/mods/give-ui/give-ui_x64-portable.exe
+          mv ./build/bin/spt-give-ui-embed.exe ./dist/user/mods/give-ui/give-ui_x64-portable-webview.exe
           Compress-Archive -Path ./dist/* -Destination ./give-ui-${{ github.event.release.tag_name }}.zip
       - name: Upload Portable Binaries (Windows)
         run: bash -c 'gh release upload ${{ github.event.release.tag_name }} ./give-ui-${{ github.event.release.tag_name }}.zip --clobber'
