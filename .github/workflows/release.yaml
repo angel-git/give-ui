@@ -28,6 +28,7 @@ jobs:
           go-version: '1.23.1'
           build-name: spt-give-ui.exe
           build-platform: windows/amd64
+          build-cache: false
       - name: Build wails embed
         uses: dAppServer/wails-build-action@main
         with:
@@ -35,6 +36,7 @@ jobs:
           go-version: '1.23.1'
           build-name: spt-give-ui-embed.exe
           build-platform: windows/amd64
+          build-cache: false
           wails-build-webview2: embed
       - name: Package zip
         run: |
