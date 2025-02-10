@@ -21,14 +21,14 @@ jobs:
         with:
           bun-version: latest
       - name: Build wails
-        uses: dAppServer/wails-build-action@main
+        uses: dAppServer/wails-build-action@756cb1ac7fe5611f1e3bac6f0d83225ff9e87421
         with:
           package: false
           go-version: '1.23.1'
           build-name: spt-give-ui.exe
           build-platform: windows/amd64
       - name: Build wails embed
-        uses: dAppServer/wails-build-action@main
+        uses: dAppServer/wails-build-action@756cb1ac7fe5611f1e3bac6f0d83225ff9e87421
         with:
           package: false
           go-version: '1.23.1'
