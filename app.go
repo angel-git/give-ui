@@ -19,7 +19,6 @@ import (
 	"spt-give-ui/backend/models"
 	"spt-give-ui/components"
 	"strconv"
-	"strings"
 )
 
 // ctx variables
@@ -199,19 +198,10 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 			return
 		}
 		serverInfo := app.ctx.Value(contextServerInfo).(*models.ServerInfo)
-		// trader reputation fix https://github.com/sp-tarkov/server/pull/994 is not available in versions 3.10.0, 3.10.1, 3.10.2, 3.10.3
-		// TODO remove me after 3.11.0 release
-		var traders []models.Trader
-		if !strings.Contains(serverInfo.Version, "3.10.0") && !strings.Contains(serverInfo.Version, "3.10.1") && !strings.Contains(serverInfo.Version, "3.10.2") && !strings.Contains(serverInfo.Version, "3.10.3") {
-			traders, err = api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
-			if err != nil {
-				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
-				return
-			}
-		}
+		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 		addImageToWeaponBuild(app, &profile.UserBuilds.WeaponBuilds)
 
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo.MaxLevel)).ServeHTTP(w, r)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo)).ServeHTTP(w, r)
 	}
 }
 
@@ -362,6 +352,35 @@ func setLevel(app *App) http.HandlerFunc {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
 		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+
+	}
+}
+
+func sendSptMessage(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		message := r.FormValue("message")
+
+		var err error
+		switch message {
+		case "summer":
+			err = api.SetSummerSeason(app.config.GetSptUrl(), sessionId)
+		case "halloween":
+			err = api.SetHalloweenSeason(app.config.GetSptUrl(), sessionId)
+		case "winter":
+			err = api.SetWinterSeason(app.config.GetSptUrl(), sessionId)
+		case "christmas":
+			err = api.SetChristmasSeason(app.config.GetSptUrl(), sessionId)
+		case "stash":
+			err = api.AddRowsToStash(app.config.GetSptUrl(), sessionId)
+		default:
+			err = api.SendGift(app.config.GetSptUrl(), sessionId, message)
+		}
+
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Read the response in Tarkov dialogues\"}")
 
 	}
 }
@@ -552,6 +571,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/user-weapons", getUserWeaponPresets(app))
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	r.Get("/user-weapons-modal/{id}", getUserWeaponModal(app))
+	r.Post("/spt", sendSptMessage(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))
