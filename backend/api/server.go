@@ -71,17 +71,12 @@ func AddUserWeapon(url string, sessionId string, presetId string) (e error) {
 
 func LoadSkills(profile models.SPTProfile, locales *models.Locales) (r []models.Skill, e error) {
 	var skills []models.Skill
-	var name string
-	var foundName bool
+	// try to find skill in lowercase, Troubleshooting example
 	localesLowCase := convertLocalesToLowercase(locales)
 	for _, skill := range profile.Characters.PMC.Skills.Common {
-		name, foundName = locales.Data[skill.Id]
+		name, foundName := localesLowCase[strings.ToLower(skill.Id)]
 		if !foundName {
-			// try to find skill in lowercase, Troubleshooting example
-			name, foundName = localesLowCase[strings.ToLower(skill.Id)]
-			if !foundName {
-				continue
-			}
+			continue
 		}
 		skills = append(skills, models.Skill{
 			Id:       skill.Id,
