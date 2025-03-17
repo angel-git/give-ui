@@ -25,7 +25,7 @@ func LoadConfig() *Config {
 	defaultJsonConfig := store.JsonDatabase{
 		Locale:        "English",
 		Theme:         defaultTheme,
-		SptUrl:        "http://127.0.0.1:6969",
+		SptUrl:        "https://127.0.0.1:6969",
 		CacheFolder:   "",
 		FavoriteItems: []string{},
 	}

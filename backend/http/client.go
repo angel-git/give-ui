@@ -2,13 +2,19 @@ package http
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 )
 
-var myClient = &http.Client{Timeout: 10 * time.Second}
+var myClient = &http.Client{
+	Timeout: 10 * time.Second,
+	Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	},
+}
 
 func DoPost(url string, sessionId string, body interface{}) (*http.Response, error) {
 	jsonBody, err := json.Marshal(body)
