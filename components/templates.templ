@@ -52,7 +52,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 					for _, i := range profiles {
 						<li class="flex flex-row items-center justify-between gap-2">
 							<div class="text-left">
-								<div>{ i.Info.Username }</div>
+								<div>{ i.Info.Username } - { i.Characters.PMC.InfoPMC.Nickname } </div>
 								<div class="text-xs">{ i.Info.Id }</div>
 							</div>
 							<button class="btn btn-primary btn-sm" hx-get={ fmt.Sprintf("/connect/%s", i.Info.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="#profile-fieldset" hx-indicator="#loader">

@@ -56,7 +56,8 @@ type PMC struct {
 }
 
 type InfoPMC struct {
-	Level int `json:"Level"`
+	Level    int    `json:"Level"`
+	Nickname string `json:"Nickname"`
 }
 
 type Skills struct {
