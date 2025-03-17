@@ -261,7 +261,7 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 		name := locales.Data[fmt.Sprintf(NameFormat, bsgItem.Id)]
 		description := locales.Data[fmt.Sprintf(DescriptionFormat, bsgItem.Id)]
 		// filter out useless items
-		if strings.Contains(name, "DO_NOT_USE") || name == "" {
+		if strings.Contains(name, "DO_NOT_USE") || strings.Contains(name, "DO NOT USE") || name == "" {
 			continue
 		}
 
