@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"net/url"
 	"slices"
 	"sort"
 	"spt-give-ui/backend/commands"
@@ -97,7 +98,7 @@ func LoadTraders(url string, profile models.SPTProfile, sessionId string, locale
 	if err != nil {
 		return nil, err
 	}
-	traders := parseTraders(url, tradersResponse, profile, locales)
+	traders := parseTraders(tradersResponse, profile, locales)
 	return traders, nil
 }
 
@@ -128,7 +129,11 @@ func LoadImage(url string, sessionId string, imageHash string) (r string, e erro
 	return *response.ImageBase64, nil
 }
 
-func parseTraders(url string, tradersResponse *models.AllTradersResponse, profile models.SPTProfile, locales *models.Locales) []models.Trader {
+func LoadFile(url string, sessionId string, path string) (r []byte, e error) {
+	return util.GetRawBytesCompressed(fmt.Sprintf("%s%s", url, path), sessionId)
+}
+
+func parseTraders(tradersResponse *models.AllTradersResponse, profile models.SPTProfile, locales *models.Locales) []models.Trader {
 
 	var traders []models.Trader
 	for _, trader := range tradersResponse.Traders {
@@ -154,7 +159,7 @@ func parseTraders(url string, tradersResponse *models.AllTradersResponse, profil
 			NicknameLocale: nicknameLocale,
 			Reputation:     fmt.Sprintf("%.2f", traderProfile.Standing),
 			SalesSum:       fmt.Sprintf("%.0f", traderProfile.SalesSum),
-			Image:          fmt.Sprintf("%s%s", url, trader.Avatar),
+			Image:          fmt.Sprintf("%s", url.QueryEscape(trader.Avatar)),
 			MaxRep:         maxRep,
 			LoyaltyLevel:   loyaltyLevel,
 		})

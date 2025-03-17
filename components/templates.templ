@@ -417,7 +417,7 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 			<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
 				<div class="hero-content flex-col">
 					<img
-						src={ fmt.Sprintf("%s?%d", trader.Image, time.Now().Unix()) }
+						src={ fmt.Sprintf("/file?url=%s&%d", trader.Image, time.Now().Unix()) }
 						class="max-w-32 rounded-lg shadow-2xl"
 					/>
 					<div>

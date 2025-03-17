@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/wailsapp/wails/v2/pkg/menu"
 	"net/http"
+	"net/url"
 	"slices"
 	"spt-give-ui/backend/api"
 	"spt-give-ui/backend/config"
@@ -350,9 +351,27 @@ func setLevel(app *App) http.HandlerFunc {
 		err := api.UpdateLevel(app.config.GetSptUrl(), sessionId, level)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
 		}
 		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
 
+	}
+}
+
+func getFile(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		imageUrl := r.URL.Query().Get("url")
+		imageUrlUnescape, err := url.QueryUnescape(imageUrl)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+		}
+		image, err := api.LoadFile(app.config.GetSptUrl(), sessionId, imageUrlUnescape)
+
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+		}
+		w.Write(image)
 	}
 }
 
@@ -572,6 +591,8 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	r.Get("/user-weapons-modal/{id}", getUserWeaponModal(app))
 	r.Post("/spt", sendSptMessage(app))
+	// forward calls to SPT server for files (images)
+	r.Get("/file", getFile(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))
