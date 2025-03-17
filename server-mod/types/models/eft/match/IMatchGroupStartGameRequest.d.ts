@@ -1,5 +1,5 @@
-import { IServer } from '@spt/models/eft/match/IServer';
+import { IServer } from "@spt/models/eft/match/IServer";
 export interface IMatchGroupStartGameRequest {
-  groupId: string;
-  servers: IServer[];
+    groupId: string;
+    servers: IServer[];
 }

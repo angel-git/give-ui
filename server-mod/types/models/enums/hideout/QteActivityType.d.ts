@@ -1,3 +1,3 @@
 export declare enum QteActivityType {
-  GYM = 0,
+    GYM = 0
 }

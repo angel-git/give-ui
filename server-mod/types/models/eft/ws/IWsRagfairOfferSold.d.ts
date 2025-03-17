@@ -1,6 +1,6 @@
-import { IWsNotificationEvent } from '@spt/models/eft/ws/IWsNotificationEvent';
+import { IWsNotificationEvent } from "@spt/models/eft/ws/IWsNotificationEvent";
 export interface IWsRagfairOfferSold extends IWsNotificationEvent {
-  offerId: string;
-  count: number;
-  handbookId: string;
+    offerId: string;
+    count: number;
+    handbookId: string;
 }

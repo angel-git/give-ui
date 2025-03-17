@@ -1,5 +1,8 @@
 export declare enum ModSpawn {
-  DEFAULT_MOD = 0,
-  SPAWN = 1,
-  SKIP = 2,
+    /** Chosen mod should be the tpl from the default weapon template */
+    DEFAULT_MOD = 0,
+    /** Normal behaviour */
+    SPAWN = 1,
+    /** Item should not be chosen */
+    SKIP = 2
 }

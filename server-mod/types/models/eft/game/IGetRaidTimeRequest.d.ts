@@ -1,4 +1,4 @@
 export interface IGetRaidTimeRequest {
-  Side: string;
-  Location: string;
+    Side: string;
+    Location: string;
 }

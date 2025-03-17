@@ -1,6 +1,6 @@
 export declare class ErrorHandler {
-  private logger;
-  private readLine;
-  constructor();
-  handleCriticalError(err: Error): void;
+    private logger;
+    private readLine;
+    constructor();
+    handleCriticalError(err: Error): void;
 }

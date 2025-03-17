@@ -1,10 +1,10 @@
 export interface IAddItemRequestData {
-  /** Trader id */
-  tid: string;
-  items: AddItem[];
+    /** Trader id */
+    tid: string;
+    items: IItemToAdd[];
 }
-export interface AddItem {
-  count: number;
-  sptIsPreset?: boolean;
-  item_id: string;
+export interface IItemToAdd {
+    count: number;
+    sptIsPreset?: boolean;
+    item_id: string;
 }

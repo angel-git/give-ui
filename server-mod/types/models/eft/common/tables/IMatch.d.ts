@@ -1,11 +1,11 @@
 export interface IMatch {
-  metrics: Metrics;
+    metrics: IMetrics;
 }
-export interface Metrics {
-  Keys: number[];
-  NetProcessingBins: number[];
-  RenderBins: number[];
-  GameUpdateBins: number[];
-  MemoryMeasureInterval: number;
-  PauseReasons: number[];
+export interface IMetrics {
+    Keys: number[];
+    NetProcessingBins: number[];
+    RenderBins: number[];
+    GameUpdateBins: number[];
+    MemoryMeasureInterval: number;
+    PauseReasons: number[];
 }

@@ -1,4 +1,4 @@
 export declare enum DateTime {
-  CURR = 'CURR',
-  PAST = 'PAST',
+    CURR = "CURR",
+    PAST = "PAST"
 }

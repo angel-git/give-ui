@@ -1,8 +1,8 @@
-import { IPmcData } from '@spt/models/eft/common/IPmcData';
-import { Item } from '@spt/models/eft/common/tables/IItem';
+import { IPmcData } from "@spt/models/eft/common/IPmcData";
+import { IItem } from "@spt/models/eft/common/tables/IItem";
 export interface IInsuranceEquipmentPkg {
-  sessionID: string;
-  pmcData: IPmcData;
-  itemToReturnToPlayer: Item;
-  traderId: string;
+    sessionID: string;
+    pmcData: IPmcData;
+    itemToReturnToPlayer: IItem;
+    traderId: string;
 }

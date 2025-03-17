@@ -1,3 +1,3 @@
 export declare enum QteType {
-  SHRINKING_CIRCLE = 0,
+    SHRINKING_CIRCLE = 0
 }

@@ -1,25 +1,25 @@
-import { GenerationData } from '@spt/models/eft/common/tables/IBotType';
-import { IBaseConfig } from '@spt/models/spt/config/IBaseConfig';
+import { IGenerationData } from "@spt/models/eft/common/tables/IBotType";
+import { IBaseConfig } from "@spt/models/spt/config/IBaseConfig";
 export interface IPlayerScavConfig extends IBaseConfig {
-  kind: 'spt-playerscav';
-  karmaLevel: Record<string, KarmaLevel>;
+    kind: "spt-playerscav";
+    karmaLevel: Record<string, IKarmaLevel>;
 }
-export interface KarmaLevel {
-  botTypeForLoot: string;
-  modifiers: Modifiers;
-  itemLimits: ItemLimits;
-  equipmentBlacklist: Record<string, string[]>;
-  lootItemsToAddChancePercent: Record<string, number>;
+export interface IKarmaLevel {
+    botTypeForLoot: string;
+    modifiers: IModifiers;
+    itemLimits: ItemLimits;
+    equipmentBlacklist: Record<string, string[]>;
+    lootItemsToAddChancePercent: Record<string, number>;
 }
-export interface Modifiers {
-  equipment: Record<string, number>;
-  mod: Record<string, number>;
+export interface IModifiers {
+    equipment: Record<string, number>;
+    mod: Record<string, number>;
 }
 export interface ItemLimits {
-  healing: GenerationData;
-  drugs: GenerationData;
-  stims: GenerationData;
-  looseLoot: GenerationData;
-  magazines: GenerationData;
-  grenades: GenerationData;
+    healing: IGenerationData;
+    drugs: IGenerationData;
+    stims: IGenerationData;
+    looseLoot: IGenerationData;
+    magazines: IGenerationData;
+    grenades: IGenerationData;
 }

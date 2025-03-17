@@ -1,3 +1,3 @@
 export interface IPinDialogRequestData {
-  dialogId: string;
+    dialogId: string;
 }

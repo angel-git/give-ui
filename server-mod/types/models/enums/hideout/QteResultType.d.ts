@@ -1,4 +1,4 @@
 export declare enum QteResultType {
-  NONE = 'None',
-  EXIT = 'Exit',
+    NONE = "None",
+    EXIT = "Exit"
 }
