@@ -7,11 +7,12 @@ import (
 )
 
 type JsonDatabase struct {
-	Locale        string   `json:"locale"`
-	Theme         string   `json:"theme"`
-	SptUrl        string   `json:"sptUrl"`
-	CacheFolder   string   `json:"cacheFolder"`
-	FavoriteItems []string `json:"favoriteItems"`
+	Locale         string   `json:"locale"`
+	Theme          string   `json:"theme"`
+	SptUrl         string   `json:"sptUrl"`
+	CacheFolder    string   `json:"cacheFolder"`
+	FavoriteItems  []string `json:"favoriteItems"`
+	TimeoutSeconds uint16   `json:"timeoutSeconds"`
 }
 
 const LocaleDbKey = "locale"
@@ -42,6 +43,11 @@ func CreateDatabase(defaultConfig JsonDatabase) JsonDatabase {
 	err = json.Unmarshal(content, &jsonConfig)
 	if err != nil {
 		log.Fatalf("Error reading json config content: %s", err)
+	}
+	// validate config
+	if jsonConfig.TimeoutSeconds < 1 {
+		jsonConfig.TimeoutSeconds = defaultConfig.TimeoutSeconds
+		SaveValue("timeoutSeconds", jsonConfig.TimeoutSeconds)
 	}
 
 	return jsonConfig
