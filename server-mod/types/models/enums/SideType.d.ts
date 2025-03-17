@@ -1,5 +1,5 @@
 export declare enum SideType {
-  PMC = 'Pmc',
-  SAVAGE = 'Savage',
-  RANDOM = 'Random',
+    PMC = "Pmc",
+    SAVAGE = "Savage",
+    RANDOM = "Random"
 }

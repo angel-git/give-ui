@@ -1,11 +1,11 @@
 export interface IVersionValidateRequestData {
-  version: Version;
-  develop: boolean;
+    version: IVersion;
+    develop: boolean;
 }
-export interface Version {
-  major: string;
-  minor: string;
-  game: string;
-  backend: string;
-  taxonomy: string;
+export interface IVersion {
+    major: string;
+    minor: string;
+    game: string;
+    backend: string;
+    taxonomy: string;
 }

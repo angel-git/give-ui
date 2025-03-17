@@ -1,4 +1,4 @@
 export interface IGameKeepAliveResponse {
-  msg: string;
-  utc_time: number;
+    msg: string;
+    utc_time: number;
 }

@@ -1,4 +1,4 @@
 export interface IWearClothingRequestData {
-  Action: 'CustomizationWear';
-  suites: string[];
+    Action: "CustomizationWear";
+    suites: string[];
 }

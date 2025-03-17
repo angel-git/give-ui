@@ -1,4 +1,4 @@
 export interface IRemoveOfferRequestData {
-  Action: string;
-  offerId: string;
+    Action: string;
+    offerId: string;
 }

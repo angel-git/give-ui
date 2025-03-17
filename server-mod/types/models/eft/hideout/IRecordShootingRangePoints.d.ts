@@ -1,4 +1,4 @@
 export interface IRecordShootingRangePoints {
-  Action: 'RecordShootingRangePoints';
-  points: number;
+    Action: "RecordShootingRangePoints";
+    points: number;
 }

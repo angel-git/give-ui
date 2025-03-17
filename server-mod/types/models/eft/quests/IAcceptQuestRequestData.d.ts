@@ -1,5 +1,5 @@
 export interface IAcceptQuestRequestData {
-  Action: 'QuestAccept';
-  qid: string;
-  type: string;
+    Action: "QuestAccept";
+    qid: string;
+    type: string;
 }

@@ -1,3 +1,3 @@
 export interface IProfileChangeNicknameRequestData {
-  nickname: string;
+    nickname: string;
 }

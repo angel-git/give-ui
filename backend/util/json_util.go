@@ -27,6 +27,18 @@ func GetRawBytes(url string, sessionId string) ([]byte, error) {
 	return data, nil
 }
 
+func GetRawBytesCompressed(url string, sessionId string) ([]byte, error) {
+	r, err := http.DoGetCompressed(url, sessionId)
+	if err != nil {
+		return nil, err
+	}
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
 func ParseByteResponse(profiles []byte, target interface{}) error {
 	return json.Unmarshal(profiles, target)
 }

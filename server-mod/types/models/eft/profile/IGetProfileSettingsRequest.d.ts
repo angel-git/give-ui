@@ -1,3 +1,5 @@
 export interface IGetProfileSettingsRequest {
-  squadInviteRestriction: boolean;
+    /** Chosen value for profile.Info.SelectedMemberCategory */
+    memberCategory: number;
+    squadInviteRestriction: boolean;
 }

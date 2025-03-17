@@ -6,6 +6,7 @@ import (
 	"sort"
 	"spt-give-ui/backend/models"
 	"strings"
+	"time"
 )
 
 templ LoginPage(appName string, appVersion string, currentTheme string, sptUrl string) {
@@ -51,7 +52,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 					for _, i := range profiles {
 						<li class="flex flex-row items-center justify-between gap-2">
 							<div class="text-left">
-								<div>{ i.Info.Username }</div>
+								<div>{ i.Info.Username } - { i.Characters.PMC.InfoPMC.Nickname } </div>
 								<div class="text-xs">{ i.Info.Id }</div>
 							</div>
 							<button class="btn btn-primary btn-sm" hx-get={ fmt.Sprintf("/connect/%s", i.Info.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="#profile-fieldset" hx-indicator="#loader">
@@ -66,7 +67,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	</div>
 }
 
-templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, maxLevel int) {
+templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, serverInfo *models.ServerInfo) {
 	@templ.JSONScript("profile-selected-username", profile.Info.Username)
 	<script>
         setUsernameOnFooter();
@@ -83,11 +84,15 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Skills"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@Skills(profile.Characters.PMC.InfoPMC.Level, skills, maxLevel)
+				@Skills(profile.Characters.PMC.InfoPMC.Level, skills, serverInfo.MaxLevel)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Traders"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Traders(profile, traders)
+			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Other"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@Others(serverInfo)
 			</div>
 			<div class="grow text-right">
 				<div class="dropdown dropdown-hover dropdown-end">
@@ -390,86 +395,128 @@ templ Skills(profileLevel int, skills []models.Skill, maxLevel int) {
 }
 
 templ Traders(profile *models.SPTProfile, traders []models.Trader) {
-	if len(traders) == 0 {
-		<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="traders">
-			<div role="alert" class="alert alert-warning">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-6 w-6 shrink-0 stroke-current"
-					fill="none"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-					></path>
-				</svg>
-				<span>Your SPT version is not compatible with this page. You have to upgrade to 3.10.4 or later</span>
-			</div>
+	<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="traders">
+		<div role="alert" class="alert alert-info">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				class="h-6 w-6 shrink-0 stroke-current"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+				></path>
+			</svg>
+			<span>Make sure to refresh this page before doing any modification to get latest changes from the server.</span>
+			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/trader" hx-target="#traders" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
 		</div>
-	} else {
-		<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="traders">
-			<div role="alert" class="alert alert-info">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					class="h-6 w-6 shrink-0 stroke-current"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-					></path>
-				</svg>
-				<span>Make sure to refresh this page before doing any modification to get latest changes from the server.</span>
-				<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/trader" hx-target="#traders" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
-			</div>
-			for _, trader := range traders {
-				<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
-					<div class="hero-content flex-col">
-						<img
-							src={ trader.Image }
-							class="max-w-32 rounded-lg shadow-2xl"
-						/>
-						<div>
-							<h1 class="text-xl font-bold">{ trader.NicknameLocale }</h1>
-							<div class="rating">
-								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 1 }/>
-								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 2 }/>
-								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 3 }/>
-								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 4 }/>
-							</div>
-							<form class="card-body" hx-swap="none" hx-post="/trader" hx-disabled-elt="find button" hx-on::after-request="this.lastElementChild.lastElementChild.disabled = true">
-								<input type="hidden" name="nickname" required value={ trader.Nickname }/>
-								<div class="form-control">
-									<label class="label">
-										<span class="label-text">Money spent</span>
-									</label>
-									<input type="hidden" name="spend-original" value={ trader.SalesSum }/>
-									<input type="number" name="spend" class="input input-bordered" min="1" max="9999999" required value={ trader.SalesSum } oninput="this.parentNode.nextElementSibling.nextElementSibling.firstElementChild.disabled = false"/>
-								</div>
-								<div class="form-control">
-									<label class="label">
-										<span class="label-text">Reputation</span>
-									</label>
-									<input type="hidden" name="rep-original" value={ trader.Reputation }/>
-									<input type="range" name="rep" min="0.01" max={ trader.MaxRep } value={ trader.Reputation } class="range" step="0.05" oninput="this.nextElementSibling.value = this.value; this.parentNode.nextElementSibling.firstElementChild.disabled = false"/>
-									<output>{ trader.Reputation }</output>
-								</div>
-								<div class="form-control mt-6">
-									<button type="submit" disabled class="btn btn-primary">Update</button>
-								</div>
-							</form>
+		for _, trader := range traders {
+			<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
+				<div class="hero-content flex-col">
+					<img
+						src={ fmt.Sprintf("/file?url=%s&%d", trader.Image, time.Now().Unix()) }
+						class="max-w-32 rounded-lg shadow-2xl"
+					/>
+					<div>
+						<h1 class="text-xl font-bold">{ trader.NicknameLocale }</h1>
+						<div class="rating">
+							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 1 }/>
+							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 2 }/>
+							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 3 }/>
+							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 4 }/>
 						</div>
+						<form class="card-body" hx-swap="none" hx-post="/trader" hx-disabled-elt="find button" hx-on::after-request="this.lastElementChild.lastElementChild.disabled = true">
+							<input type="hidden" name="nickname" required value={ trader.Nickname }/>
+							<div class="form-control">
+								<label class="label">
+									<span class="label-text">Money spent</span>
+								</label>
+								<input type="hidden" name="spend-original" value={ trader.SalesSum }/>
+								<input type="number" name="spend" class="input input-bordered" min="1" max="9999999" required value={ trader.SalesSum } oninput="this.parentNode.nextElementSibling.nextElementSibling.firstElementChild.disabled = false"/>
+							</div>
+							<div class="form-control">
+								<label class="label">
+									<span class="label-text">Reputation</span>
+								</label>
+								<input type="hidden" name="rep-original" value={ trader.Reputation }/>
+								<input type="range" name="rep" min="0.01" max={ trader.MaxRep } value={ trader.Reputation } class="range" step="0.05" oninput="this.nextElementSibling.value = this.value; this.parentNode.nextElementSibling.firstElementChild.disabled = false"/>
+								<output>{ trader.Reputation }</output>
+							</div>
+							<div class="form-control mt-6">
+								<button type="submit" disabled class="btn btn-primary">Update</button>
+							</div>
+						</form>
 					</div>
 				</div>
-			}
+			</div>
+		}
+	</div>
+}
+
+templ Others(serverInfo *models.ServerInfo) {
+	<div class="flex flex-col flex-wrap gap-4 mb-2">
+		<div>
+			<h1 class="divider">Seasons</h1>
+			<div class="flex flex-row flex-wrap gap-2 mb-2">
+				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+					<label class="label">
+						<span class="label-text">Summer</span>
+					</label>
+					<input type="hidden" name="message" value="summer"/>
+					<button type="submit" class="btn btn-primary">Set</button>
+				</form>
+				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+					<label class="label">
+						<span class="label-text">Halloween</span>
+					</label>
+					<input type="hidden" name="message" value="halloween"/>
+					<button type="submit" class="btn btn-primary">Set</button>
+				</form>
+				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+					<label class="label">
+						<span class="label-text">Winter</span>
+					</label>
+					<input type="hidden" name="message" value="winter"/>
+					<button type="submit" class="btn btn-primary">Set</button>
+				</form>
+				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+					<label class="label">
+						<span class="label-text">Christmas</span>
+					</label>
+					<input type="hidden" name="message" value="christmas"/>
+					<button type="submit" class="btn btn-primary">Set</button>
+				</form>
+			</div>
 		</div>
-	}
+		<div>
+			<h1 class="divider">Stash</h1>
+			<form class="text-left" hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+				<label class="label">
+					<span class="label-text">Add stash rows</span>
+				</label>
+				<input type="hidden" name="message" value="stash"/>
+				<button type="submit" class="btn btn-primary">Add</button>
+			</form>
+		</div>
+		<div>
+			<h1 class="divider">Gifts</h1>
+			<form class="text-left" hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+				<label class="label">
+					<span class="label-text">Select gift</span>
+				</label>
+				<select name="message" class="select select-bordered">
+					<option disabled selected>Pick one</option>
+					for gift, _ := range serverInfo.Gifts {
+						<option>{ gift }</option>
+					}
+				</select>
+				<button type="submit" class="btn btn-primary">Send gift</button>
+			</form>
+		</div>
+	</div>
 }
 
 templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {

@@ -1,4 +1,4 @@
 export declare enum EquipmentBuildType {
-  CUSTOM = 0,
-  STANDARD = 1,
+    CUSTOM = 0,
+    STANDARD = 1
 }

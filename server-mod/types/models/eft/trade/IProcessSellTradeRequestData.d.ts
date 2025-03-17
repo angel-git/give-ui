@@ -1,13 +1,13 @@
-import { IProcessBaseTradeRequestData } from '@spt/models/eft/trade/IProcessBaseTradeRequestData';
+import { IProcessBaseTradeRequestData } from "@spt/models/eft/trade/IProcessBaseTradeRequestData";
 export interface IProcessSellTradeRequestData extends IProcessBaseTradeRequestData {
-  Action: 'sell_to_trader';
-  type: string;
-  tid: string;
-  price: number;
-  items: Item[];
+    Action: "sell_to_trader";
+    type: string;
+    tid: string;
+    price: number;
+    items: ISoldItem[];
 }
-export interface Item {
-  id: string;
-  count: number;
-  scheme_id: number;
+export interface ISoldItem {
+    id: string;
+    count: number;
+    scheme_id: number;
 }

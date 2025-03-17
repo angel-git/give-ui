@@ -1,3 +1,3 @@
 export interface ISendRagfairReportRequestData {
-  offerId: number;
+    offerId: number;
 }

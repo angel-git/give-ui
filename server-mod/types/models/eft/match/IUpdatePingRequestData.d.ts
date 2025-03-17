@@ -1,3 +1,3 @@
 export interface IUpdatePingRequestData {
-  servers: any[];
+    servers: any[];
 }

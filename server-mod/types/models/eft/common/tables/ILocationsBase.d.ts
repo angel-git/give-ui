@@ -1,9 +1,9 @@
 export interface ILocationsBase {
-  locations: Locations;
-  paths: Path[];
+    locations: any;
+    paths: IPath[];
 }
-export interface Locations {}
-export interface Path {
-  Source: string;
-  Destination: string;
+export interface IPath {
+    Source: string;
+    Event: boolean;
+    Destination: string;
 }
