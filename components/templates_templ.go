@@ -1348,7 +1348,7 @@ func Others(serverInfo *models.ServerInfo) templ.Component {
 			templ_7745c5c3_Var64 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "<div class=\"flex flex-col flex-wrap gap-2 mb-2\"><div><h1 class=\"divider\">Seasons</h1><form hx-swap=\"none\" hx-post=\"/spt\" hx-disabled-elt=\"this\"><label class=\"label\"><span class=\"label-text\">Summer</span></label> <input type=\"hidden\" name=\"message\" value=\"summer\"> <button type=\"submit\" class=\"btn btn-primary\">Set</button></form><form hx-swap=\"none\" hx-post=\"/spt\" hx-disabled-elt=\"this\"><label class=\"label\"><span class=\"label-text\">Halloween</span></label> <input type=\"hidden\" name=\"message\" value=\"halloween\"> <button type=\"submit\" class=\"btn btn-primary\">Set</button></form><form hx-swap=\"none\" hx-post=\"/spt\" hx-disabled-elt=\"this\"><label class=\"label\"><span class=\"label-text\">Winter</span></label> <input type=\"hidden\" name=\"message\" value=\"winter\"> <button type=\"submit\" class=\"btn btn-primary\">Set</button></form><form hx-swap=\"none\" hx-post=\"/spt\" hx-disabled-elt=\"this\"><label class=\"label\"><span class=\"label-text\">Christmas</span></label> <input type=\"hidden\" name=\"message\" value=\"christmas\"> <button type=\"submit\" class=\"btn btn-primary\">Set</button></form></div><div><h1 class=\"divider\">Stash</h1><form hx-swap=\"none\" hx-post=\"/spt\" hx-disabled-elt=\"this\"><label class=\"label\"><span class=\"label-text\">Add stash rows</span></label> <input type=\"hidden\" name=\"message\" value=\"stash\"> <button type=\"submit\" class=\"btn btn-primary\">Add</button></form></div><div><h1 class=\"divider\">Gifts</h1><form hx-swap=\"none\" hx-post=\"/spt\" hx-disabled-elt=\"this\"><label class=\"label\"><span class=\"label-text\">Select gift</span></label> <select name=\"message\" class=\"select select-bordered\"><option disabled selected>Pick one</option> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "<div class=\"flex flex-col flex-wrap gap-4 mb-2\"><div><h1 class=\"divider\">Seasons</h1><div class=\"flex flex-row flex-wrap gap-2 mb-2\"><form hx-swap=\"none\" hx-post=\"/spt\" hx-disabled-elt=\"this\"><label class=\"label\"><span class=\"label-text\">Summer</span></label> <input type=\"hidden\" name=\"message\" value=\"summer\"> <button type=\"submit\" class=\"btn btn-primary\">Set</button></form><form hx-swap=\"none\" hx-post=\"/spt\" hx-disabled-elt=\"this\"><label class=\"label\"><span class=\"label-text\">Halloween</span></label> <input type=\"hidden\" name=\"message\" value=\"halloween\"> <button type=\"submit\" class=\"btn btn-primary\">Set</button></form><form hx-swap=\"none\" hx-post=\"/spt\" hx-disabled-elt=\"this\"><label class=\"label\"><span class=\"label-text\">Winter</span></label> <input type=\"hidden\" name=\"message\" value=\"winter\"> <button type=\"submit\" class=\"btn btn-primary\">Set</button></form><form hx-swap=\"none\" hx-post=\"/spt\" hx-disabled-elt=\"this\"><label class=\"label\"><span class=\"label-text\">Christmas</span></label> <input type=\"hidden\" name=\"message\" value=\"christmas\"> <button type=\"submit\" class=\"btn btn-primary\">Set</button></form></div></div><div><h1 class=\"divider\">Stash</h1><form class=\"text-left\" hx-swap=\"none\" hx-post=\"/spt\" hx-disabled-elt=\"this\"><label class=\"label\"><span class=\"label-text\">Add stash rows</span></label> <input type=\"hidden\" name=\"message\" value=\"stash\"> <button type=\"submit\" class=\"btn btn-primary\">Add</button></form></div><div><h1 class=\"divider\">Gifts</h1><form class=\"text-left\" hx-swap=\"none\" hx-post=\"/spt\" hx-disabled-elt=\"this\"><label class=\"label\"><span class=\"label-text\">Select gift</span></label> <select name=\"message\" class=\"select select-bordered\"><option disabled selected>Pick one</option> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1360,7 +1360,7 @@ func Others(serverInfo *models.ServerInfo) templ.Component {
 			var templ_7745c5c3_Var65 string
 			templ_7745c5c3_Var65, templ_7745c5c3_Err = templ.JoinStringErrs(gift)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 511, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 513, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var65))
 			if templ_7745c5c3_Err != nil {
@@ -1429,7 +1429,7 @@ func _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) templ.Component 
 				var templ_7745c5c3_Var67 string
 				templ_7745c5c3_Var67, templ_7745c5c3_Err = templ.JoinStringErrs(magazineLoadout.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 555, Col: 63}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 557, Col: 63}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var67))
 				if templ_7745c5c3_Err != nil {
@@ -1442,7 +1442,7 @@ func _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) templ.Component 
 				var templ_7745c5c3_Var68 string
 				templ_7745c5c3_Var68, templ_7745c5c3_Err = templ.JoinStringErrs(caliber)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 556, Col: 37}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 558, Col: 37}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
 				if templ_7745c5c3_Err != nil {
@@ -1461,7 +1461,7 @@ func _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) templ.Component 
 						var templ_7745c5c3_Var69 string
 						templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", bullet.TemplateId))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 560, Col: 127}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 562, Col: 127}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var69))
 						if templ_7745c5c3_Err != nil {
@@ -1480,7 +1480,7 @@ func _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) templ.Component 
 				var templ_7745c5c3_Var70 string
 				templ_7745c5c3_Var70, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/magazine-loadouts/%s", magazineLoadout.Id))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 565, Col: 106}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 567, Col: 106}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var70))
 				if templ_7745c5c3_Err != nil {
@@ -1532,7 +1532,7 @@ func _AddWorkbenchItem(itemId string, itemQuantity string) templ.Component {
 		var templ_7745c5c3_Var72 string
 		templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", itemId))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 582, Col: 108}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 584, Col: 108}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var72))
 		if templ_7745c5c3_Err != nil {
@@ -1545,7 +1545,7 @@ func _AddWorkbenchItem(itemId string, itemQuantity string) templ.Component {
 		var templ_7745c5c3_Var73 string
 		templ_7745c5c3_Var73, templ_7745c5c3_Err = templ.JoinStringErrs(itemQuantity)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 584, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 586, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var73))
 		if templ_7745c5c3_Err != nil {
@@ -1558,7 +1558,7 @@ func _AddWorkbenchItem(itemId string, itemQuantity string) templ.Component {
 		var templ_7745c5c3_Var74 string
 		templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs(itemId)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 585, Col: 41}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 587, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var74))
 		if templ_7745c5c3_Err != nil {
@@ -1600,7 +1600,7 @@ func _AppHeader(appName string, appVersion string) templ.Component {
 		var templ_7745c5c3_Var76 string
 		templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.JoinStringErrs(strings.ToUpper(appName))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 597, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 599, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var76))
 		if templ_7745c5c3_Err != nil {
@@ -1613,7 +1613,7 @@ func _AppHeader(appName string, appVersion string) templ.Component {
 		var templ_7745c5c3_Var77 string
 		templ_7745c5c3_Var77, templ_7745c5c3_Err = templ.JoinStringErrs(appVersion)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 597, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 599, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var77))
 		if templ_7745c5c3_Err != nil {
@@ -1655,7 +1655,7 @@ func _AppFooter(appName string, appVersion string, currentTheme string) templ.Co
 		var templ_7745c5c3_Var79 string
 		templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs(strings.ToUpper(appName))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 603, Col: 58}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 605, Col: 58}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var79))
 		if templ_7745c5c3_Err != nil {
@@ -1668,7 +1668,7 @@ func _AppFooter(appName string, appVersion string, currentTheme string) templ.Co
 		var templ_7745c5c3_Var80 string
 		templ_7745c5c3_Var80, templ_7745c5c3_Err = templ.JoinStringErrs(appVersion)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 603, Col: 74}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 605, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var80))
 		if templ_7745c5c3_Err != nil {
@@ -1767,7 +1767,7 @@ func _FavSwitcher(sessionId string, filterFavorites bool) templ.Component {
 		var templ_7745c5c3_Var83 string
 		templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/search/%s?", sessionId))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 648, Col: 163}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 650, Col: 163}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var83))
 		if templ_7745c5c3_Err != nil {

@@ -457,41 +457,43 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 }
 
 templ Others(serverInfo *models.ServerInfo) {
-	<div class="flex flex-col flex-wrap gap-2 mb-2">
+	<div class="flex flex-col flex-wrap gap-4 mb-2">
 		<div>
 			<h1 class="divider">Seasons</h1>
-			<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
-				<label class="label">
-					<span class="label-text">Summer</span>
-				</label>
-				<input type="hidden" name="message" value="summer"/>
-				<button type="submit" class="btn btn-primary">Set</button>
-			</form>
-			<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
-				<label class="label">
-					<span class="label-text">Halloween</span>
-				</label>
-				<input type="hidden" name="message" value="halloween"/>
-				<button type="submit" class="btn btn-primary">Set</button>
-			</form>
-			<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
-				<label class="label">
-					<span class="label-text">Winter</span>
-				</label>
-				<input type="hidden" name="message" value="winter"/>
-				<button type="submit" class="btn btn-primary">Set</button>
-			</form>
-			<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
-				<label class="label">
-					<span class="label-text">Christmas</span>
-				</label>
-				<input type="hidden" name="message" value="christmas"/>
-				<button type="submit" class="btn btn-primary">Set</button>
-			</form>
+			<div class="flex flex-row flex-wrap gap-2 mb-2">
+				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+					<label class="label">
+						<span class="label-text">Summer</span>
+					</label>
+					<input type="hidden" name="message" value="summer"/>
+					<button type="submit" class="btn btn-primary">Set</button>
+				</form>
+				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+					<label class="label">
+						<span class="label-text">Halloween</span>
+					</label>
+					<input type="hidden" name="message" value="halloween"/>
+					<button type="submit" class="btn btn-primary">Set</button>
+				</form>
+				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+					<label class="label">
+						<span class="label-text">Winter</span>
+					</label>
+					<input type="hidden" name="message" value="winter"/>
+					<button type="submit" class="btn btn-primary">Set</button>
+				</form>
+				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+					<label class="label">
+						<span class="label-text">Christmas</span>
+					</label>
+					<input type="hidden" name="message" value="christmas"/>
+					<button type="submit" class="btn btn-primary">Set</button>
+				</form>
+			</div>
 		</div>
 		<div>
 			<h1 class="divider">Stash</h1>
-			<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+			<form class="text-left" hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
 				<label class="label">
 					<span class="label-text">Add stash rows</span>
 				</label>
@@ -501,7 +503,7 @@ templ Others(serverInfo *models.ServerInfo) {
 		</div>
 		<div>
 			<h1 class="divider">Gifts</h1>
-			<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+			<form class="text-left" hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
 				<label class="label">
 					<span class="label-text">Select gift</span>
 				</label>
