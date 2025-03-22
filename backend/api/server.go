@@ -241,7 +241,7 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 
 	itemsMap := items.Items
 	for _, bsgItem := range itemsMap {
-		if bsgItem.Type == "Node" || bsgItem.Props.IsUnbuyable {
+		if bsgItem.Type == "Node" {
 			continue
 		}
 		// filter test broken items
@@ -296,6 +296,7 @@ func getHiddenCategories() []string {
 		"63da6da4784a55176c018dba",
 		"566abbb64bdc2d144c8b457d",
 		"566965d44bdc2d814c8b4571",
+		"557596e64bdc2dc2118b4571",
 	}
 }
 
