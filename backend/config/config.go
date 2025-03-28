@@ -23,7 +23,7 @@ type Config struct {
 func LoadConfig() *Config {
 	errorLogger := logger.SetupLogger()
 	defaultJsonConfig := store.JsonDatabase{
-		Locale:        "English",
+		Locale:        "Chinese",
 		Theme:         defaultTheme,
 		SptUrl:        "https://127.0.0.1:6969",
 		CacheFolder:   "",
