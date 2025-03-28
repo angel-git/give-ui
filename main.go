@@ -4,6 +4,10 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"log"
+	"net/http"
+	"runtime"
+
 	"github.com/tidwall/gjson"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/logger"
@@ -13,9 +17,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
 	runtimeWails "github.com/wailsapp/wails/v2/pkg/runtime"
-	"log"
-	"net/http"
-	"runtime"
 )
 
 //go:embed all:frontend/dist components
@@ -108,7 +109,8 @@ func (a *App) makeMenu() {
 		a.menu.Append(menu.EditMenu())
 	}
 	localeFromConfig := a.config.GetLocale()
-	a.localeMenu = a.menu.AddSubmenu("Locale")
+	a.localeMenu = a.menu.AddSubmenu("本地化")
+	a.localeMenu.Append(addRadio("Chinese", localeFromConfig, a.setLocale))
 	a.localeMenu.Append(addRadio("English", localeFromConfig, a.setLocale))
 	a.localeMenu.Append(addRadio("Czech", localeFromConfig, a.setLocale))
 	a.localeMenu.Append(addRadio("French", localeFromConfig, a.setLocale))
@@ -126,11 +128,11 @@ func (a *App) makeMenu() {
 	a.localeMenu.Append(addRadio("Romanian", localeFromConfig, a.setLocale))
 	a.localeMenu.Append(addRadio("Русский", localeFromConfig, a.setLocale))
 
-	a.settingsMenu = a.menu.AddSubmenu("Settings")
+	a.settingsMenu = a.menu.AddSubmenu("设置")
 	if a.config.GetCacheFolder() == "" {
-		a.settingsMenu.Append(menu.Text("Select cache folder", nil, a.selectCacheFolder))
+		a.settingsMenu.Append(menu.Text("选择缓存文件夹", nil, a.selectCacheFolder))
 	} else {
-		a.settingsMenu.Append(menu.Text("Use default cache folder", nil, a.clearCacheFolder))
+		a.settingsMenu.Append(menu.Text("使用默认缓存文件夹", nil, a.clearCacheFolder))
 	}
 }
 
@@ -171,7 +173,7 @@ func (a *App) selectCacheFolder(data *menu.CallbackData) {
 		return
 	}
 	a.config.SetCacheFolder(folder)
-	data.MenuItem.Label = "Use default cache folder"
+	data.MenuItem.Label = "使用默认缓存文件夹"
 	data.MenuItem.OnClick(a.clearCacheFolder)
 
 	// refresh menu with the selected locale
@@ -186,7 +188,7 @@ func (a *App) selectCacheFolder(data *menu.CallbackData) {
 func (a *App) clearCacheFolder(data *menu.CallbackData) {
 	a.config.SetCacheFolder("")
 
-	data.MenuItem.Label = "Select cache folder"
+	data.MenuItem.Label = "选择缓存文件夹"
 	data.MenuItem.OnClick(a.selectCacheFolder)
 
 	// refresh menu with the selected locale

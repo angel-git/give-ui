@@ -6,7 +6,7 @@ require (
 	github.com/a-h/templ v0.3.819
 	github.com/go-chi/chi/v5 v5.2.0
 	github.com/tidwall/gjson v1.18.0
-	github.com/wailsapp/wails/v2 v2.10.1
+	github.com/wailsapp/wails/v2 v2.9.2
 )
 
 require (

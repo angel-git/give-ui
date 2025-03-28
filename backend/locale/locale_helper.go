@@ -2,6 +2,8 @@ package locale
 
 func ConvertLocale(locale string) string {
 	switch locale {
+	case "Chinese":
+		return "ch"
 	case "English":
 		return "en"
 	case "Czech":
@@ -35,6 +37,6 @@ func ConvertLocale(locale string) string {
 	case "Русский":
 		return "ru"
 	default:
-		return "en"
+		return "ch"
 	}
 }

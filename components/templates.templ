@@ -21,7 +21,7 @@ templ LoginPage(appName string, appVersion string, currentTheme string, sptUrl s
 					<input type="text" name="url" value={ sptUrl } class="input input-bordered" required/>
 				</div>
 				<div class="form-control mt-6">
-					<button class="btn btn-primary">CONNECT</button>
+					<button class="btn btn-primary">连接</button>
 				</div>
 				<progress id="loader" class="progress w-full htmx-indicator"></progress>
 			</form>
@@ -34,10 +34,10 @@ templ ErrorConnection(e models.GiveUiError) {
 	@_AppHeader(e.AppName, e.AppVersion)
 	<div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
 		<div class="card-body">
-			<h2 class="text-error">Connection Error</h2>
-			<div>Please check SPT Server is running, the connection details are correct and the mod is installed in your user folder</div>
+			<h2 class="text-error">连接错误</h2>
+			<div>请检查 SPT 服务器是否正在运行，连接信息是否正确，以及模组是否已安装在您的用户文件夹中。</div>
 			<pre class="text-xs whitespace-normal">{ e.Error }</pre>
-			<button class="btn btn-primary btn-outline" onclick="location.reload()">Go back</button>
+			<button class="btn btn-primary btn-outline" onclick="location.reload()">返回</button>
 		</div>
 	</div>
 }
@@ -46,7 +46,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	@_AppHeader(appName, appVersion)
 	<div class="card mx-auto bg-base-200 w-full max-w-md shadow-2xl">
 		<div class="card-body">
-			<h2>Select profile</h2>
+			<h2>选择存档</h2>
 			<fieldset id="profile-fieldset">
 				<ul class="flex flex-col gap-1">
 					for _, i := range profiles {
@@ -56,7 +56,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 								<div class="text-xs">{ i.Info.Id }</div>
 							</div>
 							<button class="btn btn-primary btn-sm" hx-get={ fmt.Sprintf("/connect/%s", i.Info.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="#profile-fieldset" hx-indicator="#loader">
-								SELECT
+								选择
 							</button>
 						</li>
 					}
@@ -74,33 +74,33 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
     </script>
 	<div class="flex flex-col h-full justify-between">
 		<div role="tablist" class="tabs tabs-bordered tabs-lg overflow-y-auto flex-1">
-			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Items" checked="checked"/>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="物品" checked="checked"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@_Items(allItems, profile.Info.Id, filterFavorites)
 			</div>
-			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="User weapons"/>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="玩家武器"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@UserWeapons(allItems, profile.UserBuilds.WeaponBuilds)
 			</div>
-			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Skills"/>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="技能"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Skills(profile.Characters.PMC.InfoPMC.Level, skills, serverInfo.MaxLevel)
 			</div>
-			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Traders"/>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="商人"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Traders(profile, traders)
 			</div>
-			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Other"/>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="其他"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Others(serverInfo)
 			</div>
 			<div class="grow text-right">
 				<div class="dropdown dropdown-hover dropdown-end">
-					<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-sm m-1">Help</div>
+					<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-sm m-1">帮助</div>
 					<div tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-[1] w-80 p-2 shadow text-left">
-						<p><kbd class="kbd kbd-xs">Ctrl + Shift + S</kbd> to toggle favorites search</p>
-						<p><kbd class="kbd kbd-xs">Ctrl + Shift + A</kbd> to add selected item</p>
-						<p><kbd class="kbd kbd-xs">Ctrl + Shift + F</kbd> to fav/unfav selected item</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + S</kbd> 切换收藏夹搜索</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + A</kbd> 添加所选项目</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + F</kbd> 收藏/取消收藏所选项目</p>
 					</div>
 				</div>
 			</div>
@@ -165,7 +165,7 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 						></path>
 					</svg>
-					<span>This item is part of a bundle. It <em>may</em> include all the necessary attachments to be functional.</span>
+					<span>此物品是捆绑包的一部分。它<em>可能</em>包含所有必要的功能性附件。</span>
 				</div>
 			}
 			<p class="text-justify">{ item.Description }</p>
@@ -236,8 +236,8 @@ templ _Items(allItems *models.AllItems, sessionId string, filterFavorites bool) 
 			<div class="card bg-base-200 rounded-box grid flex-grow place-items-start w-full overflow-y-auto" id="item-details">
 				<div class="p-2">
 					<p class="text-9xl mb-4">👀</p>
-					<p class="text-left mb-4">Select something from the left menu and press the button <em>Give</em>. You will receive a message with the item at maximum stack size.</p>
-					<p class="text-left">If you need more, just keep pressing :-)</p>
+					<p class="text-left mb-4">从左侧菜单中选择一些内容，然后按下<em>Give</em>按钮。您将收到一条包含该物品的消息，物品数量为最大堆叠大小。</p>
+					<p class="text-left">如果您需要更多，只需继续按 :-) </p>
 				</div>
 			</div>
 		</div>
@@ -261,10 +261,10 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 					></path>
 				</svg>
-				<span>You don't have weapons presets. Make sure you have the workbench at level 1 in your hideout and some custom presets saved.</span>
+				<span>您没有武器预设。请确保您的藏身处拥有 1 级工作台，并保存了一些自定义预设。</span>
 			</div>
 			<div class="p-2">
-				<p class="text-left">Psss Psss you might want to add this to build it:</p>
+				<p class="text-left">嘘...嘘...你可能想添加这些来建造它：</p>
 				<div class="flex flex-col gap-2">
 					@_AddWorkbenchItem("57347c77245977448d35f6e2", "1")
 					@_AddWorkbenchItem("57347c5b245977448d35f6e1", "1")
@@ -357,21 +357,21 @@ templ Skills(profileLevel int, skills []models.Skill, maxLevel int) {
 					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 				></path>
 			</svg>
-			<span>Some skills that you see here might not be in the game yet. Make sure to refresh this page before doing any modification to get latest changes from the server.</span>
-			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/skill" hx-target="#skills" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
+			<span>您在此处看到的一些技能可能尚未在游戏中使用。请确保在进行任何修改之前刷新此页面，以从服务器获取最新更改。</span>
+			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/skill" hx-target="#skills" hx-disabled-elt="this, find button" hx-swap="outerHTML">刷新</button>
 		</div>
 		<div class="flex flex-row flex-wrap gap-2 mb-2">
 			<form class="w-full p-2 card bg-base-300" hx-post="/level" hx-swap="none" hx-disabled-elt="find button" hx-on::after-request="this.lastElementChild.lastElementChild.disabled = true">
-				<h2 class="divider">Profile level</h2>
+				<h2 class="divider">个人资料等级</h2>
 				<div class="flex flex-row justify-between items-center p-2 gap-2">
 					<div class="form-control grow">
 						<label class="label">
-							<span class="label-text">Level</span>
+							<span class="label-text">等级</span>
 							<span class="label-text">{ fmt.Sprintf("%d", profileLevel) }</span>
 						</label>
 						<input type="range" name="level" min="0" max={ fmt.Sprintf("%d", maxLevel) } value={ fmt.Sprintf("%d", profileLevel) } class="range range-primary" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value; this.parentNode.nextElementSibling.disabled = false"/>
 					</div>
-					<button type="submit" disabled class="btn btn-primary">Set level</button>
+					<button type="submit" disabled class="btn btn-primary">设置等级</button>
 				</div>
 			</form>
 			for _, skill := range skills {
@@ -380,13 +380,13 @@ templ Skills(profileLevel int, skills []models.Skill, maxLevel int) {
 					<div class="flex flex-row justify-between items-center p-2 gap-2">
 						<div class="form-control grow">
 							<label class="label">
-								<span class="label-text">Level</span>
+								<span class="label-text">等级</span>
 								<span class="label-text">{ skill.Progress }</span>
 							</label>
 							<input type="range" name="progress" min="0" max="51" value={ skill.Progress } class="range" step="1" oninput="this.previousElementSibling.firstElementChild.nextElementSibling.innerText = this.value; this.parentNode.nextElementSibling.disabled = false"/>
 							<input type="hidden" name="skill" value={ skill.Id }/>
 						</div>
-						<button type="submit" disabled class="btn btn-primary">Update skill</button>
+						<button type="submit" disabled class="btn btn-primary">更新技能</button>
 					</div>
 				</form>
 			}
@@ -410,8 +410,8 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 				></path>
 			</svg>
-			<span>Make sure to refresh this page before doing any modification to get latest changes from the server.</span>
-			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/trader" hx-target="#traders" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
+			<span>请确保在进行任何修改之前刷新此页面，以从服务器获取最新更改。</span>
+			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/trader" hx-target="#traders" hx-disabled-elt="this, find button" hx-swap="outerHTML">刷新</button>
 		</div>
 		for _, trader := range traders {
 			<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
@@ -428,25 +428,25 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 3 }/>
 							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 4 }/>
 						</div>
-						<form class="card-body" hx-swap="none" hx-post="/trader" hx-disabled-elt="find button" hx-on::after-request="this.lastElementChild.lastElementChild.disabled = true">
+						<form class="card-body" hx-swap="none" hx-post="/trader" hx-disabled-elt="find button" hx-on::after-request="this.lastElementChild.disabled = true">
 							<input type="hidden" name="nickname" required value={ trader.Nickname }/>
 							<div class="form-control">
 								<label class="label">
-									<span class="label-text">Money spent</span>
+									<span class="label-text">已花费金额</span>
 								</label>
 								<input type="hidden" name="spend-original" value={ trader.SalesSum }/>
 								<input type="number" name="spend" class="input input-bordered" min="1" max="9999999" required value={ trader.SalesSum } oninput="this.parentNode.nextElementSibling.nextElementSibling.firstElementChild.disabled = false"/>
 							</div>
 							<div class="form-control">
 								<label class="label">
-									<span class="label-text">Reputation</span>
+									<span class="label-text">声望</span>
 								</label>
 								<input type="hidden" name="rep-original" value={ trader.Reputation }/>
 								<input type="range" name="rep" min="0.01" max={ trader.MaxRep } value={ trader.Reputation } class="range" step="0.05" oninput="this.nextElementSibling.value = this.value; this.parentNode.nextElementSibling.firstElementChild.disabled = false"/>
 								<output>{ trader.Reputation }</output>
 							</div>
 							<div class="form-control mt-6">
-								<button type="submit" disabled class="btn btn-primary">Update</button>
+								<button type="submit" disabled class="btn btn-primary">更新</button>
 							</div>
 						</form>
 					</div>
@@ -459,61 +459,61 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 templ Others(serverInfo *models.ServerInfo) {
 	<div class="flex flex-col flex-wrap gap-4 mb-2">
 		<div>
-			<h1 class="divider">Seasons</h1>
+			<h1 class="divider">季节</h1>
 			<div class="flex flex-row flex-wrap gap-2 mb-2">
 				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
 					<label class="label">
-						<span class="label-text">Summer</span>
+						<span class="label-text">夏季</span>
 					</label>
 					<input type="hidden" name="message" value="summer"/>
-					<button type="submit" class="btn btn-primary">Set</button>
+					<button type="submit" class="btn btn-primary">设置</button>
 				</form>
 				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
 					<label class="label">
-						<span class="label-text">Halloween</span>
+						<span class="label-text">万圣节</span>
 					</label>
 					<input type="hidden" name="message" value="halloween"/>
-					<button type="submit" class="btn btn-primary">Set</button>
+					<button type="submit" class="btn btn-primary">设置</button>
 				</form>
 				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
 					<label class="label">
-						<span class="label-text">Winter</span>
+						<span class="label-text">冬季</span>
 					</label>
 					<input type="hidden" name="message" value="winter"/>
-					<button type="submit" class="btn btn-primary">Set</button>
+					<button type="submit" class="btn btn-primary">设置</button>
 				</form>
 				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
 					<label class="label">
-						<span class="label-text">Christmas</span>
+						<span class="label-text">圣诞节</span>
 					</label>
 					<input type="hidden" name="message" value="christmas"/>
-					<button type="submit" class="btn btn-primary">Set</button>
+					<button type="submit" class="btn btn-primary">设置</button>
 				</form>
 			</div>
 		</div>
 		<div>
-			<h1 class="divider">Stash</h1>
+			<h1 class="divider">仓库</h1>
 			<form class="text-left" hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
 				<label class="label">
-					<span class="label-text">Add stash rows</span>
+					<span class="label-text">添加仓库行</span>
 				</label>
 				<input type="hidden" name="message" value="stash"/>
-				<button type="submit" class="btn btn-primary">Add</button>
+				<button type="submit" class="btn btn-primary">添加</button>
 			</form>
 		</div>
 		<div>
-			<h1 class="divider">Gifts</h1>
+			<h1 class="divider">礼物</h1>
 			<form class="text-left" hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
 				<label class="label">
-					<span class="label-text">Select gift</span>
+					<span class="label-text">选择礼物</span>
 				</label>
 				<select name="message" class="select select-bordered">
-					<option disabled selected>Pick one</option>
+					<option disabled selected>选择一个</option>
 					for gift, _ := range serverInfo.Gifts {
 						<option>{ gift }</option>
 					}
 				</select>
-				<button type="submit" class="btn btn-primary">Send gift</button>
+				<button type="submit" class="btn btn-primary">发送礼物</button>
 			</form>
 		</div>
 	</div>
@@ -536,7 +536,7 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 					></path>
 				</svg>
-				<span>You don't have magazine loadouts.</span>
+				<span>您没有弹匣配置。</span>
 			</div>
 		} else {
 			{{sort.Slice(magazineLoadouts, func(i, j int) bool {
@@ -567,7 +567,7 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 								<button class="btn btn-primary" hx-post={ fmt.Sprintf("/magazine-loadouts/%s", magazineLoadout.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
 									<div id="loader" class="button-loader">
 										<span class="loading loading-spinner"></span>
-										<span class="button-hide">Give all</span>
+										<span class="button-hide">全部给予</span>
 									</div>
 								</button>
 							</div>
@@ -588,7 +588,7 @@ templ _AddWorkbenchItem(itemId string, itemQuantity string) {
 			<button type="submit" class="btn btn-primary">
 				<div id="loader" class="button-loader">
 					<span class="loading loading-spinner"></span>
-					<span class="button-hide">Give</span>
+					<span class="button-hide">给予</span>
 				</div>
 			</button>
 		</form>
