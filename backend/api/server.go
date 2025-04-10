@@ -257,7 +257,7 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 		} else if parentParent != "" {
 			category = parentParent
 		} else {
-			continue
+			category = itemsMap[bsgItem.Parent].Name
 		}
 		// filter out useless categories
 		if slices.Contains(getHiddenCategories(), bsgItem.Parent) {
