@@ -201,6 +201,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		serverInfo := app.ctx.Value(contextServerInfo).(*models.ServerInfo)
 		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 		addImageToWeaponBuild(app, &profile.UserBuilds.WeaponBuilds)
+		addImageToInventoryItem(app, &profile.Characters.PMC.Inventory.Items)
 
 		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo)).ServeHTTP(w, r)
 	}
@@ -549,6 +550,24 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 			ImageBase64 = imageBase64
 		}
 		weaponBuild.ImageBase64 = ImageBase64
+	}
+}
+
+func addImageToInventoryItem(app *App, inventoryItems *[]models.ItemWithUpd) {
+	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
+
+	for i := range *inventoryItems {
+		inventoryItem := &(*inventoryItems)[i]
+
+		imageHash := cache_presets.GetItemHash(*inventoryItem, *inventoryItems, bsgItems)
+		imageBase64, err := loadImage(app, imageHash)
+		var ImageBase64 string
+		if err != nil {
+			ImageBase64 = ""
+		} else {
+			ImageBase64 = imageBase64
+		}
+		inventoryItem.ImageBase64 = ImageBase64
 	}
 }
 

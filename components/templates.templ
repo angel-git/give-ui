@@ -90,6 +90,10 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Traders(profile, traders)
 			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Stash"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@Stash(profile)
+			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Other"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Others(serverInfo)
@@ -452,6 +456,20 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 					</div>
 				</div>
 			</div>
+		}
+	</div>
+}
+
+templ Stash(profile *models.SPTProfile) {
+	<div>
+		for _, item := range profile.Characters.PMC.Inventory.Items {
+			<div>{ item.Id }</div>
+			if item.ImageBase64 != "" {
+				<p>Image from cache!</p>
+				<img alt="item" class="max-h-52" src={ fmt.Sprintf("data:image/png;base64, %s", item.ImageBase64) }/>
+			} else {
+				<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", item.Tpl) }/>
+			}
 		}
 	</div>
 }
