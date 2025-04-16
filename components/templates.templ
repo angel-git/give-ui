@@ -471,18 +471,20 @@ func itemStyle(item templ_utils.InventoryItem) templ.Attributes {
 
 templ Stash(profile *models.SPTProfile) {
 	{{ stashItems, _, _ := templ_utils.PrepareItemsForStash(profile) }}
-	<div class="grid-stash">
-		for _, item := range stashItems {
-			<div class="grid-item">
-				if item != nil {
-					<div class="item" { itemStyle(*item)... }>
-						<div class="item-image" { itemImageStyle(*item)... }></div>
-					</div>
-				} else {
-					<div class="empty"></div>
-				}
-			</div>
-		}
+	<div class="w-full p-2 flex items-center justify-center">
+		<div class="grid-stash">
+			for _, item := range stashItems {
+				<div class="grid-item">
+					if item != nil {
+						<div class="item" { itemStyle(*item)... }>
+							<div class="item-image" { itemImageStyle(*item)... }></div>
+						</div>
+					} else {
+						<div class="empty"></div>
+					}
+				</div>
+			}
+		</div>
 	</div>
 }
 

@@ -201,8 +201,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		serverInfo := app.ctx.Value(contextServerInfo).(*models.ServerInfo)
 		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 		addImageToWeaponBuild(app, &profile.UserBuilds.WeaponBuilds)
-		addImageToInventoryItem(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
-		addSizeToInventoryItem(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
+		addUIPropertiesToInventoryItems(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
 
 		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo)).ServeHTTP(w, r)
 	}
@@ -554,7 +553,7 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 	}
 }
 
-func addImageToInventoryItem(app *App, parentId string, inventoryItems *[]models.ItemWithUpd) {
+func addUIPropertiesToInventoryItems(app *App, parentId string, inventoryItems *[]models.ItemWithUpd) {
 	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
 
 	for i := range *inventoryItems {
@@ -573,22 +572,13 @@ func addImageToInventoryItem(app *App, parentId string, inventoryItems *[]models
 			ImageBase64 = imageBase64
 		}
 		inventoryItem.ImageBase64 = ImageBase64
-	}
-}
-
-func addSizeToInventoryItem(app *App, parentId string, inventoryItems *[]models.ItemWithUpd) {
-	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
-
-	for i := range *inventoryItems {
-		inventoryItem := &(*inventoryItems)[i]
-
-		if inventoryItem.ParentID != nil && *inventoryItem.ParentID != parentId {
-			continue
-		}
 
 		sizeX, sizeY := images.GetItemSize(*inventoryItem, *inventoryItems, bsgItems)
 		inventoryItem.SizeX = sizeX
 		inventoryItem.SizeY = sizeY
+
+		bsgItem := bsgItems[inventoryItem.Tpl]
+		inventoryItem.BackgroundColor = bsgItem.Props.BackgroundColor
 	}
 }
 

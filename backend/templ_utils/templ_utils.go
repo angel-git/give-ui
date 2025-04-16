@@ -168,29 +168,28 @@ func CalculateBackgroundStyleForImage(item InventoryItem) string {
 }
 
 func CalculateBackgroundStyleForItem(item InventoryItem) string {
-	return fmt.Sprintf("z-index: 2; position: relative; height: %dpx; width: %dpx", item.SizeY*64, item.SizeX*64)
+	return fmt.Sprintf("z-index: 2; position: relative; height: %dpx; width: %dpx; background-color: %s", item.SizeY*64, item.SizeX*64, calculateBackgroundColor(item))
 }
 
-//
-//export const calculateBackgroundColor = (backgroundColor: string) => {
-//switch (backgroundColor) {
-//case 'black':
-//return `rgba(0, 0, 0, 0.3)`;
-//case 'blue':
-//return `rgba(28, 65, 86, 0.3)`;
-//case 'green':
-//return `rgba(21, 45, 0, 0.3)`;
-//case 'grey':
-//return `rgba(29, 29, 29, 0.3)`;
-//case 'orange':
-//return `rgba(60, 25, 0, 0.3)`;
-//case 'red':
-//return `rgba(109, 36, 24, 0.3)`;
-//case 'violet':
-//return `rgba(76, 42, 85, 0.3)`;
-//case 'yellow':
-//return `rgba(104, 102, 40, 0.3)`;
-//default:
-//return `rgba(127, 127, 127, 0.0)`;
-//}
-//};
+func calculateBackgroundColor(item InventoryItem) string {
+	color := "rgba(127, 127, 127, 0.0)"
+	switch item.Item.BackgroundColor {
+	case "black":
+		color = "rgba(0, 0, 0, 0.3)"
+	case "blue":
+		color = "rgba(28, 65, 86, 0.3)"
+	case "green":
+		color = "rgba(21, 45, 0, 0.3)"
+	case "grey":
+		color = "rgba(29, 29, 29, 0.3)"
+	case "orange":
+		color = "rgba(60, 25, 0, 0.3)"
+	case "red":
+		color = "rgba(109, 36, 24, 0.3)"
+	case "violet":
+		color = "rgba(76, 42, 85, 0.3)"
+	case "yellow":
+		color = "rgba(104, 102, 40, 0.3)"
+	}
+	return color
+}

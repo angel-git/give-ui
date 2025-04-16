@@ -11,15 +11,16 @@ type Info struct {
 }
 
 type ItemWithUpd struct {
-	Id          string    `json:"_id"`
-	Tpl         string    `json:"_tpl"`
-	ParentID    *string   `json:"parentId"`
-	SlotID      *string   `json:"slotId"`
-	Location    *Location `json:"location"` // location can also be a number
-	Upd         *Upd      `json:"upd"`
-	ImageBase64 string
-	SizeX       int
-	SizeY       int
+	Id              string    `json:"_id"`
+	Tpl             string    `json:"_tpl"`
+	ParentID        *string   `json:"parentId"`
+	SlotID          *string   `json:"slotId"`
+	Location        *Location `json:"location"` // location can also be a number
+	Upd             *Upd      `json:"upd"`
+	ImageBase64     string
+	SizeX           int
+	SizeY           int
+	BackgroundColor string
 }
 
 type WeaponBuild struct {

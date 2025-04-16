@@ -36,4 +36,5 @@ type BSGItemProps struct {
 	ExtraSizeDown           int     `json:"ExtraSizeDown"`
 	ExtraSizeLeft           int     `json:"ExtraSizeLeft"`
 	ExtraSizeRight          int     `json:"ExtraSizeRight"`
+	BackgroundColor         string  `json:"BackgroundColor"`
 }
