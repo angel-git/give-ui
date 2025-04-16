@@ -108,6 +108,33 @@ dialog.modal:not([open]) {
     scrollbar-gutter: auto !important;
 }
 
+.grid-stash {
+    display: grid;
+    grid-template-columns: repeat(10, 64px); width: 660px;
+    overflow-y: auto;
+}
+
+.grid-stash .grid-item {
+    height: 64px;
+    width: 64px;
+    position: relative;
+    background-image: url("../images/grid_cell.png");
+    background-size: cover;
+}
+.grid-stash .grid-item .empty {
+    height: 64px;
+    width: 64px;
+}
+
+.grid-stash .grid-item .item {
+    z-index: 2;
+}
+
+.grid-stash .grid-item .item .item-image {
+    width: 100%;
+    height: 100%;
+}
+
 .snowflake {
     color: #fff;
     font-size: 1em;

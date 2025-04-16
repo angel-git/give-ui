@@ -5,6 +5,7 @@ import (
 	"slices"
 	"sort"
 	"spt-give-ui/backend/models"
+	"spt-give-ui/backend/templ_utils"
 	"strings"
 	"time"
 )
@@ -460,16 +461,27 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 	</div>
 }
 
+func itemImageStyle(item templ_utils.InventoryItem) templ.Attributes {
+	return templ.Attributes{"style": templ_utils.CalculateBackgroundStyleForImage(item)}
+}
+
+func itemStyle(item templ_utils.InventoryItem) templ.Attributes {
+	return templ.Attributes{"style": templ_utils.CalculateBackgroundStyleForItem(item)}
+}
+
 templ Stash(profile *models.SPTProfile) {
-	<div>
-		for _, item := range profile.Characters.PMC.Inventory.Items {
-			<div>{ item.Id }</div>
-			if item.ImageBase64 != "" {
-				<p>Image from cache!</p>
-				<img alt="item" class="max-h-52" src={ fmt.Sprintf("data:image/png;base64, %s", item.ImageBase64) }/>
-			} else {
-				<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", item.Tpl) }/>
-			}
+	{{ stashItems, _, _ := templ_utils.PrepareItemsForStash(profile) }}
+	<div class="grid-stash">
+		for _, item := range stashItems {
+			<div class="grid-item">
+				if item != nil {
+					<div class="item" { itemStyle(*item)... }>
+						<div class="item-image" { itemImageStyle(*item)... }></div>
+					</div>
+				} else {
+					<div class="empty"></div>
+				}
+			</div>
 		}
 	</div>
 }

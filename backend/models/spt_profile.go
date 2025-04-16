@@ -18,6 +18,8 @@ type ItemWithUpd struct {
 	Location    *Location `json:"location"` // location can also be a number
 	Upd         *Upd      `json:"upd"`
 	ImageBase64 string
+	SizeX       int
+	SizeY       int
 }
 
 type WeaponBuild struct {
@@ -98,6 +100,7 @@ type Foldable struct {
 
 type Inventory struct {
 	Items []ItemWithUpd `json:"items"`
+	Stash string        `json:"stash"`
 }
 
 type Location struct {
