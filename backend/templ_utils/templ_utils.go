@@ -107,26 +107,22 @@ func PrepareItemsForStash(profile *models.SPTProfile) ([]*InventoryItem, int, in
 
 func buildBackgroundStyleForImage(item InventoryItem) map[string]string {
 	rotation := "0deg"
+	width := item.SizeX * 64
+	height := item.SizeY * 64
+
 	if item.Item.Location.R == "Vertical" {
 		rotation = "90deg"
-	}
-	width := item.SizeX * 64
-	if item.Item.Location.R == "Vertical" {
 		width = item.SizeY * 64
-	}
-	height := item.SizeY * 64
-	if item.Item.Location.R == "Vertical" {
 		height = item.SizeX * 64
 	}
 	translateX := (64 - width) / 2
 	translateY := (64 - height) / 2
 
 	translateYAdjustment := (height - 64) / 2
+	translateXAdjustment := (width - 64) / 2
+
 	if rotation == "90deg" {
 		translateYAdjustment = (width - 64) / 2
-	}
-	translateXAdjustment := (width - 64) / 2
-	if rotation == "90deg" {
 		translateXAdjustment = (height - 64) / 2
 	}
 
