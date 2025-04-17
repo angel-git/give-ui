@@ -324,20 +324,6 @@ func getTraders(app *App) http.HandlerFunc {
 	}
 }
 
-func getStash(app *App) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "no-cache")
-		err := reloadProfiles(app)
-		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
-			return
-		}
-		profile := getProfileFromSession(app)
-		addUIPropertiesToInventoryItems(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
-		templ.Handler(components.Stash(&profile)).ServeHTTP(w, r)
-	}
-}
-
 func getSkills(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
@@ -534,6 +520,34 @@ func addMagazineLoadout(app *App) http.HandlerFunc {
 	}
 }
 
+func getStash(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		err := reloadProfiles(app)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		profile := getProfileFromSession(app)
+		addUIPropertiesToInventoryItems(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
+		templ.Handler(components.Stash(&profile)).ServeHTTP(w, r)
+	}
+}
+
+func addStashItem(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		itemId := r.FormValue("id")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		err := api.AddStashItem(app.config.GetSptUrl(), sessionId, itemId)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your item has been sent\"}")
+	}
+}
+
 func reloadProfiles(app *App) error {
 	profiles, err := api.LoadProfiles(app.config.GetSptUrl())
 	app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
@@ -639,6 +653,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	r.Get("/user-weapons-modal/{id}", getUserWeaponModal(app))
 	r.Get("/stash", getStash(app))
+	r.Post("/stash", addStashItem(app))
 	r.Post("/spt", sendSptMessage(app))
 	// forward calls to SPT server for files (images)
 	r.Get("/file", getFile(app))
