@@ -90,6 +90,7 @@ type Upd struct {
 	Togglable         *Togglable `json:"Togglable"`
 	Foldable          *Foldable  `json:"Foldable"`
 	StackObjectsCount int        `json:"StackObjectsCount"`
+	SpawnedInSession  *bool      `json:"SpawnedInSession"`
 }
 
 type Togglable struct {

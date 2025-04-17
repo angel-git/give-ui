@@ -142,6 +142,24 @@ dialog.modal:not([open]) {
     top: 2px;
 }
 
+.grid-stash .grid-item .item .item-data {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.grid-stash .grid-item .item .fir {
+    height: 12px;
+    width: 12px;
+    background-image: url("../images/fir.png");
+    background-size: 12px 12px;
+}
+
 .snowflake {
     color: #fff;
     font-size: 1em;
