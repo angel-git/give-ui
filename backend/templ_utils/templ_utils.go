@@ -147,7 +147,7 @@ func buildBackgroundStyleForImage(item InventoryItem) map[string]string {
 
 	if item.Item.ImageBase64 != "" {
 		// add background image
-		styles["background-image"] = fmt.Sprintf("url(%s)", item.Item.ImageBase64)
+		styles["background-image"] = fmt.Sprintf("url(data:image/png;base64,%s)", item.Item.ImageBase64)
 	} else {
 		backgroundImageUrl := fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", item.Item.Tpl)
 		styles["background-image"] = fmt.Sprintf("url(%s)", backgroundImageUrl)
