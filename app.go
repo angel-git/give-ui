@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
@@ -477,6 +478,9 @@ func loadImage(app *App, hash int32) (string, error) {
 	var loader images.ImageLoader
 	var url string
 	cacheFolder := app.config.GetCacheFolder()
+	if !app.config.GetUseCache() {
+		return "", errors.New("Cache is disabled")
+	}
 	if cacheFolder != "" {
 		loader = &images.LocalImageLoader{}
 		url = cacheFolder
