@@ -21,6 +21,7 @@ type ItemWithUpd struct {
 	SizeX           int
 	SizeY           int
 	BackgroundColor string
+	ShortName       string
 }
 
 type WeaponBuild struct {

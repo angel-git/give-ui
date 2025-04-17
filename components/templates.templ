@@ -497,6 +497,7 @@ templ Stash(profile *models.SPTProfile) {
 					if item != nil {
 						<div class="item group hover:brightness-150" { itemStyle(*item)... }>
 							<div class="item-image" { itemImageStyle(*item)... }></div>
+							<div class="short-name">{ item.Item.ShortName }</div>
 							<form class="hidden group-hover:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" hx-post="/stash" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit">
 								<input name="id" hidden value={ item.Item.Id }/>
 								<button type="submit" class="btn btn-primary">

@@ -135,6 +135,13 @@ dialog.modal:not([open]) {
     height: 100%;
 }
 
+.grid-stash .grid-item .item .short-name {
+    font-size: 11px;
+    position: absolute;
+    right: 2px;
+    top: 2px;
+}
+
 .snowflake {
     color: #fff;
     font-size: 1em;

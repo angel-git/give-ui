@@ -587,6 +587,7 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 
 func addUIPropertiesToInventoryItems(app *App, parentId string, inventoryItems *[]models.ItemWithUpd) {
 	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
+	allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
 
 	for i := range *inventoryItems {
 		inventoryItem := &(*inventoryItems)[i]
@@ -611,6 +612,7 @@ func addUIPropertiesToInventoryItems(app *App, parentId string, inventoryItems *
 
 		bsgItem := bsgItems[inventoryItem.Tpl]
 		inventoryItem.BackgroundColor = bsgItem.Props.BackgroundColor
+		inventoryItem.ShortName = allItems.Items[inventoryItem.Tpl].ShortName
 	}
 }
 
