@@ -486,7 +486,7 @@ templ Stash(profile *models.SPTProfile) {
 					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 				></path>
 			</svg>
-			<span>Make sure to refresh this page to get latest changes from the server.</span>
+			<span>Make sure to refresh this page to get latest changes from the server. The stash might show unsynced items until the profile is stored in disk.</span>
 			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/stash" hx-target="#stash" hx-disabled-elt="this" hx-swap="outerHTML">
 				Refresh
 			</button>
