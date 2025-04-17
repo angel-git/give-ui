@@ -469,8 +469,18 @@ func itemStyle(item templ_utils.InventoryItem) templ.Attributes {
 	return templ.Attributes{"style": templ_utils.CalculateBackgroundStyleForItem(item)}
 }
 
+func itemWidth(gridSizeX int) templ.Attributes {
+	return templ.Attributes{"style": fmt.Sprintf("width: %dpx;", 64*gridSizeX)}
+}
+
+func gridSize(gridSizeX int) templ.Attributes {
+	width := fmt.Sprintf("width: %dpx;", 64*gridSizeX)
+	gridTemplateColumns := fmt.Sprintf("repeat(%d, 64px)", gridSizeX)
+	return templ.Attributes{"style": fmt.Sprintf("width: %s; grid-template-columns: %s", width, gridTemplateColumns)}
+}
+
 templ Stash(profile *models.SPTProfile) {
-	{{ stashItems, _, _ := templ_utils.PrepareItemsForStash(profile) }}
+	{{ stashItems, gridSizeX, _ := templ_utils.PrepareItemsForStash(profile) }}
 	<div class="w-full flex flex-col gap-2 items-center justify-center" id="stash">
 		<div role="alert" class="alert alert-info">
 			<svg
@@ -491,12 +501,12 @@ templ Stash(profile *models.SPTProfile) {
 				Refresh
 			</button>
 		</div>
-		<div class="w-full flex items-center justify-end gap-5 stash-width">
+		<div class="w-full flex items-center justify-end gap-5" { itemWidth(gridSizeX)... }>
 			<div><strong>₽ { templ_utils.SumAllItems("5449016a4bdc2d6f028b456f", profile) }</strong></div>
 			<div>€ { templ_utils.SumAllItems("569668774bdc2da2298b4568", profile) }</div>
 			<div>$ { templ_utils.SumAllItems("5696686a4bdc2da3298b456a", profile) }</div>
 		</div>
-		<div class="grid-stash stash-width">
+		<div class="grid-stash" { gridSize(gridSizeX)... }>
 			for _, item := range stashItems {
 				<div class="grid-item">
 					if item != nil {
