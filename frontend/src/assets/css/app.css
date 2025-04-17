@@ -108,9 +108,13 @@ dialog.modal:not([open]) {
     scrollbar-gutter: auto !important;
 }
 
+.stash-width {
+    width: 640px;
+}
+
 .grid-stash {
     display: grid;
-    grid-template-columns: repeat(10, 64px); width: 660px;
+    grid-template-columns: repeat(10, 64px);
     overflow-y: auto;
 }
 

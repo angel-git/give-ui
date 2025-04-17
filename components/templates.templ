@@ -491,7 +491,12 @@ templ Stash(profile *models.SPTProfile) {
 				Refresh
 			</button>
 		</div>
-		<div class="grid-stash">
+		<div class="w-full flex items-center justify-end gap-5 stash-width">
+			<div><strong>₽ { templ_utils.SumAllItems("5449016a4bdc2d6f028b456f", profile) }</strong></div>
+			<div>€ { templ_utils.SumAllItems("569668774bdc2da2298b4568", profile) }</div>
+			<div>$ { templ_utils.SumAllItems("5696686a4bdc2da3298b456a", profile) }</div>
+		</div>
+		<div class="grid-stash stash-width">
 			for _, item := range stashItems {
 				<div class="grid-item">
 					if item != nil {

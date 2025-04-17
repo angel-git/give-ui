@@ -167,6 +167,31 @@ func CalculateBackgroundStyleForItem(item InventoryItem) string {
 	return fmt.Sprintf("z-index: 2; position: relative; height: %dpx; width: %dpx; background-color: %s", item.SizeY*64, item.SizeX*64, calculateBackgroundColor(item))
 }
 
+func SumAllItems(templateId string, profile *models.SPTProfile) string {
+	total := 0
+	for _, item := range profile.Characters.PMC.Inventory.Items {
+		if item.Tpl == templateId && item.Upd != nil {
+			total += item.Upd.StackObjectsCount
+		}
+	}
+	return formatWithSpaces(total)
+}
+
+func formatWithSpaces(n int) string {
+	s := fmt.Sprintf("%d", n)
+	var result []byte
+	count := 0
+
+	for i := len(s) - 1; i >= 0; i-- {
+		result = append([]byte{s[i]}, result...)
+		count++
+		if count%3 == 0 && i != 0 {
+			result = append([]byte{' '}, result...)
+		}
+	}
+	return string(result)
+}
+
 func calculateBackgroundColor(item InventoryItem) string {
 	color := "rgba(127, 127, 127, 0.0)"
 	switch item.Item.BackgroundColor {
