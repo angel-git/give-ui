@@ -16,7 +16,7 @@ func GetItemSize(item models.ItemWithUpd, inventoryItems []models.ItemWithUpd, b
 	allChildrenItems := []IdAndTpl{}
 
 	isItemContainer := isContainer(bsgItem)
-	if isItemContainer {
+	if !isItemContainer {
 		allChildrenItems =
 			findAllIdsAndTplFromParent(item.Id, inventoryItems, "mod_")
 	}
