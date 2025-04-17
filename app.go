@@ -324,6 +324,20 @@ func getTraders(app *App) http.HandlerFunc {
 	}
 }
 
+func getStash(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		err := reloadProfiles(app)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		profile := getProfileFromSession(app)
+		addUIPropertiesToInventoryItems(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
+		templ.Handler(components.Stash(&profile)).ServeHTTP(w, r)
+	}
+}
+
 func getSkills(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
@@ -624,6 +638,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/user-weapons", getUserWeaponPresets(app))
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	r.Get("/user-weapons-modal/{id}", getUserWeaponModal(app))
+	r.Get("/stash", getStash(app))
 	r.Post("/spt", sendSptMessage(app))
 	// forward calls to SPT server for files (images)
 	r.Get("/file", getFile(app))

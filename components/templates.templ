@@ -471,7 +471,26 @@ func itemStyle(item templ_utils.InventoryItem) templ.Attributes {
 
 templ Stash(profile *models.SPTProfile) {
 	{{ stashItems, _, _ := templ_utils.PrepareItemsForStash(profile) }}
-	<div class="w-full p-2 flex items-center justify-center">
+	<div class="w-full flex flex-col gap-2 items-center justify-center" id="stash">
+		<div role="alert" class="alert alert-info">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				class="h-6 w-6 shrink-0 stroke-current"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+				></path>
+			</svg>
+			<span>Make sure to refresh this page to get latest changes from the server.</span>
+			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/stash" hx-target="#stash" hx-disabled-elt="this" hx-swap="outerHTML">
+				Refresh
+			</button>
+		</div>
 		<div class="grid-stash">
 			for _, item := range stashItems {
 				<div class="grid-item">
