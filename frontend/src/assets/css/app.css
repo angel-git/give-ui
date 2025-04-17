@@ -153,11 +153,14 @@ dialog.modal:not([open]) {
     justify-content: flex-end;
 }
 
-.grid-stash .grid-item .item .fir {
+.grid-stash .grid-item .item .item-data .fir {
     height: 12px;
     width: 12px;
     background-image: url("../images/fir.png");
     background-size: 12px 12px;
+}
+.grid-stash .grid-item .item .item-data .amount {
+    font-size: 13px;
 }
 
 .snowflake {

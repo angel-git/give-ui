@@ -609,10 +609,16 @@ func addUIPropertiesToInventoryItems(app *App, parentId string, inventoryItems *
 		sizeX, sizeY := images.GetItemSize(*inventoryItem, *inventoryItems, bsgItems)
 		inventoryItem.SizeX = sizeX
 		inventoryItem.SizeY = sizeY
-
-		bsgItem := bsgItems[inventoryItem.Tpl]
-		inventoryItem.BackgroundColor = bsgItem.Props.BackgroundColor
 		inventoryItem.ShortName = allItems.Items[inventoryItem.Tpl].ShortName
+		inventoryItem.Amount = 1
+		if inventoryItem.Upd != nil {
+			inventoryItem.Amount = inventoryItem.Upd.StackObjectsCount
+		}
+		bsgItem, ok := bsgItems[inventoryItem.Tpl]
+		if ok {
+			inventoryItem.BackgroundColor = bsgItem.Props.BackgroundColor
+			inventoryItem.IsStockable = bsgItem.Props.StackMaxSize != 1
+		}
 	}
 }
 

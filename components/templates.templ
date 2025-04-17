@@ -502,6 +502,9 @@ templ Stash(profile *models.SPTProfile) {
 								if item.Item.Upd != nil && item.Item.Upd.SpawnedInSession != nil && *item.Item.Upd.SpawnedInSession {
 									<div class="fir"></div>
 								}
+								if item.Item.IsStockable || item.Item.Amount > 1 {
+									<div class="amount">{ fmt.Sprintf("%d", item.Item.Amount) }</div>
+								}
 							</div>
 							<form class="hidden group-hover:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" hx-post="/stash" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit">
 								<input name="id" hidden value={ item.Item.Id }/>

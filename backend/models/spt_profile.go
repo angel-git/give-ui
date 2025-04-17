@@ -22,6 +22,8 @@ type ItemWithUpd struct {
 	SizeY           int
 	BackgroundColor string
 	ShortName       string
+	IsStockable     bool
+	Amount          int
 }
 
 type WeaponBuild struct {
