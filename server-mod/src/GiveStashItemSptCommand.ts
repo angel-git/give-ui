@@ -77,22 +77,17 @@ export class GiveStashItemSptCommand implements ISptCommand {
             this.mailSendService.sendUserMessageToPlayer(
                 sessionId,
                 commandHandler,
-                "That item could not be found. Please refine your request and try again.",
+                `Couldn't find template with id: ${itemToAdd._tpl}`,
             );
             return request.dialogId;
         }
-        // TODO
-        // const quantity = checkedItem[1]._props.StackMaxSize
-
+        // maybe this would bring all items inside container? this.itemHelper.findAndReturnChildrenAsItems()
         const allChild = this.getAllDescendantsIncludingSelf(itemId, inventoryItemHash)
         let itemsToSend = this.cloner.clone(allChild);
-        // console.log('original allChild', allChild);
 
         itemsToSend = this.itemHelper.replaceIDs(itemsToSend);
         this.itemHelper.setFoundInRaid(itemsToSend);
         this.mailSendService.sendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
-
-        // console.log('itemsToSend final', itemsToSend);
 
         return request.dialogId;
     }
