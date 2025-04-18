@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="mytheme">
 
 <head>
     <meta charset="UTF-8"/>
@@ -7,11 +7,15 @@
     <title>give-ui</title>
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
     <link rel="stylesheet" href="src/assets/css/app.css">
+    <script type="module" src="src/assets/js/app.js"></script>
 </head>
 
-<body>
-<div id="app">
-    <div id="initial" hx-get="/initial" hx-trigger="load" hx-target="#app" hx-swap="innerHTML"></div>
+<body onload="winterEvent()">
+<div id="app" class="bg-base-100">
+    <div id="app-inner" class="flex flex-col h-full justify-between">
+        <div id="initial" hx-get="/initial" hx-trigger="load" hx-target="#app-inner"></div>
+    </div>
+    <div id="winter-event"></div>
 </div>
 </body>
 </html>

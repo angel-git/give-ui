@@ -1,4 +1,4 @@
 export interface IRemoveUserGroupMailRequest {
-  dialogId: string;
-  uid: string;
+    dialogId: string;
+    uid: string;
 }

@@ -6,8 +6,8 @@ import (
 	"spt-give-ui/backend/http"
 )
 
-func GetJson(url string, target interface{}) error {
-	r, err := http.DoGet(url)
+func GetJson(url string, sessionId string, target interface{}) error {
+	r, err := http.DoGet(url, sessionId)
 	if err != nil {
 		return err
 	}
@@ -15,8 +15,20 @@ func GetJson(url string, target interface{}) error {
 	return json.NewDecoder(r.Body).Decode(target)
 }
 
-func GetRawBytes(url string) ([]byte, error) {
-	r, err := http.DoGet(url)
+func GetRawBytes(url string, sessionId string) ([]byte, error) {
+	r, err := http.DoGet(url, sessionId)
+	if err != nil {
+		return nil, err
+	}
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func GetRawBytesCompressed(url string, sessionId string) ([]byte, error) {
+	r, err := http.DoGetCompressed(url, sessionId)
 	if err != nil {
 		return nil, err
 	}

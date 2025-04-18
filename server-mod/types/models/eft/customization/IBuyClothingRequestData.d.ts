@@ -1,10 +1,10 @@
 export interface IBuyClothingRequestData {
-  Action: 'CustomizationBuy';
-  offer: string;
-  items: ClothingItem[];
+    Action: "CustomizationBuy";
+    offer: string;
+    items: IPaymentItemForClothing[];
 }
-export interface ClothingItem {
-  del: boolean;
-  id: string;
-  count: number;
+export interface IPaymentItemForClothing {
+    del: boolean;
+    id: string;
+    count: number;
 }

@@ -1,4 +1,4 @@
-import type { DependencyContainer } from 'tsyringe';
+import type { DependencyContainer } from "tsyringe";
 export interface IPostSptLoadMod {
-  postSptLoad(container: DependencyContainer): void;
+    postSptLoad(container: DependencyContainer): void;
 }

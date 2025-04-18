@@ -2,13 +2,19 @@ package http
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 )
 
-var myClient = &http.Client{Timeout: 10 * time.Second}
+var myClient = &http.Client{
+	Timeout: 10 * time.Second,
+	Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	},
+}
 
 func DoPost(url string, sessionId string, body interface{}) (*http.Response, error) {
 	jsonBody, err := json.Marshal(body)
@@ -26,8 +32,16 @@ func DoPost(url string, sessionId string, body interface{}) (*http.Response, err
 	return myClient.Do(req)
 }
 
-func DoGet(url string) (*http.Response, error) {
+func DoGet(url string, sessionId string) (*http.Response, error) {
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("responsecompressed", "0")
+	req.Header.Set("Cookie", fmt.Sprintf("PHPSESSID=%s", sessionId))
+	return myClient.Do(req)
+}
+
+func DoGetCompressed(url string, sessionId string) (*http.Response, error) {
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("responsecompressed", "1")
+	req.Header.Set("Cookie", fmt.Sprintf("PHPSESSID=%s", sessionId))
 	return myClient.Do(req)
 }

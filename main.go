@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"github.com/tidwall/gjson"
@@ -11,6 +12,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
+	runtimeWails "github.com/wailsapp/wails/v2/pkg/runtime"
 	"log"
 	"net/http"
 	"runtime"
@@ -103,22 +105,94 @@ func (a *App) makeMenu() {
 	a.menu = menu.NewMenu()
 	if runtime.GOOS == "darwin" {
 		a.menu.Append(menu.AppMenu())
+		a.menu.Append(menu.EditMenu())
 	}
+	localeFromConfig := a.config.GetLocale()
 	a.localeMenu = a.menu.AddSubmenu("Locale")
-	a.localeMenu.AddRadio("English", true, nil, a.setLocale)
-	a.localeMenu.AddRadio("Czech", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("French", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("German", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Hungarian", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Italian", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Japanese", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Korean", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Polish", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Portuguese", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Slovak", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Spanish", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Spanish - Mexico", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Turkish", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Romanian", false, nil, a.setLocale)
-	a.localeMenu.AddRadio("Русский", false, nil, a.setLocale)
+	a.localeMenu.Append(addRadio("English", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Czech", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("French", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("German", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Hungarian", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Italian", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Japanese", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Korean", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Polish", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Portuguese", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Slovak", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Spanish", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Spanish - Mexico", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Turkish", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Romanian", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Русский", localeFromConfig, a.setLocale))
+
+	a.settingsMenu = a.menu.AddSubmenu("Settings")
+	if a.config.GetCacheFolder() == "" {
+		a.settingsMenu.Append(menu.Text("Select cache folder", nil, a.selectCacheFolder))
+	} else {
+		a.settingsMenu.Append(menu.Text("Use default cache folder", nil, a.clearCacheFolder))
+	}
+}
+
+func addRadio(label string, selected string, click menu.Callback) *menu.MenuItem {
+	item := menu.Radio(label, label == selected, nil, click)
+	return item
+}
+
+func (a *App) setLocale(data *menu.CallbackData) {
+	if a.config.GetLocale() == data.MenuItem.Label {
+		return
+	}
+	a.config.SetLocale(data.MenuItem.Label)
+	a.ctx = context.WithValue(a.ctx, contextLocales, nil)
+	for _, localeMenu := range a.localeMenu.Items {
+		localeMenu.Checked = false
+	}
+	data.MenuItem.Checked = true
+
+	// refresh menu with the selected locale
+	runtimeWails.MenuSetApplicationMenu(a.ctx, a.menu)
+	runtimeWails.MenuUpdateApplicationMenu(a.ctx)
+
+	// refresh to main screen
+	runtimeWails.WindowReloadApp(a.ctx)
+}
+
+func (a *App) selectCacheFolder(data *menu.CallbackData) {
+	folder, err := runtimeWails.OpenDirectoryDialog(a.ctx, runtimeWails.OpenDialogOptions{
+		Title: "Example c:\\games\\spt\\user\\sptappdata\\live",
+	})
+	if err != nil {
+		runtimeWails.MessageDialog(a.ctx, runtimeWails.MessageDialogOptions{
+			Type:    runtimeWails.ErrorDialog,
+			Title:   "Error",
+			Message: err.Error(),
+		})
+		return
+	}
+	a.config.SetCacheFolder(folder)
+	data.MenuItem.Label = "Use default cache folder"
+	data.MenuItem.OnClick(a.clearCacheFolder)
+
+	// refresh menu with the selected locale
+
+	runtimeWails.MenuSetApplicationMenu(a.ctx, a.menu)
+	runtimeWails.MenuUpdateApplicationMenu(a.ctx)
+
+	// refresh to main screen
+	runtimeWails.WindowReloadApp(a.ctx)
+}
+
+func (a *App) clearCacheFolder(data *menu.CallbackData) {
+	a.config.SetCacheFolder("")
+
+	data.MenuItem.Label = "Select cache folder"
+	data.MenuItem.OnClick(a.selectCacheFolder)
+
+	// refresh menu with the selected locale
+	runtimeWails.MenuSetApplicationMenu(a.ctx, a.menu)
+	runtimeWails.MenuUpdateApplicationMenu(a.ctx)
+
+	// refresh to main screen
+	runtimeWails.WindowReloadApp(a.ctx)
 }

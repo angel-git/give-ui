@@ -1,4 +1,5 @@
 import path from 'node:path';
+import fs from "node:fs";
 import {DependencyContainer} from 'tsyringe';
 import {DatabaseServer} from '@spt/servers/DatabaseServer';
 import {SaveServer} from '@spt/servers/SaveServer';
@@ -6,12 +7,16 @@ import {LogTextColor} from '@spt/models/spt/logging/LogTextColor';
 import {Watermark} from '@spt/utils/Watermark';
 import {PreSptModLoader} from '@spt/loaders/PreSptModLoader';
 import {CommandoDialogueChatBot} from "@spt/helpers/Dialogue/CommandoDialogueChatBot";
+import {SptDialogueChatBot} from "@spt/helpers/Dialogue/SptDialogueChatBot";
 import type {IPreSptLoadMod} from '@spt/models/external/IPreSptLoadMod';
 import type {ILogger} from '@spt/models/spt/utils/ILogger';
 import type {StaticRouterModService} from '@spt/services/mod/staticRouter/StaticRouterModService';
+import type {DynamicRouterModService} from '@spt/services/mod/dynamicRouter/DynamicRouterModService';
 import {MessageType} from "@spt/models/enums/MessageType";
 import {ISendMessageRequest} from "@spt/models/eft/dialog/ISendMessageRequest";
 import {SptCommandoCommands} from "@spt/helpers/Dialogue/Commando/SptCommandoCommands";
+import {ProfileHelper} from "@spt/helpers/ProfileHelper";
+import { GiftService } from "@spt/services/GiftService";
 import {GiveUserPresetSptCommand} from './GiveUserPresetSptCommand';
 import {GiveGearPresetSptCommand} from './GiveGearPresetSptCommand';
 
@@ -28,10 +33,16 @@ class GiveUI implements IPreSptLoadMod {
         const saveServer = container.resolve<SaveServer>('SaveServer');
         const watermark = container.resolve<Watermark>('Watermark');
         const preAkiModLoader = container.resolve<PreSptModLoader>('PreSptModLoader');
-        const commando = container.resolve<CommandoDialogueChatBot>('CommandoDialogueChatBot');
+        const commandoDialog = container.resolve<CommandoDialogueChatBot>('CommandoDialogueChatBot');
+        const sptDialog = container.resolve<SptDialogueChatBot>('SptDialogueChatBot');
+        const profileHelper = container.resolve<ProfileHelper>('ProfileHelper');
+        const giftService = container.resolve<GiftService>('GiftService');
 
         const staticRouterModService =
             container.resolve<StaticRouterModService>('StaticRouterModService');
+
+        const dynamicRouterModService =
+            container.resolve<DynamicRouterModService>('DynamicRouterModService');
 
         // Hook up a new static route
         staticRouterModService.registerStaticRouter(
@@ -46,7 +57,9 @@ class GiveUI implements IPreSptLoadMod {
                         const modsInstalled = Object.values(preAkiModLoader.getImportedModDetails());
                         const giveUiMod = modsInstalled.find((m) => m.name === 'give-ui');
                         const modVersion = giveUiMod?.version;
-                        return Promise.resolve(JSON.stringify({version, path: serverPath, modVersion}));
+                        const maxLevel = profileHelper.getMaxLevel();
+                        const gifts = giftService.getGifts();
+                        return Promise.resolve(JSON.stringify({version, path: serverPath, modVersion, maxLevel, gifts}));
                     },
                 },
                 {
@@ -67,32 +80,32 @@ class GiveUI implements IPreSptLoadMod {
                     },
                 },
                 {
-                    url: '/give-ui/give',
+                    url: '/give-ui/commando',
                     action: (_url, request, sessionId, _output) => {
-                        const command = `spt give ${request.itemId} ${request.amount}`;
-                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
+                        const command = request.message;
+                        logger.log(`[give-ui] Sending to commando: [${command}]`, LogTextColor.GREEN);
                         const message: ISendMessageRequest = {
                             dialogId: sessionId,
                             type: MessageType.SYSTEM_MESSAGE,
                             text: command,
                             replyTo: undefined,
                         };
-                        const response = commando.handleMessage(sessionId, message);
+                        const response = commandoDialog.handleMessage(sessionId, message);
                         return Promise.resolve(JSON.stringify({response}));
                     },
                 },
                 {
-                    url: '/give-ui/give-user-preset',
+                    url: '/give-ui/spt',
                     action: (_url, request, sessionId, _output) => {
-                        const command = `spt give-user-preset ${request.itemId}`;
-                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
+                        const command = request.message;
+                        logger.log(`[give-ui] Sending to spt: [${command}]`, LogTextColor.GREEN);
                         const message: ISendMessageRequest = {
                             dialogId: sessionId,
                             type: MessageType.SYSTEM_MESSAGE,
                             text: command,
                             replyTo: undefined,
                         };
-                        const response = commando.handleMessage(sessionId, message);
+                        const response = sptDialog.handleMessage(sessionId, message);
                         return Promise.resolve(JSON.stringify({response}));
                     },
                 },
@@ -114,6 +127,32 @@ class GiveUI implements IPreSptLoadMod {
             ],
             'give-ui-top-level-route',
         );
+
+        dynamicRouterModService.registerDynamicRouter(
+            'GiveUIDynamicModRouter',
+            [{
+                url: '/give-ui/cache',
+                action: (url, _request, _sessionId, _output) => {
+                    const cacheID = url.replace('/give-ui/cache/', '');
+                    const serverPath = path.resolve();
+                    const cachePath = path.join(serverPath, 'user', 'sptappdata', 'live');
+                    try {
+                        const indexJson = fs.readFileSync(path.join(cachePath, 'index.json'), 'utf8');
+                        const index = JSON.parse(indexJson);
+                        const image= index[cacheID]
+                        try {
+                            const file = fs.readFileSync(path.join(cachePath, `${image}.png`),  {encoding: 'base64'});
+                            return Promise.resolve(JSON.stringify({imageBase64: file}));
+                        } catch (e) {
+                            return Promise.resolve(JSON.stringify({error: 404}));
+                        }
+                    } catch (e) {
+                        return Promise.resolve(JSON.stringify({error: 404}));
+                    }
+                },
+            }],
+            'give-ui-top-level-dynamic-route',
+        )
     }
 }
 

@@ -21,11 +21,11 @@ jobs:
         with:
           bun-version: latest
       - name: Build wails
-        uses: dAppServer/wails-build-action@v2.2
+        uses: dAppServer/wails-build-action@main
         id: build
         with:
           package: false
-          go-version: '1.22.1'
+          go-version: '1.23.1'
           build-name: spt-give-ui.exe
           build-platform: windows/amd64
       - name: Package zip
