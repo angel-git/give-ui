@@ -82,7 +82,7 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@UserWeapons(allItems, profile.UserBuilds.WeaponBuilds)
 			</div>
-			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Gear presets"/>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Kits"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@GearPresets(profile.UserBuilds.EquipmentBuilds, profile.Info.Id)
 			</div>
@@ -624,7 +624,7 @@ templ GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) {
 					<div tabindex="0" role="button" class="btn m-1">Choose preset here</div>
 					<ul hx-boost="true" tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
 						for _, equipmentBuild := range equipmentBuilds {
-							<li><a hx-target="#gear-details" href={ templ.URL(fmt.Sprintf("/gear/%s", equipmentBuild.Id)) }>{ equipmentBuild.Name }</a></li>
+							<li><a hx-target="#gear-details" href={ templ.URL(fmt.Sprintf("/kit/%s", equipmentBuild.Id)) }>{ equipmentBuild.Name }</a></li>
 						}
 					</ul>
 				</div>
@@ -636,7 +636,7 @@ templ GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) {
 
 func findBySlotId(items []models.ItemWithUpd, slotId string) models.ItemWithUpd {
 	for _, item := range items {
-		if *item.SlotID == slotId {
+		if item.SlotID != nil && *item.SlotID == slotId {
 			return item
 		}
 	}
@@ -649,7 +649,7 @@ templ GearPreset(equipmentBuild models.EquipmentBuild) {
 	<div>
 		<h1>Backpack</h1>
 		<img alt="item" st-yle="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", backpack.Tpl) }/>
-		<button class="btn btn-primary" hx-post={ fmt.Sprintf("/gear-preset/%s/%s", equipmentBuild.Id, backpack.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
+		<button class="btn btn-primary" hx-post={ fmt.Sprintf("/kit/%s/%s", equipmentBuild.Id, backpack.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
 			<div id="loader" class="button-loader">
 				<span class="loading loading-spinner"></span>
 				<span class="button-hide">Give all</span>

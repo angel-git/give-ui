@@ -253,7 +253,7 @@ func MainPage(appName string, appVersion string, allItems *models.AllItems, filt
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div><input type=\"radio\" name=\"my_tabs_1\" role=\"tab\" class=\"tab\" aria-label=\"Gear presets\"><div role=\"tabpanel\" class=\"tab-content p-1 overflow-y-auto\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div><input type=\"radio\" name=\"my_tabs_1\" role=\"tab\" class=\"tab\" aria-label=\"Kits\"><div role=\"tabpanel\" class=\"tab-content p-1 overflow-y-auto\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1552,7 +1552,7 @@ func GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) temp
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var72 templ.SafeURL = templ.URL(fmt.Sprintf("/gear/%s", equipmentBuild.Id))
+				var templ_7745c5c3_Var72 templ.SafeURL = templ.URL(fmt.Sprintf("/kit/%s", equipmentBuild.Id))
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var72)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -1564,7 +1564,7 @@ func GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) temp
 				var templ_7745c5c3_Var73 string
 				templ_7745c5c3_Var73, templ_7745c5c3_Err = templ.JoinStringErrs(equipmentBuild.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 627, Col: 124}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 627, Col: 123}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var73))
 				if templ_7745c5c3_Err != nil {
@@ -1590,7 +1590,7 @@ func GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) temp
 
 func findBySlotId(items []models.ItemWithUpd, slotId string) models.ItemWithUpd {
 	for _, item := range items {
-		if *item.SlotID == slotId {
+		if item.SlotID != nil && *item.SlotID == slotId {
 			return item
 		}
 	}
@@ -1638,9 +1638,9 @@ func GearPreset(equipmentBuild models.EquipmentBuild) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var76 string
-		templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/gear-preset/%s/%s", equipmentBuild.Id, backpack.Id))
+		templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/kit/%s/%s", equipmentBuild.Id, backpack.Id))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 652, Col: 109}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/templates.templ`, Line: 652, Col: 101}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var76))
 		if templ_7745c5c3_Err != nil {
