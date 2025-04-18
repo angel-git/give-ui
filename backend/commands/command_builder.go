@@ -17,6 +17,12 @@ func AddUserPreset(itemId string) models.Command {
 	}
 }
 
+func AddGearPreset(presetId string, itemId string) models.Command {
+	return models.Command{
+		Message: fmt.Sprintf("spt give-gear-preset %s %s", presetId, itemId),
+	}
+}
+
 func UpdateTraderRep(nickname string, rep string) models.Command {
 	return models.Command{
 		Message: fmt.Sprintf("spt trader %s rep %s", nickname, rep),
