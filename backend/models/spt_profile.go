@@ -6,8 +6,8 @@ type Info struct {
 }
 
 type ItemWithUpd struct {
-	Id     string `json:"_id"`
-	Tpl    string `json:"_tpl"`
+	Id          string  `json:"_id"`
+	Tpl         string  `json:"_tpl"`
 	ParentID    *string `json:"parentId"`
 	SlotID      *string `json:"slotId"`
 	Upd         *Upd    `json:"upd"`
@@ -60,9 +60,9 @@ type MagazineBuildItem struct {
 }
 
 type EquipmentBuild struct {
-	Id    string `json:"Id"`
-	Name  string `json:"Name"`
-	Items []Item `json:"Items"`
+	Id    string        `json:"Id"`
+	Name  string        `json:"Name"`
+	Items []ItemWithUpd `json:"Items"`
 }
 
 type UserBuilds struct {

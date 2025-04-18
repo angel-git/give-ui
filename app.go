@@ -486,6 +486,39 @@ func loadImage(app *App, hash int32) (string, error) {
 	return loader.LoadImage(url, session, fmt.Sprint(hash))
 }
 
+func getKit(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		gearId := chi.URLParam(r, "id")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		//allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		allProfiles := app.ctx.Value(contextProfiles).([]models.SPTProfile)
+		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+
+		equipmentBuilds := allProfiles[allProfilesIdx].UserBuilds.EquipmentBuilds
+		equipmentBuildsIdx := slices.IndexFunc(equipmentBuilds, func(i models.EquipmentBuild) bool {
+			return i.Id == gearId
+		})
+
+		templ.Handler(components.GearPreset(equipmentBuilds[equipmentBuildsIdx])).ServeHTTP(w, r)
+	}
+}
+
+func addKit(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		presetId := chi.URLParam(r, "presetId")
+		itemId := chi.URLParam(r, "itemId")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		err := api.AddGearPreset(app.config.GetSptUrl(), sessionId, presetId, itemId)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+		}
+	}
+}
+
 func addMagazineLoadout(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		magazineLoadoutId := chi.URLParam(r, "id")
@@ -590,6 +623,8 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/user-weapons", getUserWeaponPresets(app))
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	r.Get("/user-weapons-modal/{id}", getUserWeaponModal(app))
+	r.Get("/kit/{id}", getKit(app))
+	r.Post("/kit/{presetId}/{itemId}", addKit(app))
 	r.Post("/spt", sendSptMessage(app))
 	// forward calls to SPT server for files (images)
 	r.Get("/file", getFile(app))

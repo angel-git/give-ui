@@ -83,9 +83,9 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 				@UserWeapons(allItems, profile.UserBuilds.WeaponBuilds)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Gear presets"/>
-            			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-            				@_GearPresets(profile.UserBuilds.EquipmentBuilds, profile.Info.Id)
-            			</div>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@GearPresets(profile.UserBuilds.EquipmentBuilds, profile.Info.Id)
+			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Skills"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Skills(profile.Characters.PMC.InfoPMC.Level, skills, serverInfo.MaxLevel)
@@ -583,7 +583,7 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 	</div>
 }
 
-templ _GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) {
+templ GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) {
 	<div class="h-full flex flex-col">
 		if len(equipmentBuilds) == 0 {
 			<div role="alert" class="alert alert-info p-2">
@@ -634,13 +634,13 @@ templ _GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) {
 	</div>
 }
 
-func findBySlotId(items []models.Item, slotId string) models.Item {
+func findBySlotId(items []models.ItemWithUpd, slotId string) models.ItemWithUpd {
 	for _, item := range items {
-		if item.SlotId == slotId {
+		if *item.SlotID == slotId {
 			return item
 		}
 	}
-	return models.Item{}
+	return models.ItemWithUpd{}
 }
 
 templ GearPreset(equipmentBuild models.EquipmentBuild) {

@@ -62,6 +62,10 @@ func AddUserWeapon(url string, sessionId string, presetId string) (e error) {
 	return sendToCommando(url, sessionId, commands.AddUserPreset(presetId))
 }
 
+func AddGearPreset(url string, sessionId string, presetId string, itemId string) (e error) {
+	return sendToCommando(url, sessionId, commands.AddGearPreset(presetId, itemId))
+}
+
 func LoadSkills(profile models.SPTProfile, locales *models.Locales) (r []models.Skill, e error) {
 	var skills []models.Skill
 	// try to find skill in lowercase, Troubleshooting example
