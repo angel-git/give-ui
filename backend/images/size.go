@@ -5,21 +5,9 @@ import (
 	"strings"
 )
 
-type IdAndTpl struct {
-	Id  string
-	Tpl string
-}
+func GetItemSize(rootItem models.ItemWithUpd, inventoryItems []models.ItemWithUpd, bsgItems map[string]models.BSGItem) (int, int) {
+	bsgItem := bsgItems[rootItem.Tpl]
 
-func GetItemSize(item models.ItemWithUpd, inventoryItems []models.ItemWithUpd, bsgItems map[string]models.BSGItem) (int, int) {
-	bsgItem := bsgItems[item.Tpl]
-
-	allChildrenItems := []IdAndTpl{}
-
-	isItemContainer := isContainer(bsgItem)
-	if !isItemContainer {
-		allChildrenItems =
-			findAllIdsAndTplFromParent(item.Id, inventoryItems, "mod_")
-	}
 	outX := bsgItem.Props.Width
 	outY := bsgItem.Props.Height
 	sizeUp := 0
@@ -31,29 +19,63 @@ func GetItemSize(item models.ItemWithUpd, inventoryItems []models.ItemWithUpd, b
 	forcedLeft := 0
 	forcedRight := 0
 
-	if bsgItem.Props.Foldable && bsgItem.Props.FoldedSlot != nil && *bsgItem.Props.FoldedSlot == "" && item.Upd.Foldable != nil && item.Upd.Foldable.Folded {
+	bsgItemFoldedSlot := ""
+	if bsgItem.Props.FoldedSlot != nil {
+		bsgItemFoldedSlot = *bsgItem.Props.FoldedSlot
+	}
+	isBsgItemFoldable := bsgItem.Props.Foldable
+	isRootFolded := rootItem.Upd != nil && rootItem.Upd.Foldable != nil && rootItem.Upd.Foldable.Folded
+	if isBsgItemFoldable && (bsgItem.Props.FoldedSlot == nil || *bsgItem.Props.FoldedSlot == "") && isRootFolded {
 		outX -= bsgItem.Props.SizeReduceRight
 	}
 
-	for _, child := range allChildrenItems {
-		childBsgItem := bsgItems[child.Tpl]
-		if childBsgItem.Props.ExtraSizeForceAdd {
-			forcedUp += childBsgItem.Props.ExtraSizeUp
-			forcedDown += childBsgItem.Props.ExtraSizeDown
-			forcedLeft += childBsgItem.Props.ExtraSizeLeft
-			forcedRight += childBsgItem.Props.ExtraSizeRight
-		} else {
-			if sizeUp < childBsgItem.Props.ExtraSizeUp {
-				sizeUp = childBsgItem.Props.ExtraSizeUp
+	toDo := []string{rootItem.Id}
+	for len(toDo) > 0 {
+		id := toDo[0]
+		toDo = toDo[1:]
+
+		if isContainer(bsgItem) {
+			continue
+		}
+
+		allChildrenItems := findAllIdsAndTplFromParent(id, inventoryItems)
+		for _, child := range allChildrenItems {
+			if child.SlotID == nil || !strings.HasPrefix(*child.SlotID, "mod_") {
+				continue
 			}
-			if sizeDown < childBsgItem.Props.ExtraSizeDown {
-				sizeDown = childBsgItem.Props.ExtraSizeDown
+
+			toDo = append(toDo, child.Id)
+
+			childBsgItem := bsgItems[child.Tpl]
+			childFoldable := childBsgItem.Props.Foldable
+			childFolded := child.Upd != nil && child.Upd.Foldable != nil && child.Upd.Foldable.Folded
+
+			if isBsgItemFoldable && bsgItemFoldedSlot == *child.SlotID && (isRootFolded || childFolded) {
+				continue
 			}
-			if sizeLeft < childBsgItem.Props.ExtraSizeLeft {
-				sizeLeft = childBsgItem.Props.ExtraSizeLeft
+
+			if childFoldable && isRootFolded && childFolded {
+				continue
 			}
-			if sizeRight < childBsgItem.Props.ExtraSizeRight {
-				sizeRight = childBsgItem.Props.ExtraSizeRight
+
+			if childBsgItem.Props.ExtraSizeForceAdd {
+				forcedUp += childBsgItem.Props.ExtraSizeUp
+				forcedDown += childBsgItem.Props.ExtraSizeDown
+				forcedLeft += childBsgItem.Props.ExtraSizeLeft
+				forcedRight += childBsgItem.Props.ExtraSizeRight
+			} else {
+				if sizeUp < childBsgItem.Props.ExtraSizeUp {
+					sizeUp = childBsgItem.Props.ExtraSizeUp
+				}
+				if sizeDown < childBsgItem.Props.ExtraSizeDown {
+					sizeDown = childBsgItem.Props.ExtraSizeDown
+				}
+				if sizeLeft < childBsgItem.Props.ExtraSizeLeft {
+					sizeLeft = childBsgItem.Props.ExtraSizeLeft
+				}
+				if sizeRight < childBsgItem.Props.ExtraSizeRight {
+					sizeRight = childBsgItem.Props.ExtraSizeRight
+				}
 			}
 		}
 
@@ -68,14 +90,11 @@ func isContainer(bsgItem models.BSGItem) bool {
 	return bsgItem.Props.Grids != nil && len(*bsgItem.Props.Grids) > 0
 }
 
-func findAllIdsAndTplFromParent(parentId string, inventoryItems []models.ItemWithUpd, slotId string) []IdAndTpl {
-	var allChildrenItems []IdAndTpl
+func findAllIdsAndTplFromParent(parentId string, inventoryItems []models.ItemWithUpd) []models.ItemWithUpd {
+	var allChildrenItems []models.ItemWithUpd
 	for _, item := range inventoryItems {
 		if item.ParentID != nil && *item.ParentID == parentId {
-			if item.SlotID != nil && strings.HasPrefix(*item.SlotID, slotId) {
-				allChildrenItems = append(allChildrenItems, IdAndTpl{Id: item.Id, Tpl: item.Tpl})
-			}
-			allChildrenItems = append(allChildrenItems, findAllIdsAndTplFromParent(item.Id, inventoryItems, slotId)...)
+			allChildrenItems = append(allChildrenItems, item)
 		}
 	}
 	return allChildrenItems
