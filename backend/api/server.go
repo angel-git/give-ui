@@ -62,6 +62,10 @@ func AddUserWeapon(url string, sessionId string, presetId string) (e error) {
 	return sendToCommando(url, sessionId, commands.AddUserPreset(presetId))
 }
 
+func AddStashItem(url string, sessionId string, itemId string) (e error) {
+	return sendToCommando(url, sessionId, commands.AddStashItem(itemId))
+}
+
 func LoadSkills(profile models.SPTProfile, locales *models.Locales) (r []models.Skill, e error) {
 	var skills []models.Skill
 	// try to find skill in lowercase, Troubleshooting example
@@ -223,6 +227,7 @@ func SendGift(url string, sessionId string, giftId string) (e error) {
 
 func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllItems {
 	const NameFormat = "%s Name"
+	const ShortNameFormat = "%s ShortName"
 	const DescriptionFormat = "%s Description"
 	allItems := models.AllItems{
 		Categories:    []string{},
@@ -264,6 +269,7 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 			continue
 		}
 		name := locales.Data[fmt.Sprintf(NameFormat, bsgItem.Id)]
+		shortName := locales.Data[fmt.Sprintf(ShortNameFormat, bsgItem.Id)]
 		description := locales.Data[fmt.Sprintf(DescriptionFormat, bsgItem.Id)]
 		// filter out useless items
 		if strings.Contains(name, "DO_NOT_USE") || strings.Contains(name, "DO NOT USE") || name == "" {
@@ -273,6 +279,7 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 		viewItem := models.ViewItem{
 			Id:          bsgItem.Id,
 			Name:        name,
+			ShortName:   shortName,
 			Type:        bsgItem.Type,
 			Description: description,
 			ImageBase64: "",

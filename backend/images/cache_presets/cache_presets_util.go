@@ -1,6 +1,7 @@
 package cache_presets
 
 import (
+	"sort"
 	"spt-give-ui/backend/images/cache"
 	"spt-give-ui/backend/models"
 )
@@ -41,6 +42,9 @@ func smethod0(topLevelItem models.ItemWithUpd, items []models.ItemWithUpd, bsgIt
 		}
 	}
 
+	sort.Slice(hashes, func(i, j int) bool {
+		return hashes[i] < hashes[j]
+	})
 	return hashes
 }
 
@@ -73,7 +77,7 @@ func smethod1(item models.ItemWithUpd, items []models.ItemWithUpd, bsgItemsRoot 
 		hash ^= 23 + cache.BoolToInt(isToggled)
 	}
 
-	if cache.IsFoldableItem(item.Id, bsgItemsRoot) {
+	if cache.IsFoldableItem(item.Tpl, bsgItemsRoot) {
 		isFolded := false
 		if item.Upd != nil && item.Upd.Foldable != nil {
 			isFolded = item.Upd.Foldable.Folded

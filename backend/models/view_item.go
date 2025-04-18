@@ -3,6 +3,7 @@ package models
 type ViewItem struct {
 	Id          string
 	Name        string
+	ShortName   string
 	Type        string
 	Description string
 	Category    string

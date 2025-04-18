@@ -18,6 +18,7 @@ type Config struct {
 	sptUrl        string
 	cacheFolder   string
 	favoriteItems []string
+	useCache      bool
 }
 
 func LoadConfig() *Config {
@@ -28,6 +29,7 @@ func LoadConfig() *Config {
 		SptUrl:        "https://127.0.0.1:6969",
 		CacheFolder:   "",
 		FavoriteItems: []string{},
+		IgnoreCache:   false,
 	}
 	jsonConfig := store.CreateDatabase(defaultJsonConfig)
 	return &Config{
@@ -38,6 +40,7 @@ func LoadConfig() *Config {
 		sptUrl:        jsonConfig.SptUrl,
 		favoriteItems: jsonConfig.FavoriteItems,
 		cacheFolder:   jsonConfig.CacheFolder,
+		useCache:      !jsonConfig.IgnoreCache,
 	}
 }
 
@@ -99,6 +102,15 @@ func (c *Config) GetCacheFolder() string {
 func (c *Config) SetCacheFolder(folder string) {
 	c.cacheFolder = folder
 	store.SaveValue(store.CacheFolderDbKey, folder)
+}
+
+func (c *Config) GetUseCache() bool {
+	return c.useCache
+}
+
+func (c *Config) SetUseCache(cache bool) {
+	c.useCache = cache
+	store.SaveValue(store.IgnoreCacheDbKey, !cache)
 }
 
 func (c *Config) Close() error {
