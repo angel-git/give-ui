@@ -109,21 +109,6 @@ class GiveUI implements IPreSptLoadMod {
                         return Promise.resolve(JSON.stringify({response}));
                     },
                 },
-                {
-                    url: '/give-ui/give-gear-preset',
-                    action: (_url, request, sessionId, _output) => {
-                        const command = `spt give-gear-preset ${request.presetId} ${request.itemId}`;
-                        logger.log(`[give-ui] Running command: [${command}]`, LogTextColor.GREEN);
-                        const message: ISendMessageRequest = {
-                            dialogId: sessionId,
-                            type: MessageType.SYSTEM_MESSAGE,
-                            text: command,
-                            replyTo: undefined,
-                        };
-                        const response = commando.handleMessage(sessionId, message);
-                        return Promise.resolve(JSON.stringify({response}));
-                    },
-                },
             ],
             'give-ui-top-level-route',
         );
