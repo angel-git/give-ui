@@ -4,6 +4,7 @@ function setUsernameOnFooter() {
 }
 
 let previousSelectedItem = null;
+let previousSelectedkit = null;
 
 function filterItems() {
     const input = document.getElementById('filter-items-input');
@@ -49,6 +50,15 @@ function selectItem(element) {
     }
     element.classList.add(classToToggle);
     previousSelectedItem = element;
+}
+
+function selectKit(element) {
+    const classToToggle = 'text-primary';
+    if (previousSelectedkit) {
+        previousSelectedkit.classList.remove(classToToggle);
+    }
+    element.classList.add(classToToggle);
+    previousSelectedkit = element;
 }
 
 function selectItemFromKeyboard(event, element) {
@@ -105,6 +115,7 @@ window.selectItemFromKeyboard = selectItemFromKeyboard;
 window.filterUserWeapons = filterUserWeapons;
 window.showModal = showModal;
 window.filterMagazineLoadout = filterMagazineLoadout;
+window.selectKit = selectKit;
 
 let previousToast = null;
 

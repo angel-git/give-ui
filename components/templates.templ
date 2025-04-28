@@ -603,16 +603,16 @@ templ Kits(equipmentBuilds []models.EquipmentBuild, sessionId string) {
 				<span>You don't have any kits saved in this profile.</span>
 			</div>
 		} else {
-			<div class="w-full p-2">
-				<div class="dropdown">
-					<div tabindex="0" role="button" class="btn m-1">Choose preset here</div>
-					<ul hx-boost="true" tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+			<div class="flex w-full h-full min-h-0">
+				<div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
+					<ul>
 						for _, equipmentBuild := range equipmentBuilds {
-							<li><a hx-target="#gear-details" href={ templ.URL(fmt.Sprintf("/kit/%s", equipmentBuild.Id)) }>{ equipmentBuild.Name }</a></li>
+							<li tabindex="0" class="text-left cursor-pointer hover:bg-primary hover:text-base-content focus:bg-base-300 focus:text-primary focus:outline-none" hx-trigger="click" hx-target="#gear-details" hx-swap="innerHTML" hx-get={ fmt.Sprintf("/kit/%s", equipmentBuild.Id) } onclick="selectKit(this)">{ equipmentBuild.Name }</li>
 						}
 					</ul>
 				</div>
-				<div id="gear-details" class="flex flex-wrap gap-2 h-full content-start p-2 overflow-y-auto"></div>
+				<div class="divider divider-horizontal"></div>
+				<div class="card bg-base-200 rounded-box grid flex-grow place-items-start w-full overflow-y-auto" id="gear-details"></div>
 			</div>
 		}
 	</div>
