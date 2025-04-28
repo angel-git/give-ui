@@ -502,7 +502,7 @@ func getKit(app *App) http.HandlerFunc {
 			return i.Id == gearId
 		})
 
-		templ.Handler(components.GearPreset(equipmentBuilds[equipmentBuildsIdx])).ServeHTTP(w, r)
+		templ.Handler(components.Kit(equipmentBuilds[equipmentBuildsIdx])).ServeHTTP(w, r)
 	}
 }
 

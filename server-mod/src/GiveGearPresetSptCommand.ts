@@ -62,6 +62,7 @@ export class GiveGearPresetSptCommand implements ISptCommand {
         }
 
         const gearPresetItems = this.itemHelper.findAndReturnChildrenAsItems(equipmentBuild.Items, result[2])
+        // TODO filter out: Pockets, SecuredContainer, ArmBand
         let itemsToSend = this.cloner.clone(gearPresetItems);
         if (itemsToSend.length > 0) {
             // clear slotId from main item so we can accept it in UI

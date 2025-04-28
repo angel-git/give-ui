@@ -84,7 +84,7 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Kits"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@GearPresets(profile.UserBuilds.EquipmentBuilds, profile.Info.Id)
+				@Kits(profile.UserBuilds.EquipmentBuilds, profile.Info.Id)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Skills"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
@@ -583,7 +583,7 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 	</div>
 }
 
-templ GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) {
+templ Kits(equipmentBuilds []models.EquipmentBuild, sessionId string) {
 	<div class="h-full flex flex-col">
 		if len(equipmentBuilds) == 0 {
 			<div role="alert" class="alert alert-info p-2">
@@ -600,26 +600,10 @@ templ GearPresets(equipmentBuilds []models.EquipmentBuild, sessionId string) {
 						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 					></path>
 				</svg>
-				<span>You don't have any gear presets.</span>
+				<span>You don't have any kits saved in this profile.</span>
 			</div>
 		} else {
 			<div class="w-full p-2">
-				<div role="alert" class="alert alert-info p-2">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						class="h-6 w-6 shrink-0 stroke-current"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-						></path>
-					</svg>
-					<span>For now you can only add your helmet and backpack. If you would like to have more stuff let me know in the mod comments page. You can start by selecting your preset in the dropdown below</span>
-				</div>
 				<div class="dropdown">
 					<div tabindex="0" role="button" class="btn m-1">Choose preset here</div>
 					<ul hx-boost="true" tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
@@ -643,28 +627,88 @@ func findBySlotId(items []models.ItemWithUpd, slotId string) models.ItemWithUpd 
 	return models.ItemWithUpd{}
 }
 
-templ GearPreset(equipmentBuild models.EquipmentBuild) {
-	{{ backpack := findBySlotId(equipmentBuild.Items, "Backpack") }}
-	{{ helmet := findBySlotId(equipmentBuild.Items, "Headwear") }}
-	<div>
-		<h1>Backpack</h1>
-		<img alt="item" st-yle="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", backpack.Tpl) }/>
-		<button class="btn btn-primary" hx-post={ fmt.Sprintf("/kit/%s/%s", equipmentBuild.Id, backpack.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
-			<div id="loader" class="button-loader">
-				<span class="loading loading-spinner"></span>
-				<span class="button-hide">Give all</span>
-			</div>
-		</button>
+templ Kit(equipmentBuild models.EquipmentBuild) {
+	<div class="flex flex-col w-full items-center">
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "EARPIECE", "Earpiece")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "HEADWEAR", "Headwear")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "FACECOVER", "FaceCover")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h64", "ARMBAND", "ArmBand")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "BODY ARMOR", "ArmorVest")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "EYEWEAR", "Eyewear")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w256-h128", "ON SLING", "FirstPrimaryWeapon")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "HOLSTER", "Holster")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w256-h128", "ON BACK", "SecondPrimaryWeapon")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "SHEATH", "Scabbard")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "TACTICAL RIG", "TacticalVest")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "BACKPACK", "Backpack")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "POUCH", "SecuredContainer")
+					</td>
+				</tr>
+			</tbody>
+		</table>
 	</div>
-	<div>
-		<h1>Helmet</h1>
-		<img alt="item" st-yle="max-height: 200px" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", helmet.Tpl) }/>
-		<button class="btn btn-primary" hx-post={ fmt.Sprintf("/gear-preset/%s/%s", equipmentBuild.Id, helmet.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
-			<div id="loader" class="button-loader">
-				<span class="loading loading-spinner"></span>
-				<span class="button-hide">Give all</span>
-			</div>
-		</button>
+}
+
+templ _IndividualKit(equipmentBuild models.EquipmentBuild, clazz string, title string, slot string) {
+	{{ item := findBySlotId(equipmentBuild.Items, slot) }}
+	{{ class := "kit-slot " + clazz }}
+	<div class={ class }>
+		<div class="title">{ title }</div>
+		<div class="image bg-base-200">
+			<img alt="item" style="max-height: 100%; max-width: 100%" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.png", item.Tpl) }/>
+		</div>
 	</div>
 }
 
