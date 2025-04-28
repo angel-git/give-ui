@@ -501,8 +501,23 @@ func getKit(app *App) http.HandlerFunc {
 		equipmentBuildsIdx := slices.IndexFunc(equipmentBuilds, func(i models.EquipmentBuild) bool {
 			return i.Id == gearId
 		})
+		equipmentBuild := equipmentBuilds[equipmentBuildsIdx]
+		var slotsWithImages = []string{"Earpiece", "Headwear", "FaceCover", "ArmBand", "ArmorVest", "Eyewear", "FirstPrimaryWeapon", "Holster", "SecondPrimaryWeapon", "Scabbard", "TacticalVest", "Backpack", "SecuredContainer"}
+		for _, slotWithImage := range slotsWithImages {
+			addImageToKit(app, slotWithImage, equipmentBuild)
+		}
 
 		templ.Handler(components.Kit(equipmentBuilds[equipmentBuildsIdx])).ServeHTTP(w, r)
+	}
+}
+
+func addImageToKit(app *App, slot string, equipmentBuild models.EquipmentBuild) {
+	index := slices.IndexFunc(equipmentBuild.Items, func(i models.ItemWithUpd) bool {
+		return i.SlotID != nil && *i.SlotID == slot
+	})
+	if index != -1 {
+		image64 := calculateImageBase64FromItems(app, equipmentBuild.Items, index, app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem))
+		equipmentBuild.Items[index].ImageBase64 = image64
 	}
 }
 
@@ -573,17 +588,21 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 		idx := slices.IndexFunc(*weaponBuild.Items, func(i models.ItemWithUpd) bool {
 			return i.Id == weaponBuild.Root
 		})
-
-		imageHash := cache_presets.GetItemHash((*weaponBuild.Items)[idx], *weaponBuild.Items, bsgItems)
-		imageBase64, err := loadImage(app, imageHash)
-		var ImageBase64 string
-		if err != nil {
-			ImageBase64 = ""
-		} else {
-			ImageBase64 = imageBase64
-		}
+		var ImageBase64 = calculateImageBase64FromItems(app, *weaponBuild.Items, idx, bsgItems)
 		weaponBuild.ImageBase64 = ImageBase64
 	}
+}
+
+func calculateImageBase64FromItems(app *App, items []models.ItemWithUpd, idx int, bsgItems map[string]models.BSGItem) string {
+	imageHash := cache_presets.GetItemHash(items[idx], items, bsgItems)
+	imageBase64, err := loadImage(app, imageHash)
+	var ImageBase64 string
+	if err != nil {
+		ImageBase64 = ""
+	} else {
+		ImageBase64 = imageBase64
+	}
+	return ImageBase64
 }
 
 func addImageToWeaponBuildAttachments(app *App, weaponBuild *models.WeaponBuild) {
