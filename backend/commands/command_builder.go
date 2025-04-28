@@ -17,9 +17,9 @@ func AddUserPreset(itemId string) models.Command {
 	}
 }
 
-func AddGearPreset(presetId string, itemId string) models.Command {
+func AddGearPreset(presetId string) models.Command {
 	return models.Command{
-		Message: fmt.Sprintf("spt give-gear-preset %s %s", presetId, itemId),
+		Message: fmt.Sprintf("spt give-gear-preset %s", presetId),
 	}
 }
 

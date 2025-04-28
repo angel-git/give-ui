@@ -509,10 +509,9 @@ func getKit(app *App) http.HandlerFunc {
 func addKit(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		presetId := chi.URLParam(r, "presetId")
-		itemId := chi.URLParam(r, "itemId")
 		sessionId := app.ctx.Value(contextSessionId).(string)
 
-		err := api.AddGearPreset(app.config.GetSptUrl(), sessionId, presetId, itemId)
+		err := api.AddGearPreset(app.config.GetSptUrl(), sessionId, presetId)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
@@ -624,7 +623,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	r.Get("/user-weapons-modal/{id}", getUserWeaponModal(app))
 	r.Get("/kit/{id}", getKit(app))
-	r.Post("/kit/{presetId}/{itemId}", addKit(app))
+	r.Post("/kit/{presetId}", addKit(app))
 	r.Post("/spt", sendSptMessage(app))
 	// forward calls to SPT server for files (images)
 	r.Get("/file", getFile(app))

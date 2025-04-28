@@ -2,15 +2,16 @@ import {inject, injectable} from "tsyringe";
 import {ISptCommand} from "@spt/helpers/Dialogue/Commando/SptCommands/ISptCommand";
 import {ItemHelper} from "@spt/helpers/ItemHelper";
 import {ISendMessageRequest} from "@spt/models/eft/dialog/ISendMessageRequest";
-import {ISptProfile, IUserDialogInfo} from "@spt/models/eft/profile/ISptProfile";
+import {ISptProfile} from "@spt/models/eft/profile/ISptProfile";
+import {IUserDialogInfo} from "@spt/models/eft/profile/IUserDialogInfo";
 import {MailSendService} from "@spt/services/MailSendService";
-import {ICloner} from "@spt/utils/cloners/ICloner";
+import type {ICloner} from "@spt/utils/cloners/ICloner";
 import {SaveServer} from '@spt/servers/SaveServer';
 
 
 @injectable()
 export class GiveGearPresetSptCommand implements ISptCommand {
-    private static commandRegex = /^spt give-gear-preset ([a-z]{2,5} ?".+"|\w+) ([a-z]{2,5} ?".+"|\w+)$/;
+    private static commandRegex = /^spt give-gear-preset ([a-z]{2,5} ?".+"|\w+)$/;
 
     public constructor(
         @inject("ItemHelper") protected itemHelper: ItemHelper,
@@ -25,7 +26,7 @@ export class GiveGearPresetSptCommand implements ISptCommand {
     }
 
     public getCommandHelp(): string {
-        return 'TODO';
+        return 'spt give-gear-preset\n========\nSends items to the player through the message system.\n\n\tspt give-user-preset [equipmentBuilds.Id]';
     }
 
     public performAction(commandHandler: IUserDialogInfo, sessionId: string, request: ISendMessageRequest): string {
@@ -40,7 +41,7 @@ export class GiveGearPresetSptCommand implements ISptCommand {
 
         const result = GiveGearPresetSptCommand.commandRegex.exec(request.text);
 
-        if (!result[1] || !result[2]) {
+        if (!result[1]) {
             this.mailSendService.sendUserMessageToPlayer(
                 sessionId,
                 commandHandler,
@@ -61,15 +62,19 @@ export class GiveGearPresetSptCommand implements ISptCommand {
             return request.dialogId;
         }
 
-        const gearPresetItems = this.itemHelper.findAndReturnChildrenAsItems(equipmentBuild.Items, result[2])
-        // TODO filter out: Pockets, SecuredContainer, ArmBand
-        let itemsToSend = this.cloner.clone(gearPresetItems);
+        let itemsToSend = this.cloner.clone(equipmentBuild.Items);
+        // TODO test :)
+        // itemsToSend.shift(); // remove first item ??
         if (itemsToSend.length > 0) {
             // clear slotId from main item so we can accept it in UI
             itemsToSend[0].slotId = undefined;
         }
+        itemsToSend = itemsToSend.filter(item => item.slotId !== "Pockets" && item.slotId !== "SecuredContainer" && item.slotId !== "ArmBand" && item.slotId !== "Dogtag");
         itemsToSend = this.itemHelper.replaceIDs(itemsToSend);
         this.itemHelper.setFoundInRaid(itemsToSend);
+
+        console.log('itemsToSend kits', itemsToSend);
+
         this.mailSendService.sendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
         return request.dialogId;
     }
