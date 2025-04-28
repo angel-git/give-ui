@@ -1788,7 +1788,7 @@ func _IndividualKit(equipmentBuild models.EquipmentBuild, clazz string, title st
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, "</div><div class=\"image bg-base-200\"><img alt=\"item\" style=\"max-height: 100%; max-width: 100%\" src=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, "</div><div class=\"image bg-base-300\"><img alt=\"item\" style=\"max-height: 100%; max-width: 100%\" src=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
