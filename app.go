@@ -514,7 +514,9 @@ func addKit(app *App) http.HandlerFunc {
 		err := api.AddGearPreset(app.config.GetSptUrl(), sessionId, presetId)
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
 		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your kit has been sent\"}")
 	}
 }
 
