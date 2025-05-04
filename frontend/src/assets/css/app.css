@@ -108,6 +108,60 @@ dialog.modal:not([open]) {
     scrollbar-gutter: auto !important;
 }
 
+.grid-stash {
+    display: grid;
+    overflow-y: auto;
+}
+
+.grid-stash .grid-item {
+    height: 64px;
+    width: 64px;
+    position: relative;
+    background-image: url("../images/grid_cell.png");
+    background-size: cover;
+}
+.grid-stash .grid-item .empty {
+    height: 64px;
+    width: 64px;
+}
+
+.grid-stash .grid-item .item {
+    z-index: 2;
+}
+
+.grid-stash .grid-item .item .item-image {
+    width: 100%;
+    height: 100%;
+}
+
+.grid-stash .grid-item .item .short-name {
+    font-size: 11px;
+    position: absolute;
+    right: 2px;
+    top: 2px;
+}
+
+.grid-stash .grid-item .item .item-data {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.grid-stash .grid-item .item .item-data .fir {
+    height: 12px;
+    width: 12px;
+    background-image: url("../images/fir.png");
+    background-size: 12px 12px;
+}
+.grid-stash .grid-item .item .item-data .amount {
+    font-size: 13px;
+}
+
 .snowflake {
     color: #fff;
     font-size: 1em;

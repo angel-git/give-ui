@@ -18,12 +18,15 @@ import {SptCommandoCommands} from "@spt/helpers/Dialogue/Commando/SptCommandoCom
 import {ProfileHelper} from "@spt/helpers/ProfileHelper";
 import { GiftService } from "@spt/services/GiftService";
 import {GiveUserPresetSptCommand} from './GiveUserPresetSptCommand';
+import {GiveStashItemSptCommand} from "./GiveStashItemSptCommand";
 
 class GiveUI implements IPreSptLoadMod {
     public preSptLoad(container: DependencyContainer): void {
 
         container.register<GiveUserPresetSptCommand>("GiveUserPresetSptCommand", GiveUserPresetSptCommand);
+        container.register<GiveStashItemSptCommand>("GiveStashItemSptCommand", GiveStashItemSptCommand);
         container.resolve<SptCommandoCommands>("SptCommandoCommands").registerSptCommandoCommand(container.resolve<GiveUserPresetSptCommand>("GiveUserPresetSptCommand"));
+        container.resolve<SptCommandoCommands>("SptCommandoCommands").registerSptCommandoCommand(container.resolve<GiveStashItemSptCommand>("GiveStashItemSptCommand"));
 
         const logger = container.resolve<ILogger>('WinstonLogger');
         const databaseServer = container.resolve<DatabaseServer>('DatabaseServer');

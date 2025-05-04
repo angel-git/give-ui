@@ -19,11 +19,22 @@ type BSGItem struct {
 }
 
 type BSGItemProps struct {
-	StackMaxSize            int    `json:"StackMaxSize"`
-	IsUnbuyable             bool   `json:"IsUnbuyable"`
-	HasHinge                bool   `json:"HasHinge"`
-	Foldable                bool   `json:"Foldable"`
-	VisibleAmmoRangesString string `json:"VisibleAmmoRangesString"`
-	HideEntrails            bool   `json:"HideEntrails"`
-	Cartridges              *[]any `json:"Cartridges"`
+	StackMaxSize            int     `json:"StackMaxSize"`
+	IsUnbuyable             bool    `json:"IsUnbuyable"`
+	HasHinge                bool    `json:"HasHinge"`
+	Foldable                bool    `json:"Foldable"`
+	FoldedSlot              *string `json:"FoldedSlot"`
+	VisibleAmmoRangesString string  `json:"VisibleAmmoRangesString"`
+	HideEntrails            bool    `json:"HideEntrails"`
+	Cartridges              *[]any  `json:"Cartridges"`
+	Grids                   *[]any  `json:"Grids"`
+	Width                   int     `json:"Width"`
+	Height                  int     `json:"Height"`
+	SizeReduceRight         int     `json:"SizeReduceRight"`
+	ExtraSizeForceAdd       bool    `json:"ExtraSizeForceAdd"`
+	ExtraSizeUp             int     `json:"ExtraSizeUp"`
+	ExtraSizeDown           int     `json:"ExtraSizeDown"`
+	ExtraSizeLeft           int     `json:"ExtraSizeLeft"`
+	ExtraSizeRight          int     `json:"ExtraSizeRight"`
+	BackgroundColor         string  `json:"BackgroundColor"`
 }

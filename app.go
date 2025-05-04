@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
@@ -201,6 +202,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		serverInfo := app.ctx.Value(contextServerInfo).(*models.ServerInfo)
 		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 		addImageToWeaponBuild(app, &profile.UserBuilds.WeaponBuilds)
+		addUIPropertiesToInventoryItems(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
 
 		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo)).ServeHTTP(w, r)
 	}
@@ -476,6 +478,9 @@ func loadImage(app *App, hash int32) (string, error) {
 	var loader images.ImageLoader
 	var url string
 	cacheFolder := app.config.GetCacheFolder()
+	if !app.config.GetUseCache() {
+		return "", errors.New("Cache is disabled")
+	}
 	if cacheFolder != "" {
 		loader = &images.LocalImageLoader{}
 		url = cacheFolder
@@ -515,6 +520,34 @@ func addMagazineLoadout(app *App) http.HandlerFunc {
 	}
 }
 
+func getStash(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		err := reloadProfiles(app)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		profile := getProfileFromSession(app)
+		addUIPropertiesToInventoryItems(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
+		templ.Handler(components.Stash(&profile)).ServeHTTP(w, r)
+	}
+}
+
+func addStashItem(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		itemId := r.FormValue("id")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		err := api.AddStashItem(app.config.GetSptUrl(), sessionId, itemId)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your item has been sent\"}")
+	}
+}
+
 func reloadProfiles(app *App) error {
 	profiles, err := api.LoadProfiles(app.config.GetSptUrl())
 	app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
@@ -549,6 +582,43 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 			ImageBase64 = imageBase64
 		}
 		weaponBuild.ImageBase64 = ImageBase64
+	}
+}
+
+func addUIPropertiesToInventoryItems(app *App, parentId string, inventoryItems *[]models.ItemWithUpd) {
+	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
+	allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+
+	for i := range *inventoryItems {
+		inventoryItem := &(*inventoryItems)[i]
+
+		if inventoryItem.ParentID != nil && *inventoryItem.ParentID != parentId {
+			continue
+		}
+
+		imageHash := cache_presets.GetItemHash(*inventoryItem, *inventoryItems, bsgItems)
+		imageBase64, err := loadImage(app, imageHash)
+		var ImageBase64 string
+		if err != nil {
+			ImageBase64 = ""
+		} else {
+			ImageBase64 = imageBase64
+		}
+		inventoryItem.ImageBase64 = ImageBase64
+
+		sizeX, sizeY := images.GetItemSize(*inventoryItem, *inventoryItems, bsgItems)
+		inventoryItem.SizeX = sizeX
+		inventoryItem.SizeY = sizeY
+		inventoryItem.ShortName = allItems.Items[inventoryItem.Tpl].ShortName
+		inventoryItem.Amount = 1
+		if inventoryItem.Upd != nil {
+			inventoryItem.Amount = inventoryItem.Upd.StackObjectsCount
+		}
+		bsgItem, ok := bsgItems[inventoryItem.Tpl]
+		if ok {
+			inventoryItem.BackgroundColor = bsgItem.Props.BackgroundColor
+			inventoryItem.IsStockable = bsgItem.Props.StackMaxSize != 1
+		}
 	}
 }
 
@@ -590,6 +660,8 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/user-weapons", getUserWeaponPresets(app))
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	r.Get("/user-weapons-modal/{id}", getUserWeaponModal(app))
+	r.Get("/stash", getStash(app))
+	r.Post("/stash", addStashItem(app))
 	r.Post("/spt", sendSptMessage(app))
 	// forward calls to SPT server for files (images)
 	r.Get("/file", getFile(app))
