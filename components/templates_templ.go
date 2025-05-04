@@ -1787,7 +1787,7 @@ func Kits(equipmentBuilds []models.EquipmentBuild, sessionId string) templ.Compo
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 156, "</ul></div><div class=\"divider divider-horizontal\"></div><div class=\"card bg-base-200 rounded-box grid flex-grow place-items-start w-full overflow-y-auto\" id=\"gear-details\"><div class=\"p-2\"><p class=\"text-9xl mb-4\">👀</p><p class=\"text-left mb-4\">Select something from the left menu and press the button <em>Give kit</em>. You will receive a message with your kit items.</p><p class=\"text-left\">Right now some items are ignored: <strong>secured container</strong> and <strong>arm band</strong>.</p></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 156, "</ul></div><div class=\"divider divider-horizontal\"></div><div class=\"card bg-base-200 rounded-box grid flex-grow place-items-start w-full overflow-y-auto\" id=\"gear-details\"><div class=\"p-2\"><p class=\"text-9xl mb-4\">👀</p><p class=\"text-left mb-4\">Select something from the left menu and press the button <em>Give kit</em>. You will receive a message with your kit items.</p><p class=\"text-left\">Right now some items are ignored: <strong>secured container</strong>, <strong>dog tab</strong> and <strong>arm band</strong>.</p></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
