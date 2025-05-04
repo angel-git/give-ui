@@ -63,17 +63,10 @@ export class GiveGearPresetSptCommand implements ISptCommand {
         }
 
         let itemsToSend = this.cloner.clone(equipmentBuild.Items);
-        // TODO test :)
-        // itemsToSend.shift(); // remove first item ??
-        if (itemsToSend.length > 0) {
-            // clear slotId from main item so we can accept it in UI
-            itemsToSend[0].slotId = undefined;
-        }
+        itemsToSend.shift(); // remove default inventory item
         itemsToSend = itemsToSend.filter(item => item.slotId !== "Pockets" && item.slotId !== "SecuredContainer" && item.slotId !== "ArmBand" && item.slotId !== "Dogtag");
         itemsToSend = this.itemHelper.replaceIDs(itemsToSend);
         this.itemHelper.setFoundInRaid(itemsToSend);
-
-        console.log('itemsToSend kits', itemsToSend);
 
         this.mailSendService.sendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
         return request.dialogId;
