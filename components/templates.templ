@@ -708,13 +708,13 @@ templ Kits(equipmentBuilds []models.EquipmentBuild, sessionId string) {
 	</div>
 }
 
-func findBySlotId(items []models.ItemWithUpd, slotId string) models.ItemWithUpd {
+func findBySlotId(items []models.ItemWithUpd, slotId string) *models.ItemWithUpd {
 	for _, item := range items {
 		if item.SlotID != nil && *item.SlotID == slotId {
-			return item
+			return &item
 		}
 	}
-	return models.ItemWithUpd{}
+	return nil
 }
 
 templ Kit(equipmentBuild models.EquipmentBuild) {
@@ -803,10 +803,12 @@ templ _IndividualKit(equipmentBuild models.EquipmentBuild, clazz string, title s
 	<div class={ class }>
 		<div class="title">{ title }</div>
 		<div class="image bg-base-300">
-			if item.ImageBase64 != "" {
-				<img alt="item" style="max-height: 100%; max-width: 100%" src={ fmt.Sprintf("data:image/png;base64, %s", item.ImageBase64) }/>
-			} else {
-				<img alt="item" style="max-height: 100%; max-width: 100%" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", item.Tpl) }/>
+			if item != nil {
+				if item.ImageBase64 != "" {
+					<img alt="item" style="max-height: 100%; max-width: 100%" src={ fmt.Sprintf("data:image/png;base64, %s", item.ImageBase64) }/>
+				} else {
+					<img alt="item" style="max-height: 100%; max-width: 100%" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", item.Tpl) }/>
+				}
 			}
 		</div>
 	</div>
