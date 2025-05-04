@@ -23,6 +23,18 @@ Simple UI for the `SPT GIVE` command.
 
 - When you have saved weapons presets you can add them to your character with a single click
 
+#### Kits
+
+![kits.png](kits.png)
+
+- When you have saved kits you can add them to your character with a single click
+
+#### Stash
+
+![stash.png](stash.png)
+
+- For quickly duplicate items that you already have in your stash
+
 #### Skills
 
 ![skills.png](skills.png)
