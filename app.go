@@ -516,6 +516,23 @@ func getKit(app *App) http.HandlerFunc {
 	}
 }
 
+func getKits(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		err := reloadProfiles(app)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		profile := getProfileFromSession(app)
+		equipmentBuilds := profile.UserBuilds.EquipmentBuilds
+
+		templ.Handler(components.Kits(equipmentBuilds, sessionId)).ServeHTTP(w, r)
+	}
+}
+
 func addImageToKit(app *App, slot string, equipmentBuild models.EquipmentBuild) {
 	index := slices.IndexFunc(equipmentBuild.Items, func(i models.ItemWithUpd) bool {
 		return i.SlotID != nil && *i.SlotID == slot
@@ -716,6 +733,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/stash", getStash(app))
 	r.Post("/stash", addStashItem(app))
 	r.Get("/kit/{id}", getKit(app))
+	r.Get("/kits", getKits(app))
 	r.Post("/kit/{presetId}", addKit(app))
 	r.Post("/spt", sendSptMessage(app))
 	// forward calls to SPT server for files (images)

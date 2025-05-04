@@ -85,6 +85,24 @@ function filterUserWeapons() {
     }
 }
 
+function filterKits() {
+    const input = document.getElementById('filter-kits-input');
+    const filter = input.value.toUpperCase().trim();
+    const itemList = document.getElementById("kits-list");
+    const li = itemList.getElementsByTagName('li');
+
+
+    // Loop through all list items, and hide those who don't match the search query
+    for (let i = 0; i < li.length; i++) {
+        const txtValue = (li[i].textContent || li[i].innerText).toUpperCase().trim();
+        if (txtValue.indexOf(filter) > -1) {
+            li[i].style.display = "";
+        } else {
+            li[i].style.display = "none";
+        }
+    }
+}
+
 function showModal(event) {
     const dialog = document.getElementById(event.getAttribute('id'));
     dialog.showModal();
@@ -113,6 +131,7 @@ window.filterItems = filterItems;
 window.selectItem = selectItem;
 window.selectItemFromKeyboard = selectItemFromKeyboard;
 window.filterUserWeapons = filterUserWeapons;
+window.filterKits = filterKits;
 window.showModal = showModal;
 window.filterMagazineLoadout = filterMagazineLoadout;
 window.selectKit = selectKit;
