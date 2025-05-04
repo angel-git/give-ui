@@ -17,6 +17,12 @@ func AddUserPreset(itemId string) models.Command {
 	}
 }
 
+func AddStashItem(itemId string) models.Command {
+	return models.Command{
+		Message: fmt.Sprintf("spt give-user-stash-item %s", itemId),
+	}
+}
+
 func AddGearPreset(presetId string) models.Command {
 	return models.Command{
 		Message: fmt.Sprintf("spt give-gear-preset %s", presetId),
