@@ -66,6 +66,10 @@ func AddStashItem(url string, sessionId string, itemId string) (e error) {
 	return sendToCommando(url, sessionId, commands.AddStashItem(itemId))
 }
 
+func AddGearPreset(url string, sessionId string, presetId string) (e error) {
+	return sendToCommando(url, sessionId, commands.AddGearPreset(presetId))
+}
+
 func LoadSkills(profile models.SPTProfile, locales *models.Locales) (r []models.Skill, e error) {
 	var skills []models.Skill
 	// try to find skill in lowercase, Troubleshooting example

@@ -162,6 +162,46 @@ dialog.modal:not([open]) {
     font-size: 13px;
 }
 
+table.kits {
+
+}
+
+table.kits tr td .kit-slot.w128-h128 {
+    width: 128px;
+    height: 128px;
+}
+
+table.kits tr td .kit-slot.w128-h64 {
+    width: 128px;
+    height: 64px;
+}
+
+table.kits tr td .kit-slot.w256-h128 {
+    width: 256px;
+    height: 128px;
+}
+
+table.kits tr td .kit-slot {
+    display: flex;
+    flex-direction: column;
+}
+
+table.kits tr td .kit-slot .image {
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+table.kits tr td .kit-slot .title {
+    text-align: start;
+}
+
+table.kits tr td {
+    vertical-align: top;
+}
+
 .snowflake {
     color: #fff;
     font-size: 1em;

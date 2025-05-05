@@ -83,6 +83,14 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@UserWeapons(allItems, profile.UserBuilds.WeaponBuilds)
 			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Kits"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@Kits(profile.UserBuilds.EquipmentBuilds, profile.Info.Id)
+			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Stash"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@Stash(profile)
+			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Skills"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Skills(profile.Characters.PMC.InfoPMC.Level, skills, serverInfo.MaxLevel)
@@ -90,10 +98,6 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Traders"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Traders(profile, traders)
-			</div>
-			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Stash"/>
-			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@Stash(profile)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Other"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
@@ -663,6 +667,159 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 	</div>
 }
 
+templ Kits(equipmentBuilds []models.EquipmentBuild, sessionId string) {
+	<div class="h-full flex flex-col" id="kits">
+		if len(equipmentBuilds) == 0 {
+			<div role="alert" class="alert alert-info p-2">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					class="h-6 w-6 shrink-0 stroke-current"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<span>You don't have any kits saved in this profile.</span>
+			</div>
+		} else {
+			<div class="w-full p-2 flex items-center justify-center">
+				<label class="input input-bordered bg-base-200 flex items-center gap-2 max-w-xs w-full justify-between">
+					<input type="text" autocomplete="off" id="filter-kits-input" oninput="filterKits()" placeholder="Filter here" autofocus/>
+					@_RefreshKits()
+				</label>
+			</div>
+			<div class="flex w-full h-full min-h-0">
+				<div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
+					<ul id="kits-list">
+						for _, equipmentBuild := range equipmentBuilds {
+							<li tabindex="0" class="text-left cursor-pointer hover:bg-primary hover:text-base-content focus:bg-base-300 focus:text-primary focus:outline-none" hx-trigger="click" hx-target="#gear-details" hx-swap="innerHTML" hx-get={ fmt.Sprintf("/kit/%s", equipmentBuild.Id) } onclick="selectKit(this)">{ equipmentBuild.Name }</li>
+						}
+					</ul>
+				</div>
+				<div class="divider divider-horizontal"></div>
+				<div class="card bg-base-200 rounded-box grid flex-grow place-items-start w-full overflow-y-auto" id="gear-details">
+					<div class="p-2">
+						<p class="text-9xl mb-4">👀</p>
+						<p class="text-left mb-4">Select something from the left menu and press the button <em>Give kit</em>. You will receive a message with your kit items.</p>
+						<p class="text-left">Right now some items are ignored: <strong>secured container</strong>, <strong>dog tab</strong> and <strong>arm band</strong>.</p>
+					</div>
+				</div>
+			</div>
+		}
+	</div>
+}
+
+func findBySlotId(items []models.ItemWithUpd, slotId string) *models.ItemWithUpd {
+	for _, item := range items {
+		if item.SlotID != nil && *item.SlotID == slotId {
+			return &item
+		}
+	}
+	return nil
+}
+
+templ Kit(equipmentBuild models.EquipmentBuild) {
+	<div class="flex flex-col w-full gap-1 items-center">
+		<button class="btn btn-primary" hx-post={ fmt.Sprintf("/kit/%s", equipmentBuild.Id) } hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
+			<div id="loader" class="button-loader">
+				<span class="loading loading-spinner"></span>
+				<span class="button-hide">Give kit</span>
+			</div>
+		</button>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "EARPIECE", "Earpiece")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "HEADWEAR", "Headwear")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "FACECOVER", "FaceCover")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h64", "ARMBAND", "ArmBand")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "BODY ARMOR", "ArmorVest")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "EYEWEAR", "Eyewear")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w256-h128", "ON SLING", "FirstPrimaryWeapon")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "HOLSTER", "Holster")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w256-h128", "ON BACK", "SecondPrimaryWeapon")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "SHEATH", "Scabbard")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "TACTICAL RIG", "TacticalVest")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "BACKPACK", "Backpack")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "POUCH", "SecuredContainer")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+}
+
+templ _IndividualKit(equipmentBuild models.EquipmentBuild, clazz string, title string, slot string) {
+	{{ item := findBySlotId(equipmentBuild.Items, slot) }}
+	{{ class := "kit-slot " + clazz }}
+	<div class={ class }>
+		<div class="title">{ title }</div>
+		<div class="image bg-base-300">
+			if item != nil {
+				if item.ImageBase64 != "" {
+					<img alt="item" style="max-height: 100%; max-width: 100%" src={ fmt.Sprintf("data:image/png;base64, %s", item.ImageBase64) }/>
+				} else {
+					<img alt="item" style="max-height: 100%; max-width: 100%" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", item.Tpl) }/>
+				}
+			}
+		</div>
+	</div>
+}
+
 templ _AddWorkbenchItem(itemId string, itemQuantity string) {
 	<div class="flex items-center gap-4">
 		<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", itemId) }/>
@@ -757,6 +914,20 @@ templ _FavSwitcher(sessionId string, filterFavorites bool) {
 
 templ _RefreshPreset() {
 	<button class="btn btn-circle btn-sm" hx-get="/user-weapons" hx-target="#user-weapons" hx-swap="outerHTML" hx-disabled-elt="#user-weapons button">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			fill="currentColor"
+			width="32"
+			height="32"
+			viewBox="0 0 30 30"
+		>
+			<path d="M 15 3 C 12.031398 3 9.3028202 4.0834384 7.2070312 5.875 A 1.0001 1.0001 0 1 0 8.5058594 7.3945312 C 10.25407 5.9000929 12.516602 5 15 5 C 20.19656 5 24.450989 8.9379267 24.951172 14 L 22 14 L 26 20 L 30 14 L 26.949219 14 C 26.437925 7.8516588 21.277839 3 15 3 z M 4 10 L 0 16 L 3.0507812 16 C 3.562075 22.148341 8.7221607 27 15 27 C 17.968602 27 20.69718 25.916562 22.792969 24.125 A 1.0001 1.0001 0 1 0 21.494141 22.605469 C 19.74593 24.099907 17.483398 25 15 25 C 9.80344 25 5.5490109 21.062074 5.0488281 16 L 8 16 L 4 10 z"></path>
+		</svg>
+	</button>
+}
+
+templ _RefreshKits() {
+	<button class="btn btn-circle btn-sm" hx-get="/kits" hx-target="#kits" hx-swap="outerHTML" hx-disabled-elt="#kits button">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			fill="currentColor"

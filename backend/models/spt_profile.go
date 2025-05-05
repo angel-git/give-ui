@@ -46,9 +46,16 @@ type MagazineBuildItem struct {
 	Count      int    `json:"Count"`
 }
 
+type EquipmentBuild struct {
+	Id    string        `json:"Id"`
+	Name  string        `json:"Name"`
+	Items []ItemWithUpd `json:"Items"`
+}
+
 type UserBuilds struct {
-	WeaponBuilds   []WeaponBuild   `json:"weaponBuilds"`
-	MagazineBuilds []MagazineBuild `json:"magazineBuilds"`
+	WeaponBuilds    []WeaponBuild    `json:"weaponBuilds"`
+	MagazineBuilds  []MagazineBuild  `json:"magazineBuilds"`
+	EquipmentBuilds []EquipmentBuild `json:"equipmentBuilds"`
 }
 
 type SPTProfile struct {

@@ -491,6 +491,72 @@ func loadImage(app *App, hash int32) (string, error) {
 	return loader.LoadImage(url, session, fmt.Sprint(hash))
 }
 
+func getKit(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		gearId := chi.URLParam(r, "id")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		//allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		allProfiles := app.ctx.Value(contextProfiles).([]models.SPTProfile)
+		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+
+		equipmentBuilds := allProfiles[allProfilesIdx].UserBuilds.EquipmentBuilds
+		equipmentBuildsIdx := slices.IndexFunc(equipmentBuilds, func(i models.EquipmentBuild) bool {
+			return i.Id == gearId
+		})
+		equipmentBuild := equipmentBuilds[equipmentBuildsIdx]
+		var slotsWithImages = []string{"Earpiece", "Headwear", "FaceCover", "ArmBand", "ArmorVest", "Eyewear", "FirstPrimaryWeapon", "Holster", "SecondPrimaryWeapon", "Scabbard", "TacticalVest", "Backpack", "SecuredContainer"}
+		for _, slotWithImage := range slotsWithImages {
+			addImageToKit(app, slotWithImage, equipmentBuild)
+		}
+
+		templ.Handler(components.Kit(equipmentBuilds[equipmentBuildsIdx])).ServeHTTP(w, r)
+	}
+}
+
+func getKits(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		err := reloadProfiles(app)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		profile := getProfileFromSession(app)
+		equipmentBuilds := profile.UserBuilds.EquipmentBuilds
+
+		templ.Handler(components.Kits(equipmentBuilds, sessionId)).ServeHTTP(w, r)
+	}
+}
+
+func addImageToKit(app *App, slot string, equipmentBuild models.EquipmentBuild) {
+	index := slices.IndexFunc(equipmentBuild.Items, func(i models.ItemWithUpd) bool {
+		return i.SlotID != nil && *i.SlotID == slot
+	})
+	if index != -1 {
+		image64 := calculateImageBase64FromItems(app, equipmentBuild.Items, index, app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem))
+		equipmentBuild.Items[index].ImageBase64 = image64
+	}
+}
+
+func addKit(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		presetId := chi.URLParam(r, "presetId")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		err := api.AddGearPreset(app.config.GetSptUrl(), sessionId, presetId)
+		if err != nil {
+			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			return
+		}
+		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your kit has been sent\"}")
+	}
+}
+
 func addMagazineLoadout(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		magazineLoadoutId := chi.URLParam(r, "id")
@@ -572,17 +638,21 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 		idx := slices.IndexFunc(*weaponBuild.Items, func(i models.ItemWithUpd) bool {
 			return i.Id == weaponBuild.Root
 		})
-
-		imageHash := cache_presets.GetItemHash((*weaponBuild.Items)[idx], *weaponBuild.Items, bsgItems)
-		imageBase64, err := loadImage(app, imageHash)
-		var ImageBase64 string
-		if err != nil {
-			ImageBase64 = ""
-		} else {
-			ImageBase64 = imageBase64
-		}
+		var ImageBase64 = calculateImageBase64FromItems(app, *weaponBuild.Items, idx, bsgItems)
 		weaponBuild.ImageBase64 = ImageBase64
 	}
+}
+
+func calculateImageBase64FromItems(app *App, items []models.ItemWithUpd, idx int, bsgItems map[string]models.BSGItem) string {
+	imageHash := cache_presets.GetItemHash(items[idx], items, bsgItems)
+	imageBase64, err := loadImage(app, imageHash)
+	var ImageBase64 string
+	if err != nil {
+		ImageBase64 = ""
+	} else {
+		ImageBase64 = imageBase64
+	}
+	return ImageBase64
 }
 
 func addUIPropertiesToInventoryItems(app *App, parentId string, inventoryItems *[]models.ItemWithUpd) {
@@ -662,6 +732,9 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/user-weapons-modal/{id}", getUserWeaponModal(app))
 	r.Get("/stash", getStash(app))
 	r.Post("/stash", addStashItem(app))
+	r.Get("/kit/{id}", getKit(app))
+	r.Get("/kits", getKits(app))
+	r.Post("/kit/{presetId}", addKit(app))
 	r.Post("/spt", sendSptMessage(app))
 	// forward calls to SPT server for files (images)
 	r.Get("/file", getFile(app))
