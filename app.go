@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/wailsapp/wails/v2/pkg/menu"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"net/http"
 	"net/url"
 	"slices"
@@ -17,7 +18,6 @@ import (
 	"spt-give-ui/backend/images/cache"
 	"spt-give-ui/backend/images/cache_presets"
 	"spt-give-ui/backend/locale"
-	"spt-give-ui/backend/logger"
 	"spt-give-ui/backend/models"
 	"spt-give-ui/components"
 	"strconv"
@@ -45,7 +45,6 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp(name string, version string) *App {
-	logger.SetupLogger()
 	a := &App{
 		name:    name,
 		version: version,
@@ -263,9 +262,10 @@ func addItem(app *App) http.HandlerFunc {
 
 		err := api.AddItem(app.config.GetSptUrl(), sessionId, itemId, amount)
 		if err != nil {
+			// TODO send event instead
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your item has been sent\"}")
+		runtime.EventsEmit(app.ctx, "toast.info", "Your item has been sent")
 	}
 }
 
@@ -289,6 +289,7 @@ func updateTrader(app *App) http.HandlerFunc {
 			if err != nil {
 				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			}
+			runtime.EventsEmit(app.ctx, "toast.info", "Message sent. Don't forget to accept it")
 		}
 
 		if spend != spendOriginal {
@@ -296,7 +297,7 @@ func updateTrader(app *App) http.HandlerFunc {
 			if err != nil {
 				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			}
-			w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+			runtime.EventsEmit(app.ctx, "toast.info", "Message sent. Don't forget to accept it")
 		}
 	}
 }
@@ -355,7 +356,7 @@ func setLevel(app *App) http.HandlerFunc {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+		runtime.EventsEmit(app.ctx, "toast.info", "Message sent. Don't forget to accept it")
 
 	}
 }
@@ -401,8 +402,7 @@ func sendSptMessage(app *App) http.HandlerFunc {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Read the response in Tarkov dialogues\"}")
-
+		runtime.EventsEmit(app.ctx, "toast.info", "Message sent. Read the response in Tarkov dialogues")
 	}
 }
 
@@ -416,8 +416,7 @@ func updateSkill(app *App) http.HandlerFunc {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
-
+		runtime.EventsEmit(app.ctx, "toast.info", "Message sent. Don't forget to accept it")
 	}
 }
 
@@ -469,7 +468,7 @@ func addUserWeaponPreset(app *App) http.HandlerFunc {
 		if err != nil {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your weapon has been sent\"}")
+		runtime.EventsEmit(app.ctx, "toast.info", "Your weapon has been sent")
 	}
 }
 
@@ -553,7 +552,7 @@ func addKit(app *App) http.HandlerFunc {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your kit has been sent\"}")
+		runtime.EventsEmit(app.ctx, "toast.info", "Your kit has been sent")
 	}
 }
 
@@ -610,7 +609,7 @@ func addStashItem(app *App) http.HandlerFunc {
 			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
 			return
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your item has been sent\"}")
+		runtime.EventsEmit(app.ctx, "toast.info", "Your item has been sent")
 	}
 }
 
@@ -697,7 +696,13 @@ func addImageToWeaponBuildAttachments(app *App, weaponBuild *models.WeaponBuild)
 
 	for j := range *weaponBuild.Items {
 		weaponAttachment := &(*weaponBuild.Items)[j]
-		attachmentHash := cache.GetItemHash(bsgItems[weaponAttachment.Tpl], bsgItems)
+		bsgItem, found := bsgItems[weaponAttachment.Tpl]
+		if !found {
+			runtime.LogWarning(app.ctx, "Couldn't find item in BSG items: "+weaponAttachment.Tpl)
+			runtime.EventsEmit(app.ctx, "toast.error", "Something went wrong. Please check logs.")
+			continue
+		}
+		attachmentHash := cache.GetItemHash(bsgItem, bsgItems)
 		attachmentImageBase64, err := loadImage(app, attachmentHash)
 		var AttachmentImageBase64 string
 		if err != nil {
