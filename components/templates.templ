@@ -103,21 +103,26 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Others(serverInfo)
 			</div>
-			<div class="grow text-right">
-				<div class="dropdown dropdown-hover dropdown-end">
-					<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-sm m-1">Help</div>
-					<div tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-[1] w-80 p-2 shadow text-left">
-						<p><kbd class="kbd kbd-xs">Ctrl + Shift + S</kbd> to toggle favorites search</p>
-						<p><kbd class="kbd kbd-xs">Ctrl + Shift + A</kbd> to add selected item</p>
-						<p><kbd class="kbd kbd-xs">Ctrl + Shift + F</kbd> to fav/unfav selected item</p>
-					</div>
-				</div>
-			</div>
 			<div id="success-toast" class="toast toast-top toast-end hidden">
 				<div class="alert alert-success">
 					<span></span>
 					<div>
-						<button class="btn btn-sm" onclick="closeToast()">Close</button>
+						<button class="btn btn-circle btn-outline btn-sm" onclick="closeToast()">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-6 w-6"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								></path>
+							</svg>
+						</button>
 					</div>
 				</div>
 			</div>
@@ -125,7 +130,22 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 				<div class="alert alert-error">
 					<span></span>
 					<div>
-						<button class="btn btn-sm" onclick="closeToast()">Close</button>
+						<button class="btn btn-circle btn-outline btn-sm" onclick="closeToast()">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-6 w-6"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								></path>
+							</svg>
+						</button>
 					</div>
 				</div>
 			</div>
@@ -231,11 +251,21 @@ func anyItemInsideCategory(cat string, items []models.ViewItem) bool {
 templ _Items(allItems *models.AllItems, sessionId string, filterFavorites bool) {
 	{{ sortedItems := sortAndConvertItems(allItems, filterFavorites) }}
 	<div class="flex flex-col h-full">
-		<div class="w-full p-2 flex items-center justify-center">
+		<div class="w-full p-2 flex items-center justify-center relative">
 			<label class="input input-bordered bg-base-200 flex items-center gap-2 max-w-xs w-full">
 				<input type="text" autocomplete="off" id="filter-items-input" oninput="filterItems()" placeholder="Filter here" autofocus class="grow"/>
 				@_FavSwitcher(sessionId, filterFavorites)
 			</label>
+			<div class="absolute right-0">
+				<div class="dropdown dropdown-hover dropdown-end">
+					<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-sm m-1">Help</div>
+					<div tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-[1] w-80 p-2 shadow text-left">
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + S</kbd> to toggle favorites search</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + A</kbd> to add selected item</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + F</kbd> to fav/unfav selected item</p>
+					</div>
+				</div>
+			</div>
 		</div>
 		<div class="flex w-full h-full min-h-0" id="item-list">
 			<div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
