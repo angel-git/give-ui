@@ -19,40 +19,33 @@ type BSGItem struct {
 }
 
 type BSGItemProps struct {
-	StackMaxSize            int     `json:"StackMaxSize"`
-	IsUnbuyable             bool    `json:"IsUnbuyable"`
-	HasHinge                bool    `json:"HasHinge"`
-	Foldable                bool    `json:"Foldable"`
-	FoldedSlot              *string `json:"FoldedSlot"`
-	VisibleAmmoRangesString string  `json:"VisibleAmmoRangesString"`
-	HideEntrails            bool    `json:"HideEntrails"`
-	Cartridges              *[]any  `json:"Cartridges"`
-	Grids                   *[]Grid `json:"Grids"`
-	Width                   int     `json:"Width"`
-	Height                  int     `json:"Height"`
-	SizeReduceRight         int     `json:"SizeReduceRight"`
-	ExtraSizeForceAdd       bool    `json:"ExtraSizeForceAdd"`
-	ExtraSizeUp             int     `json:"ExtraSizeUp"`
-	ExtraSizeDown           int     `json:"ExtraSizeDown"`
-	ExtraSizeLeft           int     `json:"ExtraSizeLeft"`
-	ExtraSizeRight          int     `json:"ExtraSizeRight"`
-	BackgroundColor         string  `json:"BackgroundColor"`
-	Slots                   *[]Slot `json:"Slots"`
+	StackMaxSize            int                `json:"StackMaxSize"`
+	IsUnbuyable             bool               `json:"IsUnbuyable"`
+	HasHinge                bool               `json:"HasHinge"`
+	Foldable                bool               `json:"Foldable"`
+	FoldedSlot              *string            `json:"FoldedSlot"`
+	VisibleAmmoRangesString string             `json:"VisibleAmmoRangesString"`
+	HideEntrails            bool               `json:"HideEntrails"`
+	Cartridges              *[]WithFilterProps `json:"Cartridges"`
+	Chambers                *[]WithFilterProps `json:"Chambers"`
+	Grids                   *[]WithFilterProps `json:"Grids"`
+	Width                   int                `json:"Width"`
+	Height                  int                `json:"Height"`
+	SizeReduceRight         int                `json:"SizeReduceRight"`
+	ExtraSizeForceAdd       bool               `json:"ExtraSizeForceAdd"`
+	ExtraSizeUp             int                `json:"ExtraSizeUp"`
+	ExtraSizeDown           int                `json:"ExtraSizeDown"`
+	ExtraSizeLeft           int                `json:"ExtraSizeLeft"`
+	ExtraSizeRight          int                `json:"ExtraSizeRight"`
+	BackgroundColor         string             `json:"BackgroundColor"`
+	Slots                   *[]WithFilterProps `json:"Slots"`
 }
 
-type Slot struct {
-	Props SlotProps `json:"_props"`
+type WithFilterProps struct {
+	Props FilterProps `json:"_props"`
 }
 
-type Grid struct {
-	Props GridProps `json:"_props"`
-}
-
-type GridProps struct {
-	Filters *[]Filters `json:"filters"`
-}
-
-type SlotProps struct {
+type FilterProps struct {
 	Filters *[]Filters `json:"filters"`
 }
 
