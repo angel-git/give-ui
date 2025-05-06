@@ -146,6 +146,10 @@ window.closeToast = function () {
     }
 }
 
+window.runtime.EventsOn('error', (e) => {
+    document.getElementById('main').innerHTML = e;
+})
+
 window.runtime.EventsOn('toast.info', (e) => {
     showToast("success-toast", e, 5000);
 })
