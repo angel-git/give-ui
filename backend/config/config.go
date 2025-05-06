@@ -12,7 +12,7 @@ const (
 )
 
 type Config struct {
-	errorLogger   *logger.ErrorFileLogger
+	errorLogger   *logger.FileLogger
 	locale        string
 	theme         string
 	sptUrl        string

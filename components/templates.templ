@@ -114,7 +114,20 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 				</div>
 			</div>
 			<div id="success-toast" class="toast toast-top toast-end hidden">
-				<div id="success-toast-message" class="alert alert-success"></div>
+				<div class="alert alert-success">
+					<span></span>
+					<div>
+						<button class="btn btn-sm" onclick="closeToast()">Close</button>
+					</div>
+				</div>
+			</div>
+			<div id="error-toast" class="toast toast-top toast-end hidden">
+				<div class="alert alert-error">
+					<span></span>
+					<div>
+						<button class="btn btn-sm" onclick="closeToast()">Close</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>

@@ -13,9 +13,9 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
 	runtimeWails "github.com/wailsapp/wails/v2/pkg/runtime"
-	"log"
 	"net/http"
 	"runtime"
+	giveLogger "spt-give-ui/backend/logger"
 )
 
 //go:embed all:frontend/dist components
@@ -28,6 +28,7 @@ var icon []byte
 var wailsJson string
 
 func main() {
+	log := giveLogger.SetupLogger()
 	version := gjson.Get(wailsJson, "version").Str
 	name := gjson.Get(wailsJson, "name").Str
 	// Create an instance of the app structure and custom Middleware
@@ -56,8 +57,8 @@ func main() {
 			},
 		},
 		Menu:             app.menu,
-		Logger:           nil,
-		LogLevel:         logger.DEBUG,
+		Logger:           log,
+		LogLevel:         logger.INFO,
 		OnStartup:        app.startup,
 		OnDomReady:       app.domReady,
 		OnBeforeClose:    app.beforeClose,
@@ -97,7 +98,7 @@ func main() {
 	})
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
 }
 
