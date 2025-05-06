@@ -1,4 +1,4 @@
 export interface IWsNotificationEvent {
-  type: string;
-  eventId: string;
+    type: string;
+    eventId?: string;
 }

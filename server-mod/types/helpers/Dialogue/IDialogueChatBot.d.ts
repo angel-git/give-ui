@@ -1,6 +1,6 @@
-import { ISendMessageRequest } from '@spt/models/eft/dialog/ISendMessageRequest';
-import { IUserDialogInfo } from '@spt/models/eft/profile/ISptProfile';
+import { ISendMessageRequest } from "@spt/models/eft/dialog/ISendMessageRequest";
+import { IUserDialogInfo } from "@spt/models/eft/profile/IUserDialogInfo";
 export interface IDialogueChatBot {
-  getChatBot(): IUserDialogInfo;
-  handleMessage(sessionId: string, request: ISendMessageRequest): string;
+    getChatBot(): IUserDialogInfo;
+    handleMessage(sessionId: string, request: ISendMessageRequest): string;
 }

@@ -1,9 +1,12 @@
+let previousSelectedItem = null;
+let previousSelectedkit = null;
+let previousToast = null;
+let previousToastElement = null;
+
 function setUsernameOnFooter() {
     const username = JSON.parse(document.getElementById("profile-selected-username").textContent);
     document.getElementById('profile-selected').innerText = ": " + username;
 }
-
-let previousSelectedItem = null;
 
 function filterItems() {
     const input = document.getElementById('filter-items-input');
@@ -51,6 +54,15 @@ function selectItem(element) {
     previousSelectedItem = element;
 }
 
+function selectKit(element) {
+    const classToToggle = 'text-primary';
+    if (previousSelectedkit) {
+        previousSelectedkit.classList.remove(classToToggle);
+    }
+    element.classList.add(classToToggle);
+    previousSelectedkit = element;
+}
+
 function selectItemFromKeyboard(event, element) {
     if (event.key === 'Enter') {
         selectItem(element);
@@ -71,6 +83,24 @@ function filterUserWeapons() {
             cards[i].style.display = "";
         } else {
             cards[i].style.display = "none";
+        }
+    }
+}
+
+function filterKits() {
+    const input = document.getElementById('filter-kits-input');
+    const filter = input.value.toUpperCase().trim();
+    const itemList = document.getElementById("kits-list");
+    const li = itemList.getElementsByTagName('li');
+
+
+    // Loop through all list items, and hide those who don't match the search query
+    for (let i = 0; i < li.length; i++) {
+        const txtValue = (li[i].textContent || li[i].innerText).toUpperCase().trim();
+        if (txtValue.indexOf(filter) > -1) {
+            li[i].style.display = "";
+        } else {
+            li[i].style.display = "none";
         }
     }
 }
@@ -103,23 +133,45 @@ window.filterItems = filterItems;
 window.selectItem = selectItem;
 window.selectItemFromKeyboard = selectItemFromKeyboard;
 window.filterUserWeapons = filterUserWeapons;
+window.filterKits = filterKits;
 window.showModal = showModal;
 window.filterMagazineLoadout = filterMagazineLoadout;
-
-let previousToast = null;
-
-htmx.on("showAddItemMessage", (e) => {
+window.selectKit = selectKit;
+window.closeToast = function () {
     if (previousToast) {
         clearTimeout(previousToast)
     }
-    const toastElement = document.getElementById("success-toast")
-    const toastBody = document.getElementById("success-toast-message")
-    toastBody.innerText = e.detail.value;
+    if (previousToastElement) {
+        previousToastElement.classList.add("hidden")
+    }
+}
+
+window.runtime.EventsOn('error', (e) => {
+    document.getElementById('main').innerHTML = e;
+})
+
+window.runtime.EventsOn('toast.info', (e) => {
+    showToast("success-toast", e, 5000);
+})
+
+window.runtime.EventsOn('toast.error', (e) => {
+    showToast("error-toast", e, 10000);
+})
+
+function showToast(id, message, timeout = 2000) {
+    if (previousToast) {
+        clearTimeout(previousToast)
+    }
+    const toastElement = document.getElementById(id);
+    previousToastElement = toastElement;
+    const toastBody = toastElement.children.item(0).children.item(0);
+    toastBody.innerText = message;
     toastElement.classList.remove("hidden")
     previousToast = setTimeout(() => {
-        toastElement.classList.add("hidden")
-    }, 2000)
-});
+        toastElement.classList.add("hidden");
+        previousToastElement = null;
+    }, timeout)
+}
 
 window.winterEvent = function () {
     const elem = document.getElementById("winter-event");
@@ -166,6 +218,6 @@ window.winterEvent = function () {
         </div>
        `;
     }
-
-}
+};
+window.winterEvent();
 

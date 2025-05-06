@@ -1,3 +1,3 @@
 export interface IGetOtherProfileRequest {
-  accountId: string;
+    accountId: string;
 }

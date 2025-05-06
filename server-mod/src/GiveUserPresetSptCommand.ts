@@ -2,9 +2,10 @@ import {inject, injectable} from "tsyringe";
 import {ISptCommand} from "@spt/helpers/Dialogue/Commando/SptCommands/ISptCommand";
 import {ItemHelper} from "@spt/helpers/ItemHelper";
 import {ISendMessageRequest} from "@spt/models/eft/dialog/ISendMessageRequest";
-import {ISptProfile, IUserDialogInfo} from "@spt/models/eft/profile/ISptProfile";
+import {ISptProfile} from "@spt/models/eft/profile/ISptProfile";
+import {IUserDialogInfo} from "@spt/models/eft/profile/IUserDialogInfo";
 import {MailSendService} from "@spt/services/MailSendService";
-import {ICloner} from "@spt/utils/cloners/ICloner";
+import type {ICloner} from "@spt/utils/cloners/ICloner";
 import {SaveServer} from '@spt/servers/SaveServer';
 
 

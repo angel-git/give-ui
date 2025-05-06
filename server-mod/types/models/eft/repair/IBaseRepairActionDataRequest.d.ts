@@ -1,3 +1,3 @@
 export interface IBaseRepairActionDataRequest {
-  Action: string;
+    Action: string;
 }

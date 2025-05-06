@@ -2,12 +2,15 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/wailsapp/wails/v2/pkg/menu"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"net/http"
+	"net/url"
 	"slices"
 	"spt-give-ui/backend/api"
 	"spt-give-ui/backend/config"
@@ -16,7 +19,6 @@ import (
 	"spt-give-ui/backend/images/cache"
 	"spt-give-ui/backend/images/cache_presets"
 	"spt-give-ui/backend/locale"
-	"spt-give-ui/backend/logger"
 	"spt-give-ui/backend/models"
 	"spt-give-ui/components"
 	"strconv"
@@ -45,7 +47,6 @@ type App struct {
 
 // NewApp creates a new App application struct
 func NewApp(name string, version string) *App {
-	logger.SetupLogger()
 	a := &App{
 		name:    name,
 		version: version,
@@ -83,13 +84,17 @@ func (a *App) shutdown(ctx context.Context) {
 	}
 }
 
-func getErrorComponent(app *App, err string) templ.Component {
+func redirectToErrorPage(app *App, err string) {
 	giveUiError := models.GiveUiError{
 		AppName:    app.name,
 		AppVersion: app.version,
 		Error:      err,
 	}
-	return components.ErrorConnection(giveUiError)
+	a := components.ErrorConnection(giveUiError)
+	var sb strings.Builder
+	a.Render(app.ctx, &sb)
+	runtime.EventsEmit(app.ctx, "error", sb.String())
+
 }
 
 func getLoginPage(app *App) http.HandlerFunc {
@@ -109,21 +114,21 @@ func getLoginPage(app *App) http.HandlerFunc {
 func getProfileList(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
-		url := r.FormValue("url")
-		app.config.SetSptUrl(url)
-		serverInfo, err := api.ConnectToSptServer(url)
+		sptUrl := r.FormValue("url")
+		app.config.SetSptUrl(sptUrl)
+		serverInfo, err := api.ConnectToSptServer(sptUrl)
 		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			redirectToErrorPage(app, err.Error())
 			return
 		}
 		if serverInfo.ModVersion != app.version {
-			templ.Handler(getErrorComponent(app, fmt.Sprintf("Wrong server mod version: %s", serverInfo.ModVersion))).ServeHTTP(w, r)
+			redirectToErrorPage(app, fmt.Sprintf("Wrong server mod version: %s", serverInfo.ModVersion))
 			return
 		}
 
-		profiles, err := api.LoadProfiles(url)
+		profiles, err := api.LoadProfiles(sptUrl)
 		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			redirectToErrorPage(app, err.Error())
 			return
 		}
 		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
@@ -158,7 +163,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 			localeCode := locale.ConvertLocale(app.config.GetLocale())
 			locales, err := api.GetLocaleFromServer(app.config.GetSptUrl(), localeCode)
 			if err != nil {
-				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				redirectToErrorPage(app, err.Error())
 				return
 			}
 			app.ctx = context.WithValue(app.ctx, contextLocales, locales)
@@ -171,12 +176,12 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		if app.ctx.Value(contextAllItems) == nil {
 			itemsResponse, err := api.LoadItems(app.config.GetSptUrl())
 			if err != nil {
-				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				redirectToErrorPage(app, err.Error())
 				return
 			}
 			allItems, err = api.ParseItems(itemsResponse, locales)
 			if err != nil {
-				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				redirectToErrorPage(app, err.Error())
 				return
 			}
 			app.ctx = context.WithValue(app.ctx, contextAllBSGItems, itemsResponse.Items)
@@ -198,23 +203,15 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 
 		skills, err := api.LoadSkills(profile, locales)
 		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			redirectToErrorPage(app, err.Error())
 			return
 		}
 		serverInfo := app.ctx.Value(contextServerInfo).(*models.ServerInfo)
-		// trader reputation fix https://github.com/sp-tarkov/server/pull/994 is not available in versions 3.10.0, 3.10.1, 3.10.2, 3.10.3
-		// TODO remove me after 3.11.0 release
-		var traders []models.Trader
-		if !strings.Contains(serverInfo.Version, "3.10.0") && !strings.Contains(serverInfo.Version, "3.10.1") && !strings.Contains(serverInfo.Version, "3.10.2") && !strings.Contains(serverInfo.Version, "3.10.3") {
-			traders, err = api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
-			if err != nil {
-				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
-				return
-			}
-		}
+		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 		addImageToWeaponBuild(app, &profile.UserBuilds.WeaponBuilds)
+		addUIPropertiesToInventoryItems(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
 
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo.MaxLevel)).ServeHTTP(w, r)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo)).ServeHTTP(w, r)
 	}
 }
 
@@ -273,9 +270,9 @@ func addItem(app *App) http.HandlerFunc {
 
 		err := api.AddItem(app.config.GetSptUrl(), sessionId, itemId, amount)
 		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			redirectToErrorPage(app, err.Error())
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your item has been sent\"}")
+		runtime.EventsEmit(app.ctx, "toast.info", "Your item has been sent")
 	}
 }
 
@@ -291,22 +288,25 @@ func updateTrader(app *App) http.HandlerFunc {
 		if rep != repOriginal {
 			floatRep, err := strconv.ParseFloat(rep, 64)
 			if err != nil {
-				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				redirectToErrorPage(app, err.Error())
 				return
 			}
 			rep = fmt.Sprintf("%d", int(floatRep*100))
 			err = api.UpdateTraderRep(app.config.GetSptUrl(), sessionId, nickname, rep)
 			if err != nil {
-				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				redirectToErrorPage(app, err.Error())
+				return
 			}
+			runtime.EventsEmit(app.ctx, "toast.info", "Message sent. Don't forget to accept it")
 		}
 
 		if spend != spendOriginal {
 			err := api.UpdateTraderSpend(app.config.GetSptUrl(), sessionId, nickname, spend)
 			if err != nil {
-				templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+				redirectToErrorPage(app, err.Error())
+				return
 			}
-			w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+			runtime.EventsEmit(app.ctx, "toast.info", "Message sent. Don't forget to accept it")
 		}
 	}
 }
@@ -319,7 +319,7 @@ func getTraders(app *App) http.HandlerFunc {
 
 		err := reloadProfiles(app)
 		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			redirectToErrorPage(app, err.Error())
 			return
 		}
 
@@ -327,7 +327,7 @@ func getTraders(app *App) http.HandlerFunc {
 
 		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			redirectToErrorPage(app, err.Error())
 			return
 		}
 		templ.Handler(components.Traders(&profile, traders)).ServeHTTP(w, r)
@@ -341,14 +341,14 @@ func getSkills(app *App) http.HandlerFunc {
 
 		err := reloadProfiles(app)
 		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			redirectToErrorPage(app, err.Error())
 			return
 		}
 
 		profile := getProfileFromSession(app)
 		skills, err := api.LoadSkills(profile, locales)
 		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			redirectToErrorPage(app, err.Error())
 			return
 		}
 		serverInfo := app.ctx.Value(contextServerInfo).(*models.ServerInfo)
@@ -362,10 +362,58 @@ func setLevel(app *App) http.HandlerFunc {
 
 		err := api.UpdateLevel(app.config.GetSptUrl(), sessionId, level)
 		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			redirectToErrorPage(app, err.Error())
+			return
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
+		runtime.EventsEmit(app.ctx, "toast.info", "Message sent. Don't forget to accept it")
 
+	}
+}
+
+func getFile(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		imageUrl := r.URL.Query().Get("url")
+		imageUrlUnescape, err := url.QueryUnescape(imageUrl)
+		if err != nil {
+			redirectToErrorPage(app, err.Error())
+			return
+		}
+		image, err := api.LoadFile(app.config.GetSptUrl(), sessionId, imageUrlUnescape)
+		if err != nil {
+			redirectToErrorPage(app, err.Error())
+			return
+		}
+		w.Write(image)
+	}
+}
+
+func sendSptMessage(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		message := r.FormValue("message")
+
+		var err error
+		switch message {
+		case "summer":
+			err = api.SetSummerSeason(app.config.GetSptUrl(), sessionId)
+		case "halloween":
+			err = api.SetHalloweenSeason(app.config.GetSptUrl(), sessionId)
+		case "winter":
+			err = api.SetWinterSeason(app.config.GetSptUrl(), sessionId)
+		case "christmas":
+			err = api.SetChristmasSeason(app.config.GetSptUrl(), sessionId)
+		case "stash":
+			err = api.AddRowsToStash(app.config.GetSptUrl(), sessionId)
+		default:
+			err = api.SendGift(app.config.GetSptUrl(), sessionId, message)
+		}
+
+		if err != nil {
+			redirectToErrorPage(app, err.Error())
+			return
+		}
+		runtime.EventsEmit(app.ctx, "toast.info", "Message sent. Read the response in Tarkov dialogues")
 	}
 }
 
@@ -377,10 +425,10 @@ func updateSkill(app *App) http.HandlerFunc {
 
 		err := api.UpdateSkill(app.config.GetSptUrl(), sessionId, skill, progress)
 		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			redirectToErrorPage(app, err.Error())
+			return
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Message sent. Don't forget to accept it\"}")
-
+		runtime.EventsEmit(app.ctx, "toast.info", "Message sent. Don't forget to accept it")
 	}
 }
 
@@ -390,7 +438,7 @@ func getUserWeaponPresets(app *App) http.HandlerFunc {
 
 		err := reloadProfiles(app)
 		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			redirectToErrorPage(app, err.Error())
 			return
 		}
 		profile := getProfileFromSession(app)
@@ -430,9 +478,10 @@ func addUserWeaponPreset(app *App) http.HandlerFunc {
 
 		err := api.AddUserWeapon(app.config.GetSptUrl(), sessionId, presetId)
 		if err != nil {
-			templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+			redirectToErrorPage(app, err.Error())
+			return
 		}
-		w.Header().Set("HX-Trigger", "{\"showAddItemMessage\": \"Your weapon has been sent\"}")
+		runtime.EventsEmit(app.ctx, "toast.info", "Your weapon has been sent")
 	}
 }
 
@@ -441,6 +490,9 @@ func loadImage(app *App, hash int32) (string, error) {
 	var loader images.ImageLoader
 	var url string
 	cacheFolder := app.config.GetCacheFolder()
+	if !app.config.GetUseCache() {
+		return "", errors.New("Cache is disabled")
+	}
 	if cacheFolder != "" {
 		loader = &images.LocalImageLoader{}
 		url = cacheFolder
@@ -449,6 +501,72 @@ func loadImage(app *App, hash int32) (string, error) {
 		url = app.config.GetSptUrl()
 	}
 	return loader.LoadImage(url, session, fmt.Sprint(hash))
+}
+
+func getKit(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		gearId := chi.URLParam(r, "id")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		//allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		allProfiles := app.ctx.Value(contextProfiles).([]models.SPTProfile)
+		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
+			return i.Info.Id == sessionId
+		})
+
+		equipmentBuilds := allProfiles[allProfilesIdx].UserBuilds.EquipmentBuilds
+		equipmentBuildsIdx := slices.IndexFunc(equipmentBuilds, func(i models.EquipmentBuild) bool {
+			return i.Id == gearId
+		})
+		equipmentBuild := equipmentBuilds[equipmentBuildsIdx]
+		var slotsWithImages = []string{"Earpiece", "Headwear", "FaceCover", "ArmBand", "ArmorVest", "Eyewear", "FirstPrimaryWeapon", "Holster", "SecondPrimaryWeapon", "Scabbard", "TacticalVest", "Backpack", "SecuredContainer"}
+		for _, slotWithImage := range slotsWithImages {
+			addImageToKit(app, slotWithImage, equipmentBuild)
+		}
+
+		templ.Handler(components.Kit(equipmentBuilds[equipmentBuildsIdx])).ServeHTTP(w, r)
+	}
+}
+
+func getKits(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		err := reloadProfiles(app)
+		if err != nil {
+			redirectToErrorPage(app, err.Error())
+			return
+		}
+		profile := getProfileFromSession(app)
+		equipmentBuilds := profile.UserBuilds.EquipmentBuilds
+
+		templ.Handler(components.Kits(equipmentBuilds, sessionId)).ServeHTTP(w, r)
+	}
+}
+
+func addImageToKit(app *App, slot string, equipmentBuild models.EquipmentBuild) {
+	index := slices.IndexFunc(equipmentBuild.Items, func(i models.ItemWithUpd) bool {
+		return i.SlotID != nil && *i.SlotID == slot
+	})
+	if index != -1 {
+		image64 := calculateImageBase64FromItems(app, equipmentBuild.Items, index, app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem))
+		equipmentBuild.Items[index].ImageBase64 = image64
+	}
+}
+
+func addKit(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		presetId := chi.URLParam(r, "presetId")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		err := api.AddGearPreset(app.config.GetSptUrl(), sessionId, presetId)
+		if err != nil {
+			redirectToErrorPage(app, err.Error())
+			return
+		}
+		runtime.EventsEmit(app.ctx, "toast.info", "Your kit has been sent")
+	}
 }
 
 func addMagazineLoadout(app *App) http.HandlerFunc {
@@ -472,11 +590,39 @@ func addMagazineLoadout(app *App) http.HandlerFunc {
 				amount := allItems.Items[item.TemplateId].MaxStock
 				err := api.AddItem(app.config.GetSptUrl(), sessionId, item.TemplateId, amount)
 				if err != nil {
-					templ.Handler(getErrorComponent(app, err.Error())).ServeHTTP(w, r)
+					redirectToErrorPage(app, err.Error())
 					break
 				}
 			}
 		}
+	}
+}
+
+func getStash(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		err := reloadProfiles(app)
+		if err != nil {
+			redirectToErrorPage(app, err.Error())
+			return
+		}
+		profile := getProfileFromSession(app)
+		addUIPropertiesToInventoryItems(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
+		templ.Handler(components.Stash(&profile)).ServeHTTP(w, r)
+	}
+}
+
+func addStashItem(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		itemId := r.FormValue("id")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+
+		err := api.AddStashItem(app.config.GetSptUrl(), sessionId, itemId)
+		if err != nil {
+			redirectToErrorPage(app, err.Error())
+			return
+		}
+		runtime.EventsEmit(app.ctx, "toast.info", "Your item has been sent")
 	}
 }
 
@@ -504,8 +650,35 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 		idx := slices.IndexFunc(*weaponBuild.Items, func(i models.ItemWithUpd) bool {
 			return i.Id == weaponBuild.Root
 		})
+		var ImageBase64 = calculateImageBase64FromItems(app, *weaponBuild.Items, idx, bsgItems)
+		weaponBuild.ImageBase64 = ImageBase64
+	}
+}
 
-		imageHash := cache_presets.GetItemHash((*weaponBuild.Items)[idx], *weaponBuild.Items, bsgItems)
+func calculateImageBase64FromItems(app *App, items []models.ItemWithUpd, idx int, bsgItems map[string]models.BSGItem) string {
+	imageHash := cache_presets.GetItemHash(items[idx], items, bsgItems)
+	imageBase64, err := loadImage(app, imageHash)
+	var ImageBase64 string
+	if err != nil {
+		ImageBase64 = ""
+	} else {
+		ImageBase64 = imageBase64
+	}
+	return ImageBase64
+}
+
+func addUIPropertiesToInventoryItems(app *App, parentId string, inventoryItems *[]models.ItemWithUpd) {
+	bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
+	allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+
+	for i := range *inventoryItems {
+		inventoryItem := &(*inventoryItems)[i]
+
+		if inventoryItem.ParentID != nil && *inventoryItem.ParentID != parentId {
+			continue
+		}
+
+		imageHash := cache_presets.GetItemHash(*inventoryItem, *inventoryItems, bsgItems)
 		imageBase64, err := loadImage(app, imageHash)
 		var ImageBase64 string
 		if err != nil {
@@ -513,7 +686,21 @@ func addImageToWeaponBuild(app *App, weaponBuilds *[]models.WeaponBuild) {
 		} else {
 			ImageBase64 = imageBase64
 		}
-		weaponBuild.ImageBase64 = ImageBase64
+		inventoryItem.ImageBase64 = ImageBase64
+
+		sizeX, sizeY := images.GetItemSize(*inventoryItem, *inventoryItems, bsgItems)
+		inventoryItem.SizeX = sizeX
+		inventoryItem.SizeY = sizeY
+		inventoryItem.ShortName = allItems.Items[inventoryItem.Tpl].ShortName
+		inventoryItem.Amount = 1
+		if inventoryItem.Upd != nil {
+			inventoryItem.Amount = inventoryItem.Upd.StackObjectsCount
+		}
+		bsgItem, ok := bsgItems[inventoryItem.Tpl]
+		if ok {
+			inventoryItem.BackgroundColor = bsgItem.Props.BackgroundColor
+			inventoryItem.IsStockable = bsgItem.Props.StackMaxSize != 1
+		}
 	}
 }
 
@@ -522,7 +709,13 @@ func addImageToWeaponBuildAttachments(app *App, weaponBuild *models.WeaponBuild)
 
 	for j := range *weaponBuild.Items {
 		weaponAttachment := &(*weaponBuild.Items)[j]
-		attachmentHash := cache.GetItemHash(bsgItems[weaponAttachment.Tpl], bsgItems)
+		bsgItem, found := bsgItems[weaponAttachment.Tpl]
+		if !found {
+			runtime.LogWarning(app.ctx, "Couldn't find item in BSG items: "+weaponAttachment.Tpl)
+			runtime.EventsEmit(app.ctx, "toast.error", "Some attachments couldn't be loaded.")
+			continue
+		}
+		attachmentHash := cache.GetItemHash(bsgItem, bsgItems)
 		attachmentImageBase64, err := loadImage(app, attachmentHash)
 		var AttachmentImageBase64 string
 		if err != nil {
@@ -555,6 +748,14 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/user-weapons", getUserWeaponPresets(app))
 	r.Post("/user-weapons/{id}", addUserWeaponPreset(app))
 	r.Get("/user-weapons-modal/{id}", getUserWeaponModal(app))
+	r.Get("/stash", getStash(app))
+	r.Post("/stash", addStashItem(app))
+	r.Get("/kit/{id}", getKit(app))
+	r.Get("/kits", getKits(app))
+	r.Post("/kit/{presetId}", addKit(app))
+	r.Post("/spt", sendSptMessage(app))
+	// forward calls to SPT server for files (images)
+	r.Get("/file", getFile(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))

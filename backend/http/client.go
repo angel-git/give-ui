@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -18,7 +19,12 @@ type Client struct {
 
 func NewClient(timeoutInSeconds uint16) {
 	instance = &Client{
-		httpClient: &http.Client{Timeout: time.Duration(timeoutInSeconds) * time.Second},
+		&http.Client{
+			Timeout: time.Duration(timeoutInSeconds) * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		},
 	}
 }
 
@@ -51,6 +57,14 @@ func DoGet(url string, sessionId string) (*http.Response, error) {
 	myClient := getInstance().httpClient
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("responsecompressed", "0")
+	req.Header.Set("Cookie", fmt.Sprintf("PHPSESSID=%s", sessionId))
+	return myClient.Do(req)
+}
+
+func DoGetCompressed(url string, sessionId string) (*http.Response, error) {
+	myClient := getInstance().httpClient
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("responsecompressed", "1")
 	req.Header.Set("Cookie", fmt.Sprintf("PHPSESSID=%s", sessionId))
 	return myClient.Do(req)
 }

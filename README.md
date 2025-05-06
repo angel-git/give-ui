@@ -23,19 +23,39 @@ Simple UI for the `SPT GIVE` command.
 
 - When you have saved weapons presets you can add them to your character with a single click
 
-### Skills
+#### Kits
+
+![kits.png](kits.png)
+
+- When you have saved kits you can add them to your character with a single click
+
+#### Stash
+
+![stash.png](stash.png)
+
+- For quickly duplicate items that you already have in your stash
+
+#### Skills
 
 ![skills.png](skills.png)
 
 - Update profile level
 - Update skills level
 
-### Traders
+#### Traders
 
 ![traders.png](traders.png)
 
 - Update the reputation of the traders
 - Update the money spent on the traders
+
+#### Other
+
+![other.png](other.png)
+
+- Set season
+- Add stash rows
+- Receive gifts
 
 ### Installation
 - unzip it in your SPT root folder

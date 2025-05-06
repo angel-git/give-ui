@@ -1,3 +1,3 @@
 export interface IFriendRequestData {
-  to: string;
+    to: string;
 }

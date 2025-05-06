@@ -1,4 +1,4 @@
 export interface IPMCLootGenerator {
-  generatePMCPocketLootPool(): string[];
-  generatePMCBackpackLootPool(): string[];
+    generatePMCPocketLootPool(): string[];
+    generatePMCBackpackLootPool(): string[];
 }

@@ -1,3 +1,3 @@
 export interface IDeleteFriendRequest {
-  friend_id: string;
+    friend_id: string;
 }
