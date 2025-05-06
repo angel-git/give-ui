@@ -396,20 +396,28 @@ templ UserWeaponModal(allItems *models.AllItems, weaponBuild models.WeaponBuild)
 }
 
 templ LinkedSearchModal(linked []models.ViewItem) {
-	<div class="modal-box flex flex-col">
+	<div class="modal-box flex flex-col overflow-y-auto">
 		if (len(linked) == 0) {
 			<div>no linked items found :-(</div>
 		} else {
-			<div class="flex flex-col gap-4 overflow-y-auto">
-				for _, i := range linked {
-					<div>
-						<div class="w-16 h-16 table-cell align-middle">
-							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", i.Id) }/>
-						</div>
-						<div class="pl-2 text-start table-cell align-middle">{ i.Name }</div>
+			for _, i := range linked {
+				<div class="flex flex-row items-center gap-2">
+					<div class="w-16 h-16">
+						<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", i.Id) }/>
 					</div>
-				}
-			</div>
+					<div class="pl-2 text-start grow">{ i.Name }</div>
+					<form hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit">
+						<input name="quantity" hidden type="number" value={ fmt.Sprintf("%d", i.MaxStock) }/>
+						<input name="id" hidden value={ i.Id }/>
+						<button type="submit" class="btn btn-primary btn-sm">
+							<div id="loader" class="button-loader">
+								<span class="loading loading-spinner"></span>
+								<span class="button-hide">Give</span>
+							</div>
+						</button>
+					</form>
+				</div>
+			}
 		}
 	</div>
 	<form method="dialog" class="modal-backdrop">
