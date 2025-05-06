@@ -52,7 +52,6 @@ func NewApp(name string, version string) *App {
 		version: version,
 	}
 	a.config = config.LoadConfig()
-	fmt.Printf("a.config.GetTimeoutSeconds() %d\n", a.config.GetTimeoutSeconds())
 	client.NewClient(a.config.GetTimeoutSeconds())
 	return a
 }
