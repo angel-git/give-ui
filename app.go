@@ -94,15 +94,6 @@ func redirectToErrorPage(app *App, err string) {
 
 }
 
-//func getErrorComponent(app *App, err string) templ.Component {
-//	giveUiError := models.GiveUiError{
-//		AppName:    app.name,
-//		AppVersion: app.version,
-//		Error:      err,
-//	}
-//	return components.ErrorConnection(giveUiError)
-//}
-
 func getLoginPage(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
