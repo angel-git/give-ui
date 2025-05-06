@@ -27,7 +27,7 @@ type BSGItemProps struct {
 	VisibleAmmoRangesString string  `json:"VisibleAmmoRangesString"`
 	HideEntrails            bool    `json:"HideEntrails"`
 	Cartridges              *[]any  `json:"Cartridges"`
-	Grids                   *[]any  `json:"Grids"`
+	Grids                   *[]Grid `json:"Grids"`
 	Width                   int     `json:"Width"`
 	Height                  int     `json:"Height"`
 	SizeReduceRight         int     `json:"SizeReduceRight"`
@@ -37,4 +37,25 @@ type BSGItemProps struct {
 	ExtraSizeLeft           int     `json:"ExtraSizeLeft"`
 	ExtraSizeRight          int     `json:"ExtraSizeRight"`
 	BackgroundColor         string  `json:"BackgroundColor"`
+	Slots                   *[]Slot `json:"Slots"`
+}
+
+type Slot struct {
+	Props SlotProps `json:"_props"`
+}
+
+type Grid struct {
+	Props GridProps `json:"_props"`
+}
+
+type GridProps struct {
+	Filters *[]Filters `json:"filters"`
+}
+
+type SlotProps struct {
+	Filters *[]Filters `json:"filters"`
+}
+
+type Filters struct {
+	Filter []string `json:"Filter"`
 }

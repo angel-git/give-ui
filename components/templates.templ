@@ -5,7 +5,7 @@ import (
 	"slices"
 	"sort"
 	"spt-give-ui/backend/models"
-	"spt-give-ui/backend/templ_utils"
+	"spt-give-ui/backend/util"
 	"strings"
 	"time"
 )
@@ -190,6 +190,8 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 					<span>This item is part of a bundle. It <em>may</em> include all the necessary attachments to be functional.</span>
 				</div>
 			}
+			<dialog id="linked-search" class="modal" hx-on::after-swap="showModal(this)"></dialog>
+			<button class="w-max p-0 btn btn-link" hx-trigger="click" hx-target="#linked-search" hx-get={ fmt.Sprintf("/linked-search/%s", item.Id) }>Linked search</button>
 			<p class="text-justify">{ item.Description }</p>
 			<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit, keydown[ctrlKey&&shiftKey&&key=='A'] from:body">
 				<input name="quantity" type="number" min="1" max="2147483647" class="input input-bordered bg-base-200 max-w-24" value={ fmt.Sprintf("%d", item.MaxStock) }/>
@@ -363,6 +365,28 @@ templ UserWeaponModal(allItems *models.AllItems, weaponBuild models.WeaponBuild)
 	</form>
 }
 
+templ LinkedSearchModal(linked []models.ViewItem) {
+	<div class="modal-box flex flex-col">
+		if (len(linked) == 0) {
+			<div>no linked items found :-(</div>
+		} else {
+			<div class="flex flex-col gap-4 overflow-y-auto">
+				for _, i := range linked {
+					<div>
+						<div class="w-16 h-16 table-cell align-middle">
+							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", i.Id) }/>
+						</div>
+						<div class="pl-2 text-start table-cell align-middle">{ i.Name }</div>
+					</div>
+				}
+			</div>
+		}
+	</div>
+	<form method="dialog" class="modal-backdrop">
+		<button tabIndex="-1">close</button>
+	</form>
+}
+
 templ Skills(profileLevel int, skills []models.Skill, maxLevel int) {
 	<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="skills">
 		<div role="alert" class="alert alert-info">
@@ -478,12 +502,12 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 	</div>
 }
 
-func itemImageStyle(item templ_utils.InventoryItem) templ.Attributes {
-	return templ.Attributes{"style": templ_utils.CalculateBackgroundStyleForImage(item)}
+func itemImageStyle(item util.InventoryItem) templ.Attributes {
+	return templ.Attributes{"style": util.CalculateBackgroundStyleForImage(item)}
 }
 
-func itemStyle(item templ_utils.InventoryItem) templ.Attributes {
-	return templ.Attributes{"style": templ_utils.CalculateBackgroundStyleForItem(item)}
+func itemStyle(item util.InventoryItem) templ.Attributes {
+	return templ.Attributes{"style": util.CalculateBackgroundStyleForItem(item)}
 }
 
 func itemWidth(gridSizeX int) templ.Attributes {
@@ -497,7 +521,7 @@ func gridSize(gridSizeX int) templ.Attributes {
 }
 
 templ Stash(profile *models.SPTProfile) {
-	{{ stashItems, gridSizeX, _ := templ_utils.PrepareItemsForStash(profile) }}
+	{{ stashItems, gridSizeX, _ := util.PrepareItemsForStash(profile) }}
 	<div class="w-full flex flex-col gap-2 items-center justify-center" id="stash">
 		<div role="alert" class="alert alert-info">
 			<svg
@@ -519,9 +543,9 @@ templ Stash(profile *models.SPTProfile) {
 			</button>
 		</div>
 		<div class="w-full flex items-center justify-end gap-5" { itemWidth(gridSizeX)... }>
-			<div><strong>₽ { templ_utils.SumAllItems("5449016a4bdc2d6f028b456f", profile) }</strong></div>
-			<div>€ { templ_utils.SumAllItems("569668774bdc2da2298b4568", profile) }</div>
-			<div>$ { templ_utils.SumAllItems("5696686a4bdc2da3298b456a", profile) }</div>
+			<div><strong>₽ { util.SumAllItems("5449016a4bdc2d6f028b456f", profile) }</strong></div>
+			<div>€ { util.SumAllItems("569668774bdc2da2298b4568", profile) }</div>
+			<div>$ { util.SumAllItems("5696686a4bdc2da3298b456a", profile) }</div>
 		</div>
 		<div class="grid-stash" { gridSize(gridSizeX)... }>
 			for _, item := range stashItems {

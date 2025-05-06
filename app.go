@@ -20,6 +20,7 @@ import (
 	"spt-give-ui/backend/images/cache_presets"
 	"spt-give-ui/backend/locale"
 	"spt-give-ui/backend/models"
+	"spt-give-ui/backend/util"
 	"spt-give-ui/components"
 	"strconv"
 	"strings"
@@ -387,6 +388,30 @@ func getFile(app *App) http.HandlerFunc {
 	}
 }
 
+func getLinkedSearchModal(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		itemId := chi.URLParam(r, "id")
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		bsgItems := app.ctx.Value(contextAllBSGItems).(map[string]models.BSGItem)
+
+		baseItem, found := bsgItems[itemId]
+		if !found {
+			runtime.LogWarning(app.ctx, "Couldn't find item in BSG items: "+itemId)
+			runtime.EventsEmit(app.ctx, "toast.error", "Couldn't find item in BSG items")
+			return
+		}
+		var linkedItems []models.ViewItem
+		linkedItemIds := util.SearchLink(baseItem)
+		for _, id := range linkedItemIds {
+			item, exists := allItems.Items[id]
+			if exists {
+				linkedItems = append(linkedItems, item)
+			}
+		}
+		templ.Handler(components.LinkedSearchModal(linkedItems)).ServeHTTP(w, r)
+	}
+}
+
 func sendSptMessage(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sessionId := app.ctx.Value(contextSessionId).(string)
@@ -507,7 +532,6 @@ func getKit(app *App) http.HandlerFunc {
 		gearId := chi.URLParam(r, "id")
 		sessionId := app.ctx.Value(contextSessionId).(string)
 
-		//allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
 		allProfiles := app.ctx.Value(contextProfiles).([]models.SPTProfile)
 		allProfilesIdx := slices.IndexFunc(allProfiles, func(i models.SPTProfile) bool {
 			return i.Info.Id == sessionId
@@ -755,6 +779,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/spt", sendSptMessage(app))
 	// forward calls to SPT server for files (images)
 	r.Get("/file", getFile(app))
+	r.Get("/linked-search/{id}", getLinkedSearchModal(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))

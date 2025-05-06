@@ -1,4 +1,4 @@
-package templ_utils
+package util
 
 import (
 	"fmt"
