@@ -405,6 +405,11 @@ func getLinkedSearchModal(app *App) http.HandlerFunc {
 		for _, id := range linkedItemIds {
 			item, exists := allItems.Items[id]
 			if exists {
+				hash := cache.GetItemHash(baseItem, bsgItems)
+				imageBase64, err := loadImage(app, hash)
+				if err == nil {
+					item.ImageBase64 = imageBase64
+				}
 				linkedItems = append(linkedItems, item)
 			}
 		}

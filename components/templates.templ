@@ -403,7 +403,11 @@ templ LinkedSearchModal(linked []models.ViewItem) {
 			for _, i := range linked {
 				<div class="flex flex-row items-center gap-2">
 					<div class="w-16 h-16">
-						<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", i.Id) }/>
+						if i.ImageBase64 != "" {
+							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("data:image/png;base64, %s", i.ImageBase64) }/>
+						} else {
+							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", i.Id) }/>
+						}
 					</div>
 					<div class="pl-2 text-start grow">{ i.Name }</div>
 					<form hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit">
