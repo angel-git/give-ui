@@ -5,7 +5,7 @@ import (
 	"slices"
 	"sort"
 	"spt-give-ui/backend/models"
-	"spt-give-ui/backend/templ_utils"
+	"spt-give-ui/backend/util"
 	"strings"
 	"time"
 )
@@ -103,21 +103,26 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Others(serverInfo)
 			</div>
-			<div class="grow text-right">
-				<div class="dropdown dropdown-hover dropdown-end">
-					<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-sm m-1">Help</div>
-					<div tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-[1] w-80 p-2 shadow text-left">
-						<p><kbd class="kbd kbd-xs">Ctrl + Shift + S</kbd> to toggle favorites search</p>
-						<p><kbd class="kbd kbd-xs">Ctrl + Shift + A</kbd> to add selected item</p>
-						<p><kbd class="kbd kbd-xs">Ctrl + Shift + F</kbd> to fav/unfav selected item</p>
-					</div>
-				</div>
-			</div>
 			<div id="success-toast" class="toast toast-top toast-end hidden">
 				<div class="alert alert-success">
 					<span></span>
 					<div>
-						<button class="btn btn-sm" onclick="closeToast()">Close</button>
+						<button class="btn btn-circle btn-outline btn-sm" onclick="closeToast()">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-6 w-6"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								></path>
+							</svg>
+						</button>
 					</div>
 				</div>
 			</div>
@@ -125,7 +130,22 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 				<div class="alert alert-error">
 					<span></span>
 					<div>
-						<button class="btn btn-sm" onclick="closeToast()">Close</button>
+						<button class="btn btn-circle btn-outline btn-sm" onclick="closeToast()">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-6 w-6"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								></path>
+							</svg>
+						</button>
 					</div>
 				</div>
 			</div>
@@ -190,6 +210,8 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 					<span>This item is part of a bundle. It <em>may</em> include all the necessary attachments to be functional.</span>
 				</div>
 			}
+			<dialog id="linked-search" class="modal" hx-on::after-swap="showModal(this)"></dialog>
+			<button class="w-max p-0 btn btn-link" hx-trigger="click" hx-target="#linked-search" hx-get={ fmt.Sprintf("/linked-search/%s", item.Id) }>Linked search</button>
 			<p class="text-justify">{ item.Description }</p>
 			<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit, keydown[ctrlKey&&shiftKey&&key=='A'] from:body">
 				<input name="quantity" type="number" min="1" max="2147483647" class="input input-bordered bg-base-200 max-w-24" value={ fmt.Sprintf("%d", item.MaxStock) }/>
@@ -231,11 +253,21 @@ func anyItemInsideCategory(cat string, items []models.ViewItem) bool {
 templ _Items(allItems *models.AllItems, sessionId string, filterFavorites bool) {
 	{{ sortedItems := sortAndConvertItems(allItems, filterFavorites) }}
 	<div class="flex flex-col h-full">
-		<div class="w-full p-2 flex items-center justify-center">
+		<div class="w-full p-2 flex items-center justify-center relative">
 			<label class="input input-bordered bg-base-200 flex items-center gap-2 max-w-xs w-full">
 				<input type="text" autocomplete="off" id="filter-items-input" oninput="filterItems()" placeholder="Filter here" autofocus class="grow"/>
 				@_FavSwitcher(sessionId, filterFavorites)
 			</label>
+			<div class="absolute right-0">
+				<div class="dropdown dropdown-hover dropdown-end">
+					<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-sm m-1">Help</div>
+					<div tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-[1] w-80 p-2 shadow text-left">
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + S</kbd> to toggle favorites search</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + A</kbd> to add selected item</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + F</kbd> to fav/unfav selected item</p>
+					</div>
+				</div>
+			</div>
 		</div>
 		<div class="flex w-full h-full min-h-0" id="item-list">
 			<div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
@@ -363,6 +395,40 @@ templ UserWeaponModal(allItems *models.AllItems, weaponBuild models.WeaponBuild)
 	</form>
 }
 
+templ LinkedSearchModal(linked []models.ViewItem) {
+	<div class="modal-box flex flex-col overflow-y-auto">
+		if (len(linked) == 0) {
+			<div>no linked items found :-(</div>
+		} else {
+			for _, i := range linked {
+				<div class="flex flex-row items-center gap-2">
+					<div class="w-16 h-16">
+						if i.ImageBase64 != "" {
+							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("data:image/png;base64, %s", i.ImageBase64) }/>
+						} else {
+							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", i.Id) }/>
+						}
+					</div>
+					<div class="pl-2 text-start grow">{ i.Name }</div>
+					<form hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit">
+						<input name="quantity" hidden type="number" value={ fmt.Sprintf("%d", i.MaxStock) }/>
+						<input name="id" hidden value={ i.Id }/>
+						<button type="submit" class="btn btn-primary btn-sm">
+							<div id="loader" class="button-loader">
+								<span class="loading loading-spinner"></span>
+								<span class="button-hide">Give</span>
+							</div>
+						</button>
+					</form>
+				</div>
+			}
+		}
+	</div>
+	<form method="dialog" class="modal-backdrop">
+		<button tabIndex="-1">close</button>
+	</form>
+}
+
 templ Skills(profileLevel int, skills []models.Skill, maxLevel int) {
 	<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="skills">
 		<div role="alert" class="alert alert-info">
@@ -478,12 +544,12 @@ templ Traders(profile *models.SPTProfile, traders []models.Trader) {
 	</div>
 }
 
-func itemImageStyle(item templ_utils.InventoryItem) templ.Attributes {
-	return templ.Attributes{"style": templ_utils.CalculateBackgroundStyleForImage(item)}
+func itemImageStyle(item util.InventoryItem) templ.Attributes {
+	return templ.Attributes{"style": util.CalculateBackgroundStyleForImage(item)}
 }
 
-func itemStyle(item templ_utils.InventoryItem) templ.Attributes {
-	return templ.Attributes{"style": templ_utils.CalculateBackgroundStyleForItem(item)}
+func itemStyle(item util.InventoryItem) templ.Attributes {
+	return templ.Attributes{"style": util.CalculateBackgroundStyleForItem(item)}
 }
 
 func itemWidth(gridSizeX int) templ.Attributes {
@@ -497,7 +563,7 @@ func gridSize(gridSizeX int) templ.Attributes {
 }
 
 templ Stash(profile *models.SPTProfile) {
-	{{ stashItems, gridSizeX, _ := templ_utils.PrepareItemsForStash(profile) }}
+	{{ stashItems, gridSizeX, _ := util.PrepareItemsForStash(profile) }}
 	<div class="w-full flex flex-col gap-2 items-center justify-center" id="stash">
 		<div role="alert" class="alert alert-info">
 			<svg
@@ -519,9 +585,9 @@ templ Stash(profile *models.SPTProfile) {
 			</button>
 		</div>
 		<div class="w-full flex items-center justify-end gap-5" { itemWidth(gridSizeX)... }>
-			<div><strong>₽ { templ_utils.SumAllItems("5449016a4bdc2d6f028b456f", profile) }</strong></div>
-			<div>€ { templ_utils.SumAllItems("569668774bdc2da2298b4568", profile) }</div>
-			<div>$ { templ_utils.SumAllItems("5696686a4bdc2da3298b456a", profile) }</div>
+			<div><strong>₽ { util.SumAllItems("5449016a4bdc2d6f028b456f", profile) }</strong></div>
+			<div>€ { util.SumAllItems("569668774bdc2da2298b4568", profile) }</div>
+			<div>$ { util.SumAllItems("5696686a4bdc2da3298b456a", profile) }</div>
 		</div>
 		<div class="grid-stash" { gridSize(gridSizeX)... }>
 			for _, item := range stashItems {
