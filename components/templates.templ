@@ -774,7 +774,7 @@ templ Kits(equipmentBuilds []models.EquipmentBuild, sessionId string) {
 			</div>
 			<div class="flex w-full h-full min-h-0">
 				<div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
-					<ul id="kits-list">
+					<ul class="w-full" id="kits-list">
 						for _, equipmentBuild := range equipmentBuilds {
 							<li tabindex="0" class="text-left cursor-pointer hover:bg-primary hover:text-base-content focus:bg-base-300 focus:text-primary focus:outline-none" hx-trigger="click" hx-target="#gear-details" hx-swap="innerHTML" hx-get={ fmt.Sprintf("/kit/%s", equipmentBuild.Id) } onclick="selectKit(this)">{ equipmentBuild.Name }</li>
 						}
