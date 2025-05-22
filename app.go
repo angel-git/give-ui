@@ -138,6 +138,33 @@ func getProfileList(app *App) http.HandlerFunc {
 	}
 }
 
+func goToProfileList(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		serverInfo, err := api.ConnectToSptServer(app.config.GetSptUrl())
+		if err != nil {
+			redirectToErrorPage(app, err.Error())
+			return
+		}
+		if serverInfo.ModVersion != app.version {
+			redirectToErrorPage(app, fmt.Sprintf("Wrong server mod version: %s", serverInfo.ModVersion))
+			return
+		}
+
+		profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+		if err != nil {
+			redirectToErrorPage(app, err.Error())
+			return
+		}
+		app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
+		app.ctx = context.WithValue(app.ctx, contextServerInfo, serverInfo)
+
+		runtime.EventsEmit(app.ctx, "clean_profile")
+
+		templ.Handler(components.ProfileList(app.name, app.version, profiles)).ServeHTTP(w, r)
+	}
+}
+
 func switchTheme(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		app.config.SwitchTheme()
@@ -785,6 +812,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	// forward calls to SPT server for files (images)
 	r.Get("/file", getFile(app))
 	r.Get("/linked-search/{id}", getLinkedSearchModal(app))
+	r.Get("/reload-profiles", goToProfileList(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))

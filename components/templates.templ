@@ -922,7 +922,7 @@ templ _AppHeader(appName string, appVersion string) {
 templ _AppFooter(appName string, appVersion string, currentTheme string) {
 	<div class="pt-1 border-t-2 border-t-base-200">
 		<div class="flex justify-between items-center p-1">
-			<p class="text-xs text-left">{ strings.ToUpper(appName) } v{ appVersion }<span id="profile-selected"></span></p>
+			<div class="text-xs text-left flex items-center">{ strings.ToUpper(appName) } v{ appVersion }<div id="profile-selected" class="flex items-center gap-1"></div></div>
 			@_ThemeSwitcher(currentTheme)
 		</div>
 	</div>

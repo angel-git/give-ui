@@ -5,7 +5,9 @@ let previousToastElement = null;
 
 function setUsernameOnFooter() {
     const username = JSON.parse(document.getElementById("profile-selected-username").textContent);
-    document.getElementById('profile-selected').innerText = ": " + username;
+    const el = document.getElementById('profile-selected');
+    el.innerHTML = `<span>: ${username}</span><button class="btn btn-xs btn-link" hx-get="/reload-profiles" hx-target="#main" hx-swap="innerHTML" hx-disabled-elt="this">Switch profile</button>`;
+    window.htmx.process(el);
 }
 
 function filterItems() {
@@ -156,6 +158,9 @@ window.runtime.EventsOn('toast.info', (e) => {
 
 window.runtime.EventsOn('toast.error', (e) => {
     showToast("error-toast", e, 10000);
+})
+window.runtime.EventsOn('clean_profile', (_e) => {
+    document.getElementById('profile-selected').innerText = '';
 })
 
 function showToast(id, message, timeout = 2000) {
