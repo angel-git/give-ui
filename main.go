@@ -111,6 +111,7 @@ func (a *App) makeMenu() {
 	localeFromConfig := a.config.GetLocale()
 	a.localeMenu = a.menu.AddSubmenu("Locale")
 	a.localeMenu.Append(addRadio("English", localeFromConfig, a.setLocale))
+	a.localeMenu.Append(addRadio("Chinese", localeFromConfig, a.setLocale))
 	a.localeMenu.Append(addRadio("Czech", localeFromConfig, a.setLocale))
 	a.localeMenu.Append(addRadio("French", localeFromConfig, a.setLocale))
 	a.localeMenu.Append(addRadio("German", localeFromConfig, a.setLocale))

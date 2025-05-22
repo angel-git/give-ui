@@ -4,6 +4,8 @@ func ConvertLocale(locale string) string {
 	switch locale {
 	case "English":
 		return "en"
+	case "Chinese":
+		return "ch"
 	case "Czech":
 		return "cz"
 	case "French":
