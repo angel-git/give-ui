@@ -1898,7 +1898,7 @@ func Kits(equipmentBuilds []models.EquipmentBuild, sessionId string) templ.Compo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "</label></div><div class=\"flex w-full h-full min-h-0\"><div class=\"card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4\"><ul id=\"kits-list\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "</label></div><div class=\"flex w-full h-full min-h-0\"><div class=\"card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4\"><ul class=\"w-full\" id=\"kits-list\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
