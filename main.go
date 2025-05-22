@@ -134,6 +134,7 @@ func (a *App) makeMenu() {
 		a.settingsMenu.Append(menu.Text("Use default cache folder", nil, a.clearCacheFolder))
 	}
 	a.settingsMenu.Append(menu.Radio("Load images from cache", a.config.GetUseCache(), nil, a.toggleUseCache))
+	a.settingsMenu.Append(menu.Text("Switch server", nil, a.switchServer))
 }
 
 func addRadio(label string, selected string, click menu.Callback) *menu.MenuItem {
@@ -207,6 +208,11 @@ func (a *App) toggleUseCache(data *menu.CallbackData) {
 	runtimeWails.MenuSetApplicationMenu(a.ctx, a.menu)
 	runtimeWails.MenuUpdateApplicationMenu(a.ctx)
 
+	// refresh to main screen
+	runtimeWails.WindowReloadApp(a.ctx)
+}
+
+func (a *App) switchServer(_data *menu.CallbackData) {
 	// refresh to main screen
 	runtimeWails.WindowReloadApp(a.ctx)
 }
