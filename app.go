@@ -408,7 +408,7 @@ func getFile(app *App) http.HandlerFunc {
 		}
 		image, err := api.LoadFile(app.config.GetSptUrl(), sessionId, imageUrlUnescape)
 		if err != nil {
-			redirectToErrorPage(app, err.Error())
+			runtime.LogWarning(app.ctx, "Couldn't find avatar image for: "+imageUrlUnescape)
 			return
 		}
 		w.Write(image)
