@@ -22,7 +22,7 @@ jobs:
         with:
             dotnet-version: 9.0
       - name: Build .NET project
-        run: dotnet build ./server-mod/GiveUISolution.sln
+        run: dotnet build --configuration Release ./server-mod/GiveUISolution.sln
       - name: setup bun
         uses: oven-sh/setup-bun@v2
         with:
