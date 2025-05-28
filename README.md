@@ -69,7 +69,7 @@ TEMPL_EXPERIMENT=rawgo templ fmt components/templates.templ && TEMPL_EXPERIMENT=
 ### Release
 
 - Update version in `wails.json`
-- Update version in `server-mod/package.json`
+- Update version in `server-mod/GiveUI/GiveUIModMetadata.cs`
 - commit and push (TODO: automate this in future)
 - Create a new release with proper tag
 - Github action will take over and upload the zip
