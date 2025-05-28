@@ -40,7 +40,7 @@ jobs:
       - name: Package zip
         run: |
           mkdir "dist/user/mods/give-ui-${{ github.sha }}"
-          mv ./server-mod/GiveUI/bin/Release/net9.0/GiveUI.dll /dist/user/mods/give-ui-${{ github.sha }}/GiveUI.dll
+          mv ./server-mod/GiveUI/bin/Release/net9.0/GiveUI.dll ./dist/user/mods/give-ui-${{ github.sha }}/GiveUI.dll
           mv ./build/bin/spt-give-ui.exe ./dist/user/mods/give-ui-${{ github.sha }}/give-ui-${{ github.sha }}_x64-portable.exe
           Compress-Archive -Path ./dist/* -Destination ./give-ui-${{ github.sha }}.zip
       - uses: actions/upload-artifact@v4
