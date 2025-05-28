@@ -33,6 +33,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0
+
+      - name: Build .NET project
         run: dotnet build ./server-mod/GiveUISolution.sln
 
       - name: Package zip
