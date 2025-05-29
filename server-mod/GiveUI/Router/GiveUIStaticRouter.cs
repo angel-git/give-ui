@@ -1,5 +1,5 @@
 using SPTarkov.DI.Annotations;
-using SPTarkov.Server.Core.Context;
+using SPTarkov.Server.Core.Controllers;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Helpers.Dialogue;
@@ -18,11 +18,11 @@ public class GiveUIStaticRouter : StaticRouter
     public GiveUIStaticRouter(
         JsonUtil jsonUtil,
         Watermark watermark,
-        ApplicationContext applicationContext,
         ProfileHelper profileHelper,
         GiftService giftService,
         SaveServer saveServer,
         DatabaseServer databaseServer,
+        LauncherController launcherController,
         CommandoDialogChatBot commandoDialogChatBot,
         SptDialogueChatBot sptDialogueChatBot
     ) : base(
@@ -37,9 +37,12 @@ public class GiveUIStaticRouter : StaticRouter
                 ) =>
                 {
                     var version = watermark.GetVersionTag();
-                    var mods = applicationContext?.GetLatestValue(ContextVariableType.LOADED_MOD_ASSEMBLIES)
-                        ?.GetValue<List<SptMod>>() ?? [];
-                    var modVersion = mods.Find(m => m.ModMetadata?.Name == "give-ui")?.ModMetadata?.Version ?? "0";
+                    var loadedMods = launcherController.GetLoadedServerMods();
+                    var modVersion = "-1";
+                    if (loadedMods.ContainsKey("give-ui"))
+                    {
+                        modVersion = loadedMods["give-ui"].Version;
+                    }
                     var maxLevel = profileHelper.GetMaxLevel();
                     var gifts = giftService.GetGifts();
                     return jsonUtil.Serialize(new
