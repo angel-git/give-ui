@@ -6,4 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+<!--     <PackageReference Include="SPTarkov.DI" Version="4.0.0-prerelease5" /> -->
+<!--     <PackageReference Include="SPTarkov.Server.Core" Version="4.0.0-prerelease5" /> -->
+
+    <ProjectReference Include="../../../spt-server-csharp-github/SPTarkov.Server/SPTarkov.Server.csproj" />
+  </ItemGroup>
+
 </Project>
