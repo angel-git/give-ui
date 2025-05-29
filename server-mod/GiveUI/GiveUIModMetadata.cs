@@ -1,6 +1,6 @@
 using SPTarkov.Server.Core.Models.Spt.Mod;
 
-namespace SPTarkov.Server.Core.GiveUI;
+namespace GiveUI;
 
 public record GiveUIModMetadata : AbstractModMetadata
 {

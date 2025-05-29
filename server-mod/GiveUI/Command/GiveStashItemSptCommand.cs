@@ -7,17 +7,17 @@ using SPTarkov.Server.Core.Models.Eft.Dialog;
 using SPTarkov.Server.Core.Models.Eft.Profile;
 using SPTarkov.Server.Core.Servers;
 using SPTarkov.Server.Core.Services;
+using SPTarkov.Server.Core.Utils.Cloners;
 
-namespace SPTarkov.Server.Core.GiveUI;
+namespace GiveUI.Command;
 
 [Injectable]
 public class GiveStashItemSptCommand(
-    MailSendService _mailSendService,
-    SaveServer _saveServer,
-    Utils.Cloners.FastCloner _cloner,
-    ItemHelper _itemHelper): ISptCommand
+    MailSendService mailSendService,
+    SaveServer saveServer,
+    ICloner cloner,
+    ItemHelper itemHelper) : ISptCommand
 {
-
     private static readonly Regex _commandRegex = new(@"^spt give-user-stash-item ((([a-z]{2,5}) )?""(.+)""|\w+)$");
 
     public string GetCommand()
@@ -35,7 +35,7 @@ public class GiveStashItemSptCommand(
     {
         if (!_commandRegex.IsMatch(request.Text))
         {
-            _mailSendService.SendUserMessageToPlayer(
+            mailSendService.SendUserMessageToPlayer(
                 sessionId,
                 commandHandler,
                 "Invalid use of give command. Use 'help' for more information."
@@ -47,7 +47,7 @@ public class GiveStashItemSptCommand(
         var itemId = result.Groups[1].Value;
         if (string.IsNullOrEmpty(itemId))
         {
-            _mailSendService.SendUserMessageToPlayer(
+            mailSendService.SendUserMessageToPlayer(
                 sessionId,
                 commandHandler,
                 "Invalid use of give command. Use 'help' for more information."
@@ -55,13 +55,13 @@ public class GiveStashItemSptCommand(
             return request.DialogId;
         }
 
-        var profile = _saveServer.GetProfiles()[sessionId];
+        var profile = saveServer.GetProfiles()[sessionId];
 
         var inventoryItemHash = GetInventoryItemHash(profile.CharacterData.PmcData.Inventory.Items);
         var itemToAdd = inventoryItemHash.ByItemId[itemId];
         if (itemToAdd == null)
         {
-            _mailSendService.SendUserMessageToPlayer(
+            mailSendService.SendUserMessageToPlayer(
                 sessionId,
                 commandHandler,
                 $"Couldn't find item with Id: {itemId}"
@@ -69,9 +69,10 @@ public class GiveStashItemSptCommand(
             return request.DialogId;
         }
 
-        var checkedItem = _itemHelper.GetItem(itemToAdd.Template);
-        if (!checkedItem.Key) {
-            _mailSendService.SendUserMessageToPlayer(
+        var checkedItem = itemHelper.GetItem(itemToAdd.Template);
+        if (!checkedItem.Key)
+        {
+            mailSendService.SendUserMessageToPlayer(
                 sessionId,
                 commandHandler,
                 $"Couldn't find template with id: ${itemToAdd.Template}"
@@ -80,14 +81,13 @@ public class GiveStashItemSptCommand(
         }
 
         var allChild = GetAllDescendantsIncludingSelf(itemId, inventoryItemHash);
-        var itemsToSend = _cloner.Clone(allChild);
+        var itemsToSend = cloner.Clone(allChild);
 
-        itemsToSend = _itemHelper.ReplaceIDs(itemsToSend);
-        _itemHelper.SetFoundInRaid(itemsToSend);
-        _mailSendService.SendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
+        itemsToSend = itemHelper.ReplaceIDs(itemsToSend);
+        itemHelper.SetFoundInRaid(itemsToSend);
+        mailSendService.SendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
 
         return request.DialogId;
-
     }
 
     private InventoryItemHash GetInventoryItemHash(List<Item> inventoryItems)
@@ -133,5 +133,4 @@ public class GiveStashItemSptCommand(
 
         return result;
     }
-
 }

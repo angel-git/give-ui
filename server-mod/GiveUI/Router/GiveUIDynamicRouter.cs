@@ -2,7 +2,7 @@ using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Utils;
 
-namespace SPTarkov.Server.Core.GiveUI;
+namespace GiveUI.Router;
 
 [Injectable]
 public class GiveUIDynamicRouter : DynamicRouter

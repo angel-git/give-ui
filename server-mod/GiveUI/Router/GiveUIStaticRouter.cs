@@ -10,7 +10,7 @@ using SPTarkov.Server.Core.Servers;
 using SPTarkov.Server.Core.Services;
 using SPTarkov.Server.Core.Utils;
 
-namespace SPTarkov.Server.Core.GiveUI;
+namespace GiveUI.Router;
 
 [Injectable]
 public class GiveUIStaticRouter : StaticRouter
@@ -43,6 +43,7 @@ public class GiveUIStaticRouter : StaticRouter
                     {
                         modVersion = loadedMods["give-ui"].Version;
                     }
+
                     var maxLevel = profileHelper.GetMaxLevel();
                     var gifts = giftService.GetGifts();
                     return jsonUtil.Serialize(new
@@ -99,7 +100,7 @@ public class GiveUIStaticRouter : StaticRouter
                     return jsonUtil.Serialize(response) ?? "{}";
                 },
                 typeof(GiveUIMessageRequest)
-                ),
+            ),
             new RouteAction(
                 "/give-ui/spt",
                 (
@@ -120,7 +121,7 @@ public class GiveUIStaticRouter : StaticRouter
                     return jsonUtil.Serialize(response) ?? "{}";
                 },
                 typeof(GiveUIMessageRequest)
-                )
+            )
         ])
     {
     }
