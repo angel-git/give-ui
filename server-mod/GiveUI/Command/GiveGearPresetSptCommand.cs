@@ -33,14 +33,14 @@ public class GiveGearPresetSptCommand(
 
     public string PerformAction(UserDialogInfo commandHandler, string sessionId, SendMessageRequest request)
     {
-        if (!_commandRegex.IsMatch(request.Text))
+        if (request.Text == null || !_commandRegex.IsMatch(request.Text))
         {
             mailSendService.SendUserMessageToPlayer(
                 sessionId,
                 commandHandler,
                 "Invalid use of give command. Use 'help' for more information."
             );
-            return request.DialogId;
+            return request.DialogId ?? "";
         }
 
         var result = _commandRegex.Match(request.Text);
@@ -53,7 +53,7 @@ public class GiveGearPresetSptCommand(
                 commandHandler,
                 "Invalid use of give command. Use 'help' for more information."
             );
-            return request.DialogId;
+            return request.DialogId ?? "";
         }
 
 
@@ -67,10 +67,10 @@ public class GiveGearPresetSptCommand(
                 commandHandler,
                 $"Couldn't find equipment build for Id: {equipmentBuildId}"
             );
-            return request.DialogId;
+            return request.DialogId ?? "";
         }
 
-        var itemsToSend = cloner.Clone(equipmentBuild.Items);
+        var itemsToSend = cloner.Clone(equipmentBuild.Items) ?? [];
         itemsToSend.RemoveAt(0); // remove default inventory item
         itemsToSend = itemsToSend.Where(item =>
             item.SlotId != "Pockets" && item.SlotId != "SecuredContainer" && item.SlotId != "ArmBand" &&
@@ -79,6 +79,6 @@ public class GiveGearPresetSptCommand(
         itemHelper.SetFoundInRaid(itemsToSend);
 
         mailSendService.SendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
-        return request.DialogId;
+        return request.DialogId ?? "";
     }
 }

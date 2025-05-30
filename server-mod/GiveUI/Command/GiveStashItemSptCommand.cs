@@ -33,14 +33,14 @@ public class GiveStashItemSptCommand(
 
     public string PerformAction(UserDialogInfo commandHandler, string sessionId, SendMessageRequest request)
     {
-        if (!_commandRegex.IsMatch(request.Text))
+        if (request.Text == null || !_commandRegex.IsMatch(request.Text))
         {
             mailSendService.SendUserMessageToPlayer(
                 sessionId,
                 commandHandler,
                 "Invalid use of give command. Use 'help' for more information."
             );
-            return request.DialogId;
+            return request.DialogId ?? "";
         }
 
         var result = _commandRegex.Match(request.Text);
@@ -52,12 +52,12 @@ public class GiveStashItemSptCommand(
                 commandHandler,
                 "Invalid use of give command. Use 'help' for more information."
             );
-            return request.DialogId;
+            return request.DialogId ?? "";
         }
 
         var profile = saveServer.GetProfiles()[sessionId];
 
-        var inventoryItemHash = GetInventoryItemHash(profile.CharacterData.PmcData.Inventory.Items);
+        var inventoryItemHash = GetInventoryItemHash(profile.CharacterData?.PmcData?.Inventory?.Items ?? []);
         var itemToAdd = inventoryItemHash.ByItemId[itemId];
         if (itemToAdd == null)
         {
@@ -66,7 +66,17 @@ public class GiveStashItemSptCommand(
                 commandHandler,
                 $"Couldn't find item with Id: {itemId}"
             );
-            return request.DialogId;
+            return request.DialogId ?? "";
+        }
+
+        if (itemToAdd.Template == null)
+        {
+            mailSendService.SendUserMessageToPlayer(
+                sessionId,
+                commandHandler,
+                $"Couldn't find template with id: ${itemToAdd.Template}"
+            );
+            return request.DialogId ?? ""; 
         }
 
         var checkedItem = itemHelper.GetItem(itemToAdd.Template);
@@ -77,17 +87,17 @@ public class GiveStashItemSptCommand(
                 commandHandler,
                 $"Couldn't find template with id: ${itemToAdd.Template}"
             );
-            return request.DialogId;
+            return request.DialogId ?? "";
         }
 
         var allChild = GetAllDescendantsIncludingSelf(itemId, inventoryItemHash);
-        var itemsToSend = cloner.Clone(allChild);
+        var itemsToSend = cloner.Clone(allChild) ?? [];
 
         itemsToSend = itemHelper.ReplaceIDs(itemsToSend);
         itemHelper.SetFoundInRaid(itemsToSend);
         mailSendService.SendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
 
-        return request.DialogId;
+        return request.DialogId ?? "";
     }
 
     private InventoryItemHash GetInventoryItemHash(List<Item> inventoryItems)
@@ -96,6 +106,10 @@ public class GiveStashItemSptCommand(
 
         foreach (var item in inventoryItems)
         {
+            if (item.Id == null)
+            {
+                continue;
+            }
             inventoryItemHash.ByItemId[item.Id] = item;
 
             if (item.ParentId == null)
@@ -127,6 +141,10 @@ public class GiveStashItemSptCommand(
         {
             foreach (var child in directChildren)
             {
+                if (child.Id == null)
+                {
+                    continue;
+                }
                 result.AddRange(GetAllDescendantsIncludingSelf(child.Id, hash));
             }
         }

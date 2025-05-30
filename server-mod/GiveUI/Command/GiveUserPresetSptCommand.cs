@@ -32,14 +32,14 @@ public class GiveUserPresetSptCommand(
 
     public string PerformAction(UserDialogInfo commandHandler, string sessionId, SendMessageRequest request)
     {
-        if (!_commandRegex.IsMatch(request.Text))
+        if (request.Text == null || !_commandRegex.IsMatch(request.Text))
         {
             mailSendService.SendUserMessageToPlayer(
                 sessionId,
                 commandHandler,
                 "Invalid use of give command. Use 'help' for more information."
             );
-            return request.DialogId;
+            return request.DialogId ?? "";
         }
 
         var result = _commandRegex.Match(request.Text);
@@ -51,11 +51,11 @@ public class GiveUserPresetSptCommand(
                 commandHandler,
                 "Invalid use of give command. Use 'help' for more information."
             );
-            return request.DialogId;
+            return request.DialogId ?? "";
         }
 
         var profile = saveServer.GetProfiles()[sessionId];
-        var weaponBuilds = profile.UserBuildData?.WeaponBuilds;
+        var weaponBuilds = profile.UserBuildData?.WeaponBuilds ?? [];
         var weaponBuild = weaponBuilds.Find((wb) => wb.Id == userPresetId);
         if (weaponBuild == null)
         {
@@ -64,14 +64,14 @@ public class GiveUserPresetSptCommand(
                 commandHandler,
                 $"Couldn't find weapon build for Id: {userPresetId}"
             );
-            return request.DialogId;
+            return request.DialogId ?? "";
         }
 
-        var itemsToSend = cloner.Clone(weaponBuild.Items);
+        var itemsToSend = cloner.Clone(weaponBuild.Items) ?? [];
         itemsToSend = itemHelper.ReplaceIDs(itemsToSend);
         itemHelper.SetFoundInRaid(itemsToSend);
         mailSendService.SendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
 
-        return request.DialogId;
+        return request.DialogId ?? "";
     }
 }
