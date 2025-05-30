@@ -32,7 +32,7 @@ public class GiveUIStaticRouter : StaticRouter
                 (
                     url,
                     info,
-                    sessionID,
+                    sessionId,
                     output
                 ) =>
                 {
@@ -60,7 +60,7 @@ public class GiveUIStaticRouter : StaticRouter
                 (
                     url,
                     info,
-                    sessionID,
+                    sessionId,
                     output
                 ) => jsonUtil.Serialize(saveServer.GetProfiles()) ?? "{}"),
             new RouteAction(
@@ -68,7 +68,7 @@ public class GiveUIStaticRouter : StaticRouter
                 (
                     url,
                     info,
-                    sessionID,
+                    sessionId,
                     output
                 ) =>
                 {
@@ -85,18 +85,18 @@ public class GiveUIStaticRouter : StaticRouter
                 (
                     url,
                     info,
-                    sessionID,
+                    sessionId,
                     output
                 ) =>
                 {
                     var command = (info as GiveUIMessageRequest)?.Message ?? "";
                     var message = new SendMessageRequest
                     {
-                        DialogId = sessionID,
+                        DialogId = sessionId,
                         Type = MessageType.SystemMessage,
                         Text = command
                     };
-                    var response = commandoDialogChatBot.HandleMessage(sessionID ?? "", message);
+                    var response = commandoDialogChatBot.HandleMessage(sessionId ?? "", message);
                     return jsonUtil.Serialize(response) ?? "{}";
                 },
                 typeof(GiveUIMessageRequest)
@@ -106,18 +106,18 @@ public class GiveUIStaticRouter : StaticRouter
                 (
                     url,
                     info,
-                    sessionID,
+                    sessionId,
                     output
                 ) =>
                 {
                     var command = (info as GiveUIMessageRequest)?.Message ?? "";
                     var message = new SendMessageRequest
                     {
-                        DialogId = sessionID,
+                        DialogId = sessionId,
                         Type = MessageType.SystemMessage,
                         Text = command
                     };
-                    var response = sptDialogueChatBot.HandleMessage(sessionID ?? "", message);
+                    var response = sptDialogueChatBot.HandleMessage(sessionId ?? "", message);
                     return jsonUtil.Serialize(response) ?? "{}";
                 },
                 typeof(GiveUIMessageRequest)

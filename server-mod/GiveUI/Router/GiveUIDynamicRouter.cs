@@ -29,18 +29,17 @@ public class GiveUIDynamicRouter : DynamicRouter
             {
                 try
                 {
-                    var cacheID = url.Replace("/give-ui/cache/", "");
+                    var cacheId = url.Replace("/give-ui/cache/", "");
                     var cacheIndex = Path.Combine(cachePath, "index.json");
 
                     var indexJson = fileUtil.ReadFile(cacheIndex);
                     var index = jsonUtil.Deserialize<Dictionary<string, UInt32>>(indexJson);
-
-                    if (!index.TryGetValue(cacheID, out var imageId))
+                    if (index == null || !index.TryGetValue(cacheId, out var imageId))
                     {
                         return jsonUtil.Serialize(new
                         {
                             error = 404
-                        });
+                        }) ?? "";
                     }
 
                     try
@@ -50,14 +49,14 @@ public class GiveUIDynamicRouter : DynamicRouter
                         return jsonUtil.Serialize(new
                         {
                             imageBase64
-                        });
+                        }) ?? "";
                     }
                     catch
                     {
                         return jsonUtil.Serialize(new
                         {
                             error = 404
-                        });
+                        }) ?? "";
                     }
                 }
                 catch
@@ -65,7 +64,7 @@ public class GiveUIDynamicRouter : DynamicRouter
                     return jsonUtil.Serialize(new
                     {
                         error = 404
-                    });
+                    }) ?? "";
                 }
             }
         )

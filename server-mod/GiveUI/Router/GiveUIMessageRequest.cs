@@ -5,5 +5,5 @@ namespace GiveUI.Router;
 
 public record GiveUIMessageRequest : IRequestData
 {
-    [JsonPropertyName("message")] public string Message { get; set; }
+    [JsonPropertyName("message")] public required string Message { get; set; }
 }
