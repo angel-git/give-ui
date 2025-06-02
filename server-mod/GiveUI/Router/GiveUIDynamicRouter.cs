@@ -11,12 +11,6 @@ public class GiveUIDynamicRouter : DynamicRouter
     private const string cachePath = "user/sptappdata/live";
 
 
-    private static string ReadFileAsBase64(string path)
-    {
-        var bytes = File.ReadAllBytes(path);
-        return Convert.ToBase64String(bytes);
-    }
-
     public GiveUIDynamicRouter(JsonUtil jsonUtil, FileUtil fileUtil) : base(jsonUtil, [
         new RouteAction(
             "/give-ui/cache",
@@ -36,10 +30,7 @@ public class GiveUIDynamicRouter : DynamicRouter
                     var index = jsonUtil.Deserialize<Dictionary<string, UInt32>>(indexJson);
                     if (index == null || !index.TryGetValue(cacheId, out var imageId))
                     {
-                        return jsonUtil.Serialize(new
-                        {
-                            error = 404
-                        }) ?? "";
+                        return BuildError(jsonUtil);
                     }
 
                     try
@@ -53,22 +44,29 @@ public class GiveUIDynamicRouter : DynamicRouter
                     }
                     catch
                     {
-                        return jsonUtil.Serialize(new
-                        {
-                            error = 404
-                        }) ?? "";
+                        return BuildError(jsonUtil);
                     }
                 }
                 catch
                 {
-                    return jsonUtil.Serialize(new
-                    {
-                        error = 404
-                    }) ?? "";
-                }
+                    return BuildError(jsonUtil);                }
             }
         )
     ])
     {
+    }
+
+    private static string ReadFileAsBase64(string path)
+    {
+        var bytes = File.ReadAllBytes(path);
+        return Convert.ToBase64String(bytes);
+    }
+    
+    private static object BuildError(JsonUtil jsonUtil)
+    {
+        return jsonUtil.Serialize(new
+        {
+            error = 404
+        }) ?? "";
     }
 }
