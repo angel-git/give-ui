@@ -29,7 +29,7 @@ public class GiveUIStaticRouter : StaticRouter
         jsonUtil, [
             new RouteAction(
                 "/give-ui/server",
-                (
+                async (
                     url,
                     info,
                     sessionId,
@@ -46,26 +46,27 @@ public class GiveUIStaticRouter : StaticRouter
 
                     var maxLevel = profileHelper.GetMaxLevel();
                     var gifts = giftService.GetGifts();
-                    return jsonUtil.Serialize(new
+                    return await new ValueTask<string>(jsonUtil.Serialize(new
                     {
                         version,
                         modVersion,
                         maxLevel,
                         gifts
-                    }) ?? "{}";
+                    }) ?? "{}");
                 }
             ),
             new RouteAction(
                 "/give-ui/profiles",
-                (
+                async (
                     url,
                     info,
                     sessionId,
                     output
-                ) => jsonUtil.Serialize(saveServer.GetProfiles()) ?? "{}"),
+                ) => await new ValueTask<string>(jsonUtil.Serialize(saveServer.GetProfiles()) ?? "{}")
+            ),
             new RouteAction(
                 "/give-ui/items",
-                (
+                async (
                     url,
                     info,
                     sessionId,
@@ -74,15 +75,15 @@ public class GiveUIStaticRouter : StaticRouter
                 {
                     var items = databaseServer.GetTables().Templates?.Items;
                     var globalPresets = databaseServer.GetTables().Globals?.ItemPresets;
-                    return jsonUtil.Serialize(new
+                    return await new ValueTask<string>(jsonUtil.Serialize(new
                     {
                         items,
                         globalPresets
-                    }) ?? "{}";
+                    }) ?? "{}");
                 }),
             new RouteAction(
                 "/give-ui/commando",
-                (
+                async (
                     url,
                     info,
                     sessionId,
@@ -97,13 +98,13 @@ public class GiveUIStaticRouter : StaticRouter
                         Text = command
                     };
                     var response = commandoDialogChatBot.HandleMessage(sessionId ?? "", message);
-                    return jsonUtil.Serialize(response) ?? "{}";
+                    return await new ValueTask<string>(jsonUtil.Serialize(response) ?? "{}");
                 },
                 typeof(GiveUIMessageRequest)
             ),
             new RouteAction(
                 "/give-ui/spt",
-                (
+                async (
                     url,
                     info,
                     sessionId,
@@ -118,7 +119,7 @@ public class GiveUIStaticRouter : StaticRouter
                         Text = command
                     };
                     var response = sptDialogueChatBot.HandleMessage(sessionId ?? "", message);
-                    return jsonUtil.Serialize(response) ?? "{}";
+                    return await new ValueTask<string>(jsonUtil.Serialize(response) ?? "{}");
                 },
                 typeof(GiveUIMessageRequest)
             )

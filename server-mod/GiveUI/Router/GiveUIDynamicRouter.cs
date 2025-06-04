@@ -14,7 +14,7 @@ public class GiveUIDynamicRouter : DynamicRouter
     public GiveUIDynamicRouter(JsonUtil jsonUtil, FileUtil fileUtil) : base(jsonUtil, [
         new RouteAction(
             "/give-ui/cache",
-            (
+            async (
                 url,
                 info,
                 sessionId,
@@ -30,26 +30,27 @@ public class GiveUIDynamicRouter : DynamicRouter
                     var index = jsonUtil.Deserialize<Dictionary<string, UInt32>>(indexJson);
                     if (index == null || !index.TryGetValue(cacheId, out var imageId))
                     {
-                        return BuildError(jsonUtil);
+                        return await BuildError(jsonUtil);
                     }
 
                     try
                     {
                         var cacheFile = Path.Combine(cachePath, $"{imageId}.png");
                         var imageBase64 = ReadFileAsBase64(cacheFile);
-                        return jsonUtil.Serialize(new
+                        return await new ValueTask<string>(jsonUtil.Serialize(new
                         {
                             imageBase64
-                        }) ?? "";
+                        }) ?? "");
                     }
                     catch
                     {
-                        return BuildError(jsonUtil);
+                        return await BuildError(jsonUtil);
                     }
                 }
                 catch
                 {
-                    return BuildError(jsonUtil);                }
+                    return await BuildError(jsonUtil);
+                }
             }
         )
     ])
@@ -61,12 +62,12 @@ public class GiveUIDynamicRouter : DynamicRouter
         var bytes = File.ReadAllBytes(path);
         return Convert.ToBase64String(bytes);
     }
-    
-    private static object BuildError(JsonUtil jsonUtil)
+
+    private static ValueTask<string> BuildError(JsonUtil jsonUtil)
     {
-        return jsonUtil.Serialize(new
+        return new ValueTask<string>(jsonUtil.Serialize(new
         {
             error = 404
-        }) ?? "";
+        }) ?? "");
     }
 }
