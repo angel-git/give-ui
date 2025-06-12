@@ -102,7 +102,10 @@ public class GiveStashItemSptCommand(
 
     private InventoryItemHash GetInventoryItemHash(List<Item> inventoryItems)
     {
-        var inventoryItemHash = new InventoryItemHash();
+        var inventoryItemHash = new InventoryItemHash {
+            ByItemId = new Dictionary<string, Item>(),
+            ByParentId = new Dictionary<string, HashSet<Item>>()
+        };
 
         foreach (var item in inventoryItems)
         {
