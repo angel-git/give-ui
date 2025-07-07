@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Helpers.Dialog.Commando.SptCommands;
+using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Eft.Dialog;
 using SPTarkov.Server.Core.Models.Eft.Profile;
@@ -31,16 +32,16 @@ public class GiveStashItemSptCommand(
             "spt give-user-stash-item\n========\nSends items to the player through the message system.\n\n\tspt give-user-stash-item [stashItem.Id]";
     }
 
-    public string PerformAction(UserDialogInfo commandHandler, string sessionId, SendMessageRequest request)
+    public ValueTask<string> PerformAction(UserDialogInfo commandHandler, string sessionId, SendMessageRequest request)
     {
-        if (request.Text == null || !_commandRegex.IsMatch(request.Text))
+        if (!_commandRegex.IsMatch(request.Text))
         {
             mailSendService.SendUserMessageToPlayer(
                 sessionId,
                 commandHandler,
                 "Invalid use of give command. Use 'help' for more information."
             );
-            return request.DialogId ?? "";
+            return new ValueTask<string>(request.DialogId);
         }
 
         var result = _commandRegex.Match(request.Text);
@@ -52,7 +53,7 @@ public class GiveStashItemSptCommand(
                 commandHandler,
                 "Invalid use of give command. Use 'help' for more information."
             );
-            return request.DialogId ?? "";
+            return new ValueTask<string>(request.DialogId);
         }
 
         var profile = saveServer.GetProfiles()[sessionId];
@@ -66,17 +67,7 @@ public class GiveStashItemSptCommand(
                 commandHandler,
                 $"Couldn't find item with Id: {itemId}"
             );
-            return request.DialogId ?? "";
-        }
-
-        if (itemToAdd.Template == null)
-        {
-            mailSendService.SendUserMessageToPlayer(
-                sessionId,
-                commandHandler,
-                $"Couldn't find template with id: ${itemToAdd.Template}"
-            );
-            return request.DialogId ?? ""; 
+            return new ValueTask<string>(request.DialogId);
         }
 
         var checkedItem = itemHelper.GetItem(itemToAdd.Template);
@@ -87,32 +78,28 @@ public class GiveStashItemSptCommand(
                 commandHandler,
                 $"Couldn't find template with id: ${itemToAdd.Template}"
             );
-            return request.DialogId ?? "";
+            return new ValueTask<string>(request.DialogId);
         }
 
         var allChild = GetAllDescendantsIncludingSelf(itemId, inventoryItemHash);
         var itemsToSend = cloner.Clone(allChild) ?? [];
 
-        itemsToSend = itemHelper.ReplaceIDs(itemsToSend);
+        itemsToSend = itemHelper.ReplaceIDs(itemsToSend, null);
         itemHelper.SetFoundInRaid(itemsToSend);
         mailSendService.SendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
 
-        return request.DialogId ?? "";
+        return new ValueTask<string>(request.DialogId);
     }
 
     private InventoryItemHash GetInventoryItemHash(List<Item> inventoryItems)
     {
         var inventoryItemHash = new InventoryItemHash {
-            ByItemId = new Dictionary<string, Item>(),
-            ByParentId = new Dictionary<string, HashSet<Item>>()
+            ByItemId = new Dictionary<MongoId, Item>(),
+            ByParentId = new Dictionary<MongoId, HashSet<Item>>()
         };
 
         foreach (var item in inventoryItems)
         {
-            if (item.Id == null)
-            {
-                continue;
-            }
             inventoryItemHash.ByItemId[item.Id] = item;
 
             if (item.ParentId == null)
@@ -144,10 +131,6 @@ public class GiveStashItemSptCommand(
         {
             foreach (var child in directChildren)
             {
-                if (child.Id == null)
-                {
-                    continue;
-                }
                 result.AddRange(GetAllDescendantsIncludingSelf(child.Id, hash));
             }
         }

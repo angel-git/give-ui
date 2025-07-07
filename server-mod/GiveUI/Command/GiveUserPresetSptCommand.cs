@@ -30,16 +30,16 @@ public class GiveUserPresetSptCommand(
             "spt give-user-preset\n========\nSends items to the player through the message system.\n\n\tspt give-user-preset [weaponBuilds.Id]";
     }
 
-    public string PerformAction(UserDialogInfo commandHandler, string sessionId, SendMessageRequest request)
+    public ValueTask<string> PerformAction(UserDialogInfo commandHandler, string sessionId, SendMessageRequest request)
     {
-        if (request.Text == null || !_commandRegex.IsMatch(request.Text))
+        if (!_commandRegex.IsMatch(request.Text))
         {
             mailSendService.SendUserMessageToPlayer(
                 sessionId,
                 commandHandler,
                 "Invalid use of give command. Use 'help' for more information."
             );
-            return request.DialogId ?? "";
+            return new ValueTask<string>(request.DialogId);
         }
 
         var result = _commandRegex.Match(request.Text);
@@ -51,7 +51,7 @@ public class GiveUserPresetSptCommand(
                 commandHandler,
                 "Invalid use of give command. Use 'help' for more information."
             );
-            return request.DialogId ?? "";
+            return new ValueTask<string>(request.DialogId);
         }
 
         var profile = saveServer.GetProfiles()[sessionId];
@@ -64,14 +64,14 @@ public class GiveUserPresetSptCommand(
                 commandHandler,
                 $"Couldn't find weapon build for Id: {userPresetId}"
             );
-            return request.DialogId ?? "";
+            return new ValueTask<string>(request.DialogId);
         }
 
         var itemsToSend = cloner.Clone(weaponBuild.Items) ?? [];
-        itemsToSend = itemHelper.ReplaceIDs(itemsToSend);
+        itemsToSend = itemHelper.ReplaceIDs(itemsToSend, null);
         itemHelper.SetFoundInRaid(itemsToSend);
         mailSendService.SendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
 
-        return request.DialogId ?? "";
+        return new ValueTask<string>(request.DialogId);
     }
 }

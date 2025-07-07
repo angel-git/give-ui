@@ -95,10 +95,10 @@ public class GiveUIStaticRouter : StaticRouter
                     {
                         DialogId = sessionId,
                         Type = MessageType.SystemMessage,
-                        Text = command
+                        Text = command,
+                        ReplyTo = sessionId,
                     };
-                    var response = commandoDialogChatBot.HandleMessage(sessionId ?? "", message);
-                    return await new ValueTask<string>(jsonUtil.Serialize(response) ?? "{}");
+                    return await commandoDialogChatBot.HandleMessage(sessionId, message);
                 },
                 typeof(GiveUIMessageRequest)
             ),
@@ -116,10 +116,10 @@ public class GiveUIStaticRouter : StaticRouter
                     {
                         DialogId = sessionId,
                         Type = MessageType.SystemMessage,
-                        Text = command
+                        Text = command,
+                        ReplyTo = sessionId,
                     };
-                    var response = sptDialogueChatBot.HandleMessage(sessionId ?? "", message);
-                    return await new ValueTask<string>(jsonUtil.Serialize(response) ?? "{}");
+                    return await sptDialogueChatBot.HandleMessage(sessionId, message);
                 },
                 typeof(GiveUIMessageRequest)
             )
