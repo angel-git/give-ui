@@ -96,7 +96,7 @@ public class GiveUIStaticRouter : StaticRouter
                         DialogId = sessionId,
                         Type = MessageType.SystemMessage,
                         Text = command,
-                        ReplyTo = sessionId,
+                        ReplyTo = "",
                     };
                     return await commandoDialogChatBot.HandleMessage(sessionId, message);
                 },
@@ -117,7 +117,7 @@ public class GiveUIStaticRouter : StaticRouter
                         DialogId = sessionId,
                         Type = MessageType.SystemMessage,
                         Text = command,
-                        ReplyTo = sessionId,
+                        ReplyTo = "",
                     };
                     return await sptDialogueChatBot.HandleMessage(sessionId, message);
                 },
