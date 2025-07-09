@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using SPTarkov.DI.Annotations;
+using SPTarkov.Server.Core.Extensions;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Helpers.Dialog.Commando.SptCommands;
 using SPTarkov.Server.Core.Models.Eft.Dialog;
@@ -68,7 +69,7 @@ public class GiveUserPresetSptCommand(
         }
 
         var itemsToSend = cloner.Clone(weaponBuild.Items) ?? [];
-        itemsToSend = itemHelper.ReplaceIDs(itemsToSend, null);
+        itemsToSend = itemsToSend.ReplaceIDs().ToList();
         itemHelper.SetFoundInRaid(itemsToSend);
         mailSendService.SendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
 

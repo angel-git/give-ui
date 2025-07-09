@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using SPTarkov.DI.Annotations;
+using SPTarkov.Server.Core.Extensions;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Helpers.Dialog.Commando.SptCommands;
 using SPTarkov.Server.Core.Models.Eft.Dialog;
@@ -75,7 +76,7 @@ public class GiveGearPresetSptCommand(
         itemsToSend = itemsToSend.Where(item =>
             item.SlotId != "Pockets" && item.SlotId != "SecuredContainer" && item.SlotId != "ArmBand" &&
             item.SlotId != "Dogtag").ToList();
-        itemsToSend = itemHelper.ReplaceIDs(itemsToSend, null);
+        itemsToSend = itemsToSend.ReplaceIDs().ToList();
         itemHelper.SetFoundInRaid(itemsToSend);
 
         mailSendService.SendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
