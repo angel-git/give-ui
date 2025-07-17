@@ -4,6 +4,7 @@ namespace GiveUI;
 
 public record GiveUIModMetadata : AbstractModMetadata
 {
+    public override string ModId { get; set; } = "com.agavalda.giveui";
     public override string Name { get; set; } = "give-ui";
     public override string Author { get; set; } = "agavalda";
     public override List<string>? Contributors { get; set; }

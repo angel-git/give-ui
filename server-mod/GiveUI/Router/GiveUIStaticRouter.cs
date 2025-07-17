@@ -21,7 +21,7 @@ public class GiveUIStaticRouter : StaticRouter
         ProfileHelper profileHelper,
         GiftService giftService,
         SaveServer saveServer,
-        DatabaseServer databaseServer,
+        DatabaseService databaseService,
         LauncherController launcherController,
         CommandoDialogChatBot commandoDialogChatBot,
         SptDialogueChatBot sptDialogueChatBot
@@ -73,8 +73,8 @@ public class GiveUIStaticRouter : StaticRouter
                     output
                 ) =>
                 {
-                    var items = databaseServer.GetTables().Templates?.Items;
-                    var globalPresets = databaseServer.GetTables().Globals?.ItemPresets;
+                    var items = databaseService.GetTemplates().Items;
+                    var globalPresets = databaseService.GetGlobals().ItemPresets;
                     return await new ValueTask<string>(jsonUtil.Serialize(new
                     {
                         items,

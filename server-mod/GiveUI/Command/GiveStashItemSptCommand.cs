@@ -22,18 +22,12 @@ public class GiveStashItemSptCommand(
 {
     private static readonly Regex _commandRegex = new(@"^spt give-user-stash-item ((([a-z]{2,5}) )?""(.+)""|\w+)$");
 
-    public string GetCommand()
-    {
-        return "give-user-stash-item";
-    }
+    
+    string ISptCommand.Command => "give-user-stash-item";
 
-    public string GetCommandHelp()
-    {
-        return
-            "spt give-user-stash-item\n========\nSends items to the player through the message system.\n\n\tspt give-user-stash-item [stashItem.Id]";
-    }
+    string ISptCommand.CommandHelp => "spt give-user-stash-item\n========\nSends items to the player through the message system.\n\n\tspt give-user-stash-item [stashItem.Id]";
 
-    public ValueTask<string> PerformAction(UserDialogInfo commandHandler, string sessionId, SendMessageRequest request)
+    public ValueTask<string> PerformAction(UserDialogInfo commandHandler, MongoId sessionId, SendMessageRequest request)
     {
         if (!_commandRegex.IsMatch(request.Text))
         {

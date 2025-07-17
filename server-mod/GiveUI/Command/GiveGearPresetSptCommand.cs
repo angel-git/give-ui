@@ -3,6 +3,7 @@ using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.Extensions;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Helpers.Dialog.Commando.SptCommands;
+using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Dialog;
 using SPTarkov.Server.Core.Models.Eft.Profile;
 using SPTarkov.Server.Core.Servers;
@@ -21,18 +22,11 @@ public class GiveGearPresetSptCommand(
     private static readonly Regex _commandRegex = new(@"^spt give-gear-preset ([a-z]{2,5} ?"".+""|\w+)$");
 
 
-    public string GetCommand()
-    {
-        return "give-gear-preset";
-    }
+    string ISptCommand.Command => "give-gear-preset";
 
-    public string GetCommandHelp()
-    {
-        return
-            "spt give-gear-preset\n========\nSends items to the player through the message system.\n\n\tspt give-user-preset [equipmentBuilds.Id]";
-    }
+    string ISptCommand.CommandHelp => "spt give-gear-preset\n========\nSends items to the player through the message system.\n\n\tspt give-user-preset [equipmentBuilds.Id]";
 
-    public ValueTask<string> PerformAction(UserDialogInfo commandHandler, string sessionId, SendMessageRequest request)
+    public ValueTask<string> PerformAction(UserDialogInfo commandHandler, MongoId sessionId, SendMessageRequest request)
     {
         if (!_commandRegex.IsMatch(request.Text))
         {
