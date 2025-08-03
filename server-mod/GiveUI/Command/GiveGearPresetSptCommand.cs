@@ -1,0 +1,79 @@
+using System.Text.RegularExpressions;
+using SPTarkov.DI.Annotations;
+using SPTarkov.Server.Core.Extensions;
+using SPTarkov.Server.Core.Helpers;
+using SPTarkov.Server.Core.Helpers.Dialog.Commando.SptCommands;
+using SPTarkov.Server.Core.Models.Common;
+using SPTarkov.Server.Core.Models.Eft.Dialog;
+using SPTarkov.Server.Core.Models.Eft.Profile;
+using SPTarkov.Server.Core.Servers;
+using SPTarkov.Server.Core.Services;
+using SPTarkov.Server.Core.Utils.Cloners;
+
+namespace GiveUI.Command;
+
+[Injectable]
+public class GiveGearPresetSptCommand(
+    MailSendService mailSendService,
+    SaveServer saveServer,
+    ICloner cloner,
+    ItemHelper itemHelper) : ISptCommand
+{
+    private static readonly Regex _commandRegex = new(@"^spt give-gear-preset ([a-z]{2,5} ?"".+""|\w+)$");
+
+
+    string ISptCommand.Command => "give-gear-preset";
+
+    string ISptCommand.CommandHelp => "spt give-gear-preset\n========\nSends items to the player through the message system.\n\n\tspt give-user-preset [equipmentBuilds.Id]";
+
+    public ValueTask<string> PerformAction(UserDialogInfo commandHandler, MongoId sessionId, SendMessageRequest request)
+    {
+        if (!_commandRegex.IsMatch(request.Text))
+        {
+            mailSendService.SendUserMessageToPlayer(
+                sessionId,
+                commandHandler,
+                "Invalid use of give command. Use 'help' for more information."
+            );
+            return new ValueTask<string>(request.DialogId);
+        }
+
+        var result = _commandRegex.Match(request.Text);
+
+        var equipmentBuildId = result.Groups[1].Value;
+        if (string.IsNullOrEmpty(equipmentBuildId))
+        {
+            mailSendService.SendUserMessageToPlayer(
+                sessionId,
+                commandHandler,
+                "Invalid use of give command. Use 'help' for more information."
+            );
+            return new ValueTask<string>(request.DialogId);
+        }
+
+
+        var profile = saveServer.GetProfiles()[sessionId];
+        var equipmentBuilds = profile.UserBuildData?.EquipmentBuilds;
+        var equipmentBuild = equipmentBuilds?.Find((eb) => eb.Id == equipmentBuildId);
+        if (equipmentBuild == null)
+        {
+            mailSendService.SendUserMessageToPlayer(
+                sessionId,
+                commandHandler,
+                $"Couldn't find equipment build for Id: {equipmentBuildId}"
+            );
+            return new ValueTask<string>(request.DialogId);
+        }
+
+        var itemsToSend = cloner.Clone(equipmentBuild.Items) ?? [];
+        itemsToSend.RemoveAt(0); // remove default inventory item
+        itemsToSend = itemsToSend.Where(item =>
+            item.SlotId != "Pockets" && item.SlotId != "SecuredContainer" && item.SlotId != "ArmBand" &&
+            item.SlotId != "Dogtag").ToList();
+        itemsToSend = itemsToSend.ReplaceIDs().ToList();
+        itemHelper.SetFoundInRaid(itemsToSend);
+
+        mailSendService.SendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
+        return new ValueTask<string>(request.DialogId);
+    }
+}
