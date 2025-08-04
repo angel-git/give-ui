@@ -1,10 +1,10 @@
-import { IBaseRepairActionDataRequest } from '@spt/models/eft/repair/IBaseRepairActionDataRequest';
+import { IBaseRepairActionDataRequest } from "@spt/models/eft/repair/IBaseRepairActionDataRequest";
 export interface ITraderRepairActionDataRequest extends IBaseRepairActionDataRequest {
-  Action: 'TraderRepair';
-  tid: string;
-  repairItems: RepairItem[];
+    Action: "TraderRepair";
+    tid: string;
+    repairItems: IRepairItem[];
 }
-export interface RepairItem {
-  _id: string;
-  count: number;
+export interface IRepairItem {
+    _id: string;
+    count: number;
 }

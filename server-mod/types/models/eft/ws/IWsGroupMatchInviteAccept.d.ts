@@ -1,3 +1,4 @@
-import { IWsNotificationEvent } from '@spt/models/eft/ws/IWsNotificationEvent';
-import { IGroupCharacter } from '../match/IGroupCharacter';
-export interface IWsGroupMatchInviteAccept extends IWsNotificationEvent, IGroupCharacter {}
+import { IGroupCharacter } from "@spt/models/eft/match/IGroupCharacter";
+import { IWsNotificationEvent } from "@spt/models/eft/ws/IWsNotificationEvent";
+export interface IWsGroupMatchInviteAccept extends IWsNotificationEvent, IGroupCharacter {
+}

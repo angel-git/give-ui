@@ -1,7 +1,7 @@
-import { MessageType } from '@spt/models/enums/MessageType';
+import { MessageType } from "@spt/models/enums/MessageType";
 export interface ISendMessageRequest {
-  dialogId: string;
-  type: MessageType;
-  text: string;
-  replyTo: string;
+    dialogId: string;
+    type: MessageType;
+    text: string;
+    replyTo: string;
 }

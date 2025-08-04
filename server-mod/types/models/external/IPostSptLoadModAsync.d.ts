@@ -1,4 +1,4 @@
-import type { DependencyContainer } from 'tsyringe';
+import type { DependencyContainer } from "tsyringe";
 export interface IPostSptLoadModAsync {
-  postSptLoadAsync(container: DependencyContainer): Promise<void>;
+    postSptLoadAsync(container: DependencyContainer): Promise<void>;
 }

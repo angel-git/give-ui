@@ -1,5 +1,5 @@
-import { DependencyContainer } from 'tsyringe';
+import { DependencyContainer } from "tsyringe";
 export interface IModLoader {
-  load(container: DependencyContainer): void;
-  getModPath(mod: string): string;
+    load(container: DependencyContainer): void;
+    getModPath(mod: string): string;
 }

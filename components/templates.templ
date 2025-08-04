@@ -5,7 +5,9 @@ import (
 	"slices"
 	"sort"
 	"spt-give-ui/backend/models"
+	"spt-give-ui/backend/util"
 	"strings"
+	"time"
 )
 
 templ LoginPage(appName string, appVersion string, currentTheme string, sptUrl string) {
@@ -51,7 +53,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 					for _, i := range profiles {
 						<li class="flex flex-row items-center justify-between gap-2">
 							<div class="text-left">
-								<div>{ i.Info.Username }</div>
+								<div>{ i.Info.Username } - { i.Characters.PMC.InfoPMC.Nickname } </div>
 								<div class="text-xs">{ i.Info.Id }</div>
 							</div>
 							<button class="btn btn-primary btn-sm" hx-get={ fmt.Sprintf("/connect/%s", i.Info.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="#profile-fieldset" hx-indicator="#loader">
@@ -66,7 +68,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	</div>
 }
 
-templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, maxLevel int) {
+templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, serverInfo *models.ServerInfo) {
 	@templ.JSONScript("profile-selected-username", profile.Info.Username)
 	<script>
         setUsernameOnFooter();
@@ -81,26 +83,71 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@UserWeapons(allItems, profile.UserBuilds.WeaponBuilds)
 			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Kits"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@Kits(profile.UserBuilds.EquipmentBuilds, profile.Info.Id)
+			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Stash"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@Stash(profile)
+			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Skills"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@Skills(profile.Characters.PMC.InfoPMC.Level, skills, maxLevel)
+				@Skills(profile.Characters.PMC.InfoPMC.Level, skills, serverInfo.MaxLevel)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Traders"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Traders(profile, traders)
 			</div>
-			<div class="grow text-right">
-				<div class="dropdown dropdown-hover dropdown-end">
-					<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-sm m-1">Help</div>
-					<div tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-[1] w-80 p-2 shadow text-left">
-						<p><kbd class="kbd kbd-xs">Ctrl + Shift + S</kbd> to toggle favorites search</p>
-						<p><kbd class="kbd kbd-xs">Ctrl + Shift + A</kbd> to add selected item</p>
-						<p><kbd class="kbd kbd-xs">Ctrl + Shift + F</kbd> to fav/unfav selected item</p>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Other"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@Others(serverInfo)
+			</div>
+			<div id="success-toast" class="toast toast-top toast-end hidden">
+				<div class="alert alert-success">
+					<span></span>
+					<div>
+						<button class="btn btn-circle btn-outline btn-sm" onclick="closeToast()">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-6 w-6"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								></path>
+							</svg>
+						</button>
 					</div>
 				</div>
 			</div>
-			<div id="success-toast" class="toast toast-top toast-end hidden">
-				<div id="success-toast-message" class="alert alert-success"></div>
+			<div id="error-toast" class="toast toast-top toast-end hidden">
+				<div class="alert alert-error">
+					<span></span>
+					<div>
+						<button class="btn btn-circle btn-outline btn-sm" onclick="closeToast()">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="h-6 w-6"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								></path>
+							</svg>
+						</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -163,6 +210,8 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 					<span>This item is part of a bundle. It <em>may</em> include all the necessary attachments to be functional.</span>
 				</div>
 			}
+			<dialog id="linked-search" class="modal" hx-on::after-swap="showModal(this)"></dialog>
+			<button class="w-max p-0 btn btn-link" hx-trigger="click" hx-target="#linked-search" hx-get={ fmt.Sprintf("/linked-search/%s", item.Id) }>Linked search</button>
 			<p class="text-justify">{ item.Description }</p>
 			<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit, keydown[ctrlKey&&shiftKey&&key=='A'] from:body">
 				<input name="quantity" type="number" min="1" max="2147483647" class="input input-bordered bg-base-200 max-w-24" value={ fmt.Sprintf("%d", item.MaxStock) }/>
@@ -204,11 +253,21 @@ func anyItemInsideCategory(cat string, items []models.ViewItem) bool {
 templ _Items(allItems *models.AllItems, sessionId string, filterFavorites bool) {
 	{{ sortedItems := sortAndConvertItems(allItems, filterFavorites) }}
 	<div class="flex flex-col h-full">
-		<div class="w-full p-2 flex items-center justify-center">
+		<div class="w-full p-2 flex items-center justify-center relative">
 			<label class="input input-bordered bg-base-200 flex items-center gap-2 max-w-xs w-full">
 				<input type="text" autocomplete="off" id="filter-items-input" oninput="filterItems()" placeholder="Filter here" autofocus class="grow"/>
 				@_FavSwitcher(sessionId, filterFavorites)
 			</label>
+			<div class="absolute right-0">
+				<div class="dropdown dropdown-hover dropdown-end">
+					<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-sm m-1">Help</div>
+					<div tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-[1] w-80 p-2 shadow text-left">
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + S</kbd> to toggle favorites search</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + A</kbd> to add selected item</p>
+						<p><kbd class="kbd kbd-xs">Ctrl + Shift + F</kbd> to fav/unfav selected item</p>
+					</div>
+				</div>
+			</div>
 		</div>
 		<div class="flex w-full h-full min-h-0" id="item-list">
 			<div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
@@ -336,6 +395,40 @@ templ UserWeaponModal(allItems *models.AllItems, weaponBuild models.WeaponBuild)
 	</form>
 }
 
+templ LinkedSearchModal(linked []models.ViewItem) {
+	<div class="modal-box flex flex-col overflow-y-auto">
+		if (len(linked) == 0) {
+			<div>no linked items found :-(</div>
+		} else {
+			for _, i := range linked {
+				<div class="flex flex-row items-center gap-2">
+					<div class="w-16 h-16">
+						if i.ImageBase64 != "" {
+							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("data:image/png;base64, %s", i.ImageBase64) }/>
+						} else {
+							<img alt="item" class="max-h-full max-w-full m-auto" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", i.Id) }/>
+						}
+					</div>
+					<div class="pl-2 text-start grow">{ i.Name }</div>
+					<form hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit">
+						<input name="quantity" hidden type="number" value={ fmt.Sprintf("%d", i.MaxStock) }/>
+						<input name="id" hidden value={ i.Id }/>
+						<button type="submit" class="btn btn-primary btn-sm">
+							<div id="loader" class="button-loader">
+								<span class="loading loading-spinner"></span>
+								<span class="button-hide">Give</span>
+							</div>
+						</button>
+					</form>
+				</div>
+			}
+		}
+	</div>
+	<form method="dialog" class="modal-backdrop">
+		<button tabIndex="-1">close</button>
+	</form>
+}
+
 templ Skills(profileLevel int, skills []models.Skill, maxLevel int) {
 	<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="skills">
 		<div role="alert" class="alert alert-info">
@@ -390,86 +483,207 @@ templ Skills(profileLevel int, skills []models.Skill, maxLevel int) {
 }
 
 templ Traders(profile *models.SPTProfile, traders []models.Trader) {
-	if len(traders) == 0 {
-		<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="traders">
-			<div role="alert" class="alert alert-warning">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-6 w-6 shrink-0 stroke-current"
-					fill="none"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-					></path>
-				</svg>
-				<span>Your SPT version is not compatible with this page. You have to upgrade to 3.10.4 or later</span>
-			</div>
+	<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="traders">
+		<div role="alert" class="alert alert-info">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				class="h-6 w-6 shrink-0 stroke-current"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+				></path>
+			</svg>
+			<span>Make sure to refresh this page before doing any modification to get latest changes from the server.</span>
+			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/trader" hx-target="#traders" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
 		</div>
-	} else {
-		<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="traders">
-			<div role="alert" class="alert alert-info">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					class="h-6 w-6 shrink-0 stroke-current"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-					></path>
-				</svg>
-				<span>Make sure to refresh this page before doing any modification to get latest changes from the server.</span>
-				<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/trader" hx-target="#traders" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
-			</div>
-			for _, trader := range traders {
-				<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
-					<div class="hero-content flex-col">
-						<img
-							src={ trader.Image }
-							class="max-w-32 rounded-lg shadow-2xl"
-						/>
-						<div>
-							<h1 class="text-xl font-bold">{ trader.NicknameLocale }</h1>
-							<div class="rating">
-								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 1 }/>
-								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 2 }/>
-								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 3 }/>
-								<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 4 }/>
+		for _, trader := range traders {
+			<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
+				<div class="hero-content flex-col">
+					<img
+						src={ fmt.Sprintf("/file?url=%s&%d", trader.Image, time.Now().Unix()) }
+						class="max-w-32 rounded-lg shadow-2xl"
+					/>
+					<div>
+						<h1 class="text-xl font-bold">{ trader.NicknameLocale }</h1>
+						<div class="rating">
+							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 1 }/>
+							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 2 }/>
+							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 3 }/>
+							<input type="radio" disabled name={ fmt.Sprintf("rating-%s", trader.Id) } class="mask mask-star hover:cursor-default" checked?={ trader.LoyaltyLevel == 4 }/>
+						</div>
+						<form class="card-body" hx-swap="none" hx-post="/trader" hx-disabled-elt="find button" hx-on::after-request="this.lastElementChild.lastElementChild.disabled = true">
+							<input type="hidden" name="nickname" required value={ trader.Nickname }/>
+							<div class="form-control">
+								<label class="label">
+									<span class="label-text">Money spent</span>
+								</label>
+								<input type="hidden" name="spend-original" value={ trader.SalesSum }/>
+								<input type="number" name="spend" class="input input-bordered" min="1" max="9999999" required value={ trader.SalesSum } oninput="this.parentNode.nextElementSibling.nextElementSibling.firstElementChild.disabled = false"/>
 							</div>
-							<form class="card-body" hx-swap="none" hx-post="/trader" hx-disabled-elt="find button" hx-on::after-request="this.lastElementChild.lastElementChild.disabled = true">
-								<input type="hidden" name="nickname" required value={ trader.Nickname }/>
-								<div class="form-control">
-									<label class="label">
-										<span class="label-text">Money spent</span>
-									</label>
-									<input type="hidden" name="spend-original" value={ trader.SalesSum }/>
-									<input type="number" name="spend" class="input input-bordered" min="1" max="9999999" required value={ trader.SalesSum } oninput="this.parentNode.nextElementSibling.nextElementSibling.firstElementChild.disabled = false"/>
-								</div>
-								<div class="form-control">
-									<label class="label">
-										<span class="label-text">Reputation</span>
-									</label>
-									<input type="hidden" name="rep-original" value={ trader.Reputation }/>
-									<input type="range" name="rep" min="0.01" max={ trader.MaxRep } value={ trader.Reputation } class="range" step="0.05" oninput="this.nextElementSibling.value = this.value; this.parentNode.nextElementSibling.firstElementChild.disabled = false"/>
-									<output>{ trader.Reputation }</output>
-								</div>
-								<div class="form-control mt-6">
-									<button type="submit" disabled class="btn btn-primary">Update</button>
-								</div>
+							<div class="form-control">
+								<label class="label">
+									<span class="label-text">Reputation</span>
+								</label>
+								<input type="hidden" name="rep-original" value={ trader.Reputation }/>
+								<input type="range" name="rep" min="0.01" max={ trader.MaxRep } value={ trader.Reputation } class="range" step="0.05" oninput="this.nextElementSibling.value = this.value; this.parentNode.nextElementSibling.firstElementChild.disabled = false"/>
+								<output>{ trader.Reputation }</output>
+							</div>
+							<div class="form-control mt-6">
+								<button type="submit" disabled class="btn btn-primary">Update</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		}
+	</div>
+}
+
+func itemImageStyle(item util.InventoryItem) templ.Attributes {
+	return templ.Attributes{"style": util.CalculateBackgroundStyleForImage(item)}
+}
+
+func itemStyle(item util.InventoryItem) templ.Attributes {
+	return templ.Attributes{"style": util.CalculateBackgroundStyleForItem(item)}
+}
+
+func itemWidth(gridSizeX int) templ.Attributes {
+	return templ.Attributes{"style": fmt.Sprintf("width: %dpx;", 64*gridSizeX)}
+}
+
+func gridSize(gridSizeX int) templ.Attributes {
+	width := fmt.Sprintf("width: %dpx;", 64*gridSizeX)
+	gridTemplateColumns := fmt.Sprintf("repeat(%d, 64px)", gridSizeX)
+	return templ.Attributes{"style": fmt.Sprintf("width: %s; grid-template-columns: %s", width, gridTemplateColumns)}
+}
+
+templ Stash(profile *models.SPTProfile) {
+	{{ stashItems, gridSizeX, _ := util.PrepareItemsForStash(profile) }}
+	<div class="w-full flex flex-col gap-2 items-center justify-center" id="stash">
+		<div role="alert" class="alert alert-info">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				class="h-6 w-6 shrink-0 stroke-current"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+				></path>
+			</svg>
+			<span>Make sure to refresh this page to get latest changes from the server. The stash might show unsynced items until the profile is stored in disk.</span>
+			<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/stash" hx-target="#stash" hx-disabled-elt="this" hx-swap="outerHTML">
+				Refresh
+			</button>
+		</div>
+		<div class="w-full flex items-center justify-end gap-5" { itemWidth(gridSizeX)... }>
+			<div><strong>₽ { util.SumAllItems("5449016a4bdc2d6f028b456f", profile) }</strong></div>
+			<div>€ { util.SumAllItems("569668774bdc2da2298b4568", profile) }</div>
+			<div>$ { util.SumAllItems("5696686a4bdc2da3298b456a", profile) }</div>
+		</div>
+		<div class="grid-stash" { gridSize(gridSizeX)... }>
+			for _, item := range stashItems {
+				<div class="grid-item">
+					if item != nil {
+						<div class="item group hover:brightness-150" { itemStyle(*item)... }>
+							<div class="item-image" { itemImageStyle(*item)... }></div>
+							<div class="short-name">{ item.Item.ShortName }</div>
+							<div class="item-data">
+								if item.Item.Upd != nil && item.Item.Upd.SpawnedInSession != nil && *item.Item.Upd.SpawnedInSession {
+									<div class="fir"></div>
+								}
+								if item.Item.IsStockable || item.Item.Amount > 1 {
+									<div class="amount">{ fmt.Sprintf("%d", item.Item.Amount) }</div>
+								}
+							</div>
+							<form class="hidden group-hover:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" hx-post="/stash" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit">
+								<input name="id" hidden value={ item.Item.Id }/>
+								<button type="submit" class="btn btn-primary">
+									<div id="loader" class="button-loader">
+										<span class="loading loading-spinner"></span>
+										<span class="button-hide">Give</span>
+									</div>
+								</button>
 							</form>
 						</div>
-					</div>
+					} else {
+						<div class="empty"></div>
+					}
 				</div>
 			}
 		</div>
-	}
+	</div>
+}
+
+templ Others(serverInfo *models.ServerInfo) {
+	<div class="flex flex-col flex-wrap gap-4 mb-2">
+		<div>
+			<h1 class="divider">Seasons</h1>
+			<div class="flex flex-row flex-wrap gap-2 mb-2">
+				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+					<label class="label">
+						<span class="label-text">Summer</span>
+					</label>
+					<input type="hidden" name="message" value="summer"/>
+					<button type="submit" class="btn btn-primary">Set</button>
+				</form>
+				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+					<label class="label">
+						<span class="label-text">Halloween</span>
+					</label>
+					<input type="hidden" name="message" value="halloween"/>
+					<button type="submit" class="btn btn-primary">Set</button>
+				</form>
+				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+					<label class="label">
+						<span class="label-text">Winter</span>
+					</label>
+					<input type="hidden" name="message" value="winter"/>
+					<button type="submit" class="btn btn-primary">Set</button>
+				</form>
+				<form hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+					<label class="label">
+						<span class="label-text">Christmas</span>
+					</label>
+					<input type="hidden" name="message" value="christmas"/>
+					<button type="submit" class="btn btn-primary">Set</button>
+				</form>
+			</div>
+		</div>
+		<div>
+			<h1 class="divider">Stash</h1>
+			<form class="text-left" hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+				<label class="label">
+					<span class="label-text">Add stash rows</span>
+				</label>
+				<input type="hidden" name="message" value="stash"/>
+				<button type="submit" class="btn btn-primary">Add</button>
+			</form>
+		</div>
+		<div>
+			<h1 class="divider">Gifts</h1>
+			<form class="text-left" hx-swap="none" hx-post="/spt" hx-disabled-elt="this">
+				<label class="label">
+					<span class="label-text">Select gift</span>
+				</label>
+				<select name="message" class="select select-bordered">
+					<option disabled selected>Pick one</option>
+					for gift, _ := range serverInfo.Gifts {
+						<option>{ gift }</option>
+					}
+				</select>
+				<button type="submit" class="btn btn-primary">Send gift</button>
+			</form>
+		</div>
+	</div>
 }
 
 templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
@@ -532,6 +746,159 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 	</div>
 }
 
+templ Kits(equipmentBuilds []models.EquipmentBuild, sessionId string) {
+	<div class="h-full flex flex-col" id="kits">
+		if len(equipmentBuilds) == 0 {
+			<div role="alert" class="alert alert-info p-2">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					class="h-6 w-6 shrink-0 stroke-current"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<span>You don't have any kits saved in this profile.</span>
+			</div>
+		} else {
+			<div class="w-full p-2 flex items-center justify-center">
+				<label class="input input-bordered bg-base-200 flex items-center gap-2 max-w-xs w-full justify-between">
+					<input type="text" autocomplete="off" id="filter-kits-input" oninput="filterKits()" placeholder="Filter here" autofocus/>
+					@_RefreshKits()
+				</label>
+			</div>
+			<div class="flex w-full h-full min-h-0">
+				<div class="card p-2 bg-base-200 rounded-box grid overflow-y-auto place-items-start flex-1 basis-2/5 content-start gap-4">
+					<ul class="w-full" id="kits-list">
+						for _, equipmentBuild := range equipmentBuilds {
+							<li tabindex="0" class="text-left cursor-pointer hover:bg-primary hover:text-base-content focus:bg-base-300 focus:text-primary focus:outline-none" hx-trigger="click" hx-target="#gear-details" hx-swap="innerHTML" hx-get={ fmt.Sprintf("/kit/%s", equipmentBuild.Id) } onclick="selectKit(this)">{ equipmentBuild.Name }</li>
+						}
+					</ul>
+				</div>
+				<div class="divider divider-horizontal"></div>
+				<div class="card bg-base-200 rounded-box grid flex-grow place-items-start w-full overflow-y-auto" id="gear-details">
+					<div class="p-2">
+						<p class="text-9xl mb-4">👀</p>
+						<p class="text-left mb-4">Select something from the left menu and press the button <em>Give kit</em>. You will receive a message with your kit items.</p>
+						<p class="text-left">Right now some items are ignored: <strong>secured container</strong>, <strong>dog tab</strong> and <strong>arm band</strong>.</p>
+					</div>
+				</div>
+			</div>
+		}
+	</div>
+}
+
+func findBySlotId(items []models.ItemWithUpd, slotId string) *models.ItemWithUpd {
+	for _, item := range items {
+		if item.SlotID != nil && *item.SlotID == slotId {
+			return &item
+		}
+	}
+	return nil
+}
+
+templ Kit(equipmentBuild models.EquipmentBuild) {
+	<div class="flex flex-col w-full gap-1 items-center">
+		<button class="btn btn-primary" hx-post={ fmt.Sprintf("/kit/%s", equipmentBuild.Id) } hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
+			<div id="loader" class="button-loader">
+				<span class="loading loading-spinner"></span>
+				<span class="button-hide">Give kit</span>
+			</div>
+		</button>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "EARPIECE", "Earpiece")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "HEADWEAR", "Headwear")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "FACECOVER", "FaceCover")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h64", "ARMBAND", "ArmBand")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "BODY ARMOR", "ArmorVest")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "EYEWEAR", "Eyewear")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w256-h128", "ON SLING", "FirstPrimaryWeapon")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "HOLSTER", "Holster")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w256-h128", "ON BACK", "SecondPrimaryWeapon")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "SHEATH", "Scabbard")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="kits">
+			<tbody>
+				<tr>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "TACTICAL RIG", "TacticalVest")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "BACKPACK", "Backpack")
+					</td>
+					<td>
+						@_IndividualKit(equipmentBuild, "w128-h128", "POUCH", "SecuredContainer")
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+}
+
+templ _IndividualKit(equipmentBuild models.EquipmentBuild, clazz string, title string, slot string) {
+	{{ item := findBySlotId(equipmentBuild.Items, slot) }}
+	{{ class := "kit-slot " + clazz }}
+	<div class={ class }>
+		<div class="title">{ title }</div>
+		<div class="image bg-base-300">
+			if item != nil {
+				if item.ImageBase64 != "" {
+					<img alt="item" style="max-height: 100%; max-width: 100%" src={ fmt.Sprintf("data:image/png;base64, %s", item.ImageBase64) }/>
+				} else {
+					<img alt="item" style="max-height: 100%; max-width: 100%" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", item.Tpl) }/>
+				}
+			}
+		</div>
+	</div>
+}
+
 templ _AddWorkbenchItem(itemId string, itemQuantity string) {
 	<div class="flex items-center gap-4">
 		<img alt="item" class="max-h-16" src={ fmt.Sprintf("https://assets.tarkov.dev/%s-base-image.webp", itemId) }/>
@@ -555,7 +922,7 @@ templ _AppHeader(appName string, appVersion string) {
 templ _AppFooter(appName string, appVersion string, currentTheme string) {
 	<div class="pt-1 border-t-2 border-t-base-200">
 		<div class="flex justify-between items-center p-1">
-			<p class="text-xs text-left">{ strings.ToUpper(appName) } v{ appVersion }<span id="profile-selected"></span></p>
+			<div class="text-xs text-left flex items-center">{ strings.ToUpper(appName) } v{ appVersion }<div id="profile-selected" class="flex items-center gap-1"></div></div>
 			@_ThemeSwitcher(currentTheme)
 		</div>
 	</div>
@@ -626,6 +993,20 @@ templ _FavSwitcher(sessionId string, filterFavorites bool) {
 
 templ _RefreshPreset() {
 	<button class="btn btn-circle btn-sm" hx-get="/user-weapons" hx-target="#user-weapons" hx-swap="outerHTML" hx-disabled-elt="#user-weapons button">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			fill="currentColor"
+			width="32"
+			height="32"
+			viewBox="0 0 30 30"
+		>
+			<path d="M 15 3 C 12.031398 3 9.3028202 4.0834384 7.2070312 5.875 A 1.0001 1.0001 0 1 0 8.5058594 7.3945312 C 10.25407 5.9000929 12.516602 5 15 5 C 20.19656 5 24.450989 8.9379267 24.951172 14 L 22 14 L 26 20 L 30 14 L 26.949219 14 C 26.437925 7.8516588 21.277839 3 15 3 z M 4 10 L 0 16 L 3.0507812 16 C 3.562075 22.148341 8.7221607 27 15 27 C 17.968602 27 20.69718 25.916562 22.792969 24.125 A 1.0001 1.0001 0 1 0 21.494141 22.605469 C 19.74593 24.099907 17.483398 25 15 25 C 9.80344 25 5.5490109 21.062074 5.0488281 16 L 8 16 L 4 10 z"></path>
+		</svg>
+	</button>
+}
+
+templ _RefreshKits() {
+	<button class="btn btn-circle btn-sm" hx-get="/kits" hx-target="#kits" hx-swap="outerHTML" hx-disabled-elt="#kits button">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
 			fill="currentColor"

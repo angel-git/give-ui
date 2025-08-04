@@ -1,3 +1,3 @@
 export interface IProfileStatusRequest {
-  groupId: number;
+    groupId: number;
 }

@@ -1,5 +1,6 @@
-import type { ICloner } from '@spt/utils/cloners/ICloner';
+import type { ICloner } from "@spt/utils/cloners/ICloner";
 export declare class RecursiveCloner implements ICloner {
-  private static primitives;
-  clone<T>(obj: T): T;
+    private static primitives;
+    clone<T>(obj: T): T;
+    cloneAsync<T>(obj: T): Promise<T>;
 }

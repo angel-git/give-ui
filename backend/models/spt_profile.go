@@ -1,17 +1,29 @@
 package models
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 type Info struct {
 	Id       string `json:"id"`
 	Username string `json:"username"`
 }
 
 type ItemWithUpd struct {
-	Id          string  `json:"_id"`
-	Tpl         string  `json:"_tpl"`
-	ParentID    *string `json:"parentId"`
-	SlotID      *string `json:"slotId"`
-	Upd         *Upd    `json:"upd"`
-	ImageBase64 string
+	Id              string    `json:"_id"`
+	Tpl             string    `json:"_tpl"`
+	ParentID        *string   `json:"parentId"`
+	SlotID          *string   `json:"slotId"`
+	Location        *Location `json:"location"` // location can also be a number
+	Upd             *Upd      `json:"upd"`
+	ImageBase64     string
+	SizeX           int
+	SizeY           int
+	BackgroundColor string
+	ShortName       string
+	IsStockable     bool
+	Amount          int
 }
 
 type WeaponBuild struct {
@@ -34,9 +46,16 @@ type MagazineBuildItem struct {
 	Count      int    `json:"Count"`
 }
 
+type EquipmentBuild struct {
+	Id    string        `json:"Id"`
+	Name  string        `json:"Name"`
+	Items []ItemWithUpd `json:"Items"`
+}
+
 type UserBuilds struct {
-	WeaponBuilds   []WeaponBuild   `json:"weaponBuilds"`
-	MagazineBuilds []MagazineBuild `json:"magazineBuilds"`
+	WeaponBuilds    []WeaponBuild    `json:"weaponBuilds"`
+	MagazineBuilds  []MagazineBuild  `json:"magazineBuilds"`
+	EquipmentBuilds []EquipmentBuild `json:"equipmentBuilds"`
 }
 
 type SPTProfile struct {
@@ -53,10 +72,12 @@ type PMC struct {
 	InfoPMC     InfoPMC                  `json:"Info"`
 	TradersInfo map[string]TraderProfile `json:"TradersInfo"`
 	Skills      Skills                   `json:"Skills"`
+	Inventory   Inventory                `json:"Inventory"`
 }
 
 type InfoPMC struct {
-	Level int `json:"Level"`
+	Level    int    `json:"Level"`
+	Nickname string `json:"Nickname"`
 }
 
 type Skills struct {
@@ -78,6 +99,7 @@ type Upd struct {
 	Togglable         *Togglable `json:"Togglable"`
 	Foldable          *Foldable  `json:"Foldable"`
 	StackObjectsCount int        `json:"StackObjectsCount"`
+	SpawnedInSession  *bool      `json:"SpawnedInSession"`
 }
 
 type Togglable struct {
@@ -86,4 +108,62 @@ type Togglable struct {
 
 type Foldable struct {
 	Folded bool `json:"folded"`
+}
+
+type Inventory struct {
+	Items []ItemWithUpd `json:"items"`
+	Stash string        `json:"stash"`
+}
+
+type Location struct {
+	X int      `json:"x"`
+	Y int      `json:"y"`
+	R Rotation `json:"r"`
+}
+
+type Rotation string
+
+// Implement UnmarshalJSON to support number or object
+func (l *Location) UnmarshalJSON(data []byte) error {
+	// Try unmarshalling into a number first (e.g. `5`)
+	var dummyInt int
+	if err := json.Unmarshal(data, &dummyInt); err == nil {
+		// If it's just a number, ignore or assign defaults if needed
+		*l = Location{} // or store dummyInt somewhere if meaningful
+		return nil
+	}
+
+	// If not a number, try as full Location object
+	type Alias Location
+	var loc Alias
+	if err := json.Unmarshal(data, &loc); err != nil {
+		return err
+	}
+	*l = Location(loc)
+	return nil
+}
+
+func (r *Rotation) UnmarshalJSON(data []byte) error {
+	// Try to unmarshal as number first
+	var intVal int
+	if err := json.Unmarshal(data, &intVal); err == nil {
+		switch intVal {
+		case 0:
+			*r = "Horizontal"
+		case 1:
+			*r = "Vertical"
+		default:
+			*r = Rotation(fmt.Sprintf("Unknown(%d)", intVal))
+		}
+		return nil
+	}
+
+	// Try to unmarshal as string
+	var strVal string
+	if err := json.Unmarshal(data, &strVal); err == nil {
+		*r = Rotation(strVal)
+		return nil
+	}
+
+	return fmt.Errorf("invalid rotation format: %s", string(data))
 }

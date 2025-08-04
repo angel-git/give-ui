@@ -1,5 +1,5 @@
-import { IGroupCharacter } from '@spt/models/eft/match/IGroupCharacter';
+import { IGroupCharacter } from "@spt/models/eft/match/IGroupCharacter";
 export interface IMatchGroupStatusResponse {
-  players: IGroupCharacter[];
-  maxPveCountExceeded: boolean;
+    players: IGroupCharacter[];
+    maxPveCountExceeded: boolean;
 }

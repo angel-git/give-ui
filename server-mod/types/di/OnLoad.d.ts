@@ -1,4 +1,4 @@
 export interface OnLoad {
-  onLoad(): Promise<void>;
-  getRoute(): string;
+    onLoad(): Promise<void>;
+    getRoute(): string;
 }

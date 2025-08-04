@@ -108,6 +108,100 @@ dialog.modal:not([open]) {
     scrollbar-gutter: auto !important;
 }
 
+.grid-stash {
+    display: grid;
+    overflow-y: auto;
+}
+
+.grid-stash .grid-item {
+    height: 64px;
+    width: 64px;
+    position: relative;
+    background-image: url("../images/grid_cell.png");
+    background-size: cover;
+}
+.grid-stash .grid-item .empty {
+    height: 64px;
+    width: 64px;
+}
+
+.grid-stash .grid-item .item {
+    z-index: 2;
+}
+
+.grid-stash .grid-item .item .item-image {
+    width: 100%;
+    height: 100%;
+}
+
+.grid-stash .grid-item .item .short-name {
+    font-size: 11px;
+    position: absolute;
+    right: 2px;
+    top: 2px;
+}
+
+.grid-stash .grid-item .item .item-data {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.grid-stash .grid-item .item .item-data .fir {
+    height: 12px;
+    width: 12px;
+    background-image: url("../images/fir.png");
+    background-size: 12px 12px;
+}
+.grid-stash .grid-item .item .item-data .amount {
+    font-size: 13px;
+}
+
+table.kits {
+
+}
+
+table.kits tr td .kit-slot.w128-h128 {
+    width: 128px;
+    height: 128px;
+}
+
+table.kits tr td .kit-slot.w128-h64 {
+    width: 128px;
+    height: 64px;
+}
+
+table.kits tr td .kit-slot.w256-h128 {
+    width: 256px;
+    height: 128px;
+}
+
+table.kits tr td .kit-slot {
+    display: flex;
+    flex-direction: column;
+}
+
+table.kits tr td .kit-slot .image {
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+table.kits tr td .kit-slot .title {
+    text-align: start;
+}
+
+table.kits tr td {
+    vertical-align: top;
+}
+
 .snowflake {
     color: #fff;
     font-size: 1em;
