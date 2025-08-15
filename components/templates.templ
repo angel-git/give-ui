@@ -68,7 +68,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	</div>
 }
 
-templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, serverInfo *models.ServerInfo) {
+templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, serverInfo *models.ServerInfo, quests []models.ViewQuest) {
 	@templ.JSONScript("profile-selected-username", profile.Info.Username)
 	<script>
         setUsernameOnFooter();
@@ -98,6 +98,10 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Traders"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Traders(profile, traders)
+			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Quests"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@Quests(profile, quests)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Other"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
@@ -560,6 +564,61 @@ func gridSize(gridSizeX int) templ.Attributes {
 	width := fmt.Sprintf("width: %dpx;", 64*gridSizeX)
 	gridTemplateColumns := fmt.Sprintf("repeat(%d, 64px)", gridSizeX)
 	return templ.Attributes{"style": fmt.Sprintf("width: %s; grid-template-columns: %s", width, gridTemplateColumns)}
+}
+
+templ Quests(profile *models.SPTProfile, quests []models.ViewQuest) {
+	<div class="flex flex-col flex-wrap gap-4 mb-2">
+		if len(quests) == 0 {
+			<div role="alert" class="alert alert-info p-2">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					class="h-6 w-6 shrink-0 stroke-current"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<span>TODO you don't have quests.</span>
+			</div>
+		} else {
+			<div role="alert" class="alert alert-info p-2">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					class="h-6 w-6 shrink-0 stroke-current"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<span>After finishing a quest don't forget to refresh, TODO ADD BUTTON</span>
+			</div>
+			for _, quest := range quests {
+				<form class="pt-1 border-t-2 border-t-base-200" hx-post="/quest" hx-disabled-elt="this" hx-trigger="submit">
+					<div>{ quest.QID }</div>
+					<div>{ quest.Name }</div>
+					<div>{ quest.Location }</div>
+					<div>{ quest.Trader }</div>
+					<input name="id" hidden value={ quest.QID }/>
+					<button type="submit" class="btn btn-primary">
+						<div id="loader" class="button-loader">
+							<span class="loading loading-spinner"></span>
+							<span class="button-hide">Finish</span>
+						</div>
+					</button>
+				</form>
+			}
+		}
+	</div>
 }
 
 templ Stash(profile *models.SPTProfile) {
