@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"sort"
 	"spt-give-ui/backend/api"
 	"spt-give-ui/backend/config"
 	client "spt-give-ui/backend/http"
@@ -827,6 +828,12 @@ func getCurrentActiveQuests(app *App, profile models.SPTProfile) []models.ViewQu
 		}
 		quests = append(quests, questItem)
 	}
+	sort.Slice(quests, func(i, j int) bool {
+		if quests[i].Location == quests[j].Location {
+			return quests[i].Trader < quests[j].Trader
+		}
+		return quests[i].Location < quests[j].Location
+	})
 	return quests
 }
 
