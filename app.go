@@ -4,11 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/a-h/templ"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/wailsapp/wails/v2/pkg/menu"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"net/http"
 	"net/url"
 	"slices"
@@ -24,6 +19,12 @@ import (
 	"spt-give-ui/components"
 	"strconv"
 	"strings"
+
+	"github.com/a-h/templ"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/wailsapp/wails/v2/pkg/menu"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // ctx variables
@@ -34,6 +35,7 @@ const contextAllBSGItems = "AllBSGItems"
 const contextFavoriteSearch = "contextFavoriteSearch"
 const contextServerInfo = "contextServerInfo"
 const contextLocales = "contextLocales"
+const contextAllQuests = "contextAllQuests"
 
 // App struct
 type App struct {
@@ -107,6 +109,7 @@ func getLoginPage(app *App) http.HandlerFunc {
 		app.ctx = context.WithValue(app.ctx, contextFavoriteSearch, false)
 		app.ctx = context.WithValue(app.ctx, contextServerInfo, nil)
 		app.ctx = context.WithValue(app.ctx, contextLocales, nil)
+		app.ctx = context.WithValue(app.ctx, contextAllQuests, nil)
 		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
 	}
 }
@@ -226,6 +229,15 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 			}
 		}
 
+		if app.ctx.Value(contextAllQuests) == nil {
+			bsgQuests, e := api.LoadQuests(app.config.GetSptUrl(), sessionId)
+			if e != nil {
+				redirectToErrorPage(app, e.Error())
+				return
+			}
+			app.ctx = context.WithValue(app.ctx, contextAllQuests, bsgQuests)
+		}
+
 		profile := getProfileFromSession(app)
 
 		skills, err := api.LoadSkills(profile, locales)
@@ -237,8 +249,8 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 		addImageToWeaponBuild(app, &profile.UserBuilds.WeaponBuilds)
 		addUIPropertiesToInventoryItems(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
-
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo)).ServeHTTP(w, r)
+		quests := getCurrentActiveQuests(app, profile)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo, quests)).ServeHTTP(w, r)
 	}
 }
 
@@ -782,6 +794,54 @@ func addImageToWeaponBuildAttachments(app *App, weaponBuild *models.WeaponBuild)
 	}
 }
 
+func getCurrentActiveQuests(app *App, profile models.SPTProfile) []models.ViewQuest {
+	allBsgQuests := app.ctx.Value(contextAllQuests).(*[]models.BsgQuest)
+	locales := app.ctx.Value(contextLocales).(*models.Locales)
+
+	var quests []models.ViewQuest
+	for _, quest := range profile.Characters.PMC.Quests {
+		if quest.Status != 2 && quest.Status != 3 {
+			continue
+		}
+
+		idx := slices.IndexFunc(*allBsgQuests, func(i models.BsgQuest) bool {
+			return i.Id == quest.QID
+		})
+		if idx == -1 {
+			runtime.LogWarning(app.ctx, "Couldn't find quest with id "+quest.QID)
+			continue
+		}
+		bsgQuest := (*allBsgQuests)[idx]
+
+		location := bsgQuest.Location
+		if location != "any" {
+			location = locales.Data[fmt.Sprintf("%s Name", bsgQuest.Location)]
+		}
+
+		questItem := models.ViewQuest{
+			QID:      quest.QID,
+			Name:     locales.Data[bsgQuest.Name],
+			Location: location,
+			Trader:   locales.Data[fmt.Sprintf("%s Nickname", bsgQuest.TraderId)],
+		}
+		quests = append(quests, questItem)
+	}
+	return quests
+}
+
+func finishQuest(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		questId := r.FormValue("id")
+		e := api.FinishQuest(app.config.GetSptUrl(), sessionId, questId)
+		if e != nil {
+			runtime.LogWarning(app.ctx, "Couldn't finish quest: "+e.Error())
+		}
+		runtime.EventsEmit(app.ctx, "toast.info", "Quest finished "+questId)
+	}
+}
+
 func NewChiRouter(app *App) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -813,6 +873,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/file", getFile(app))
 	r.Get("/linked-search/{id}", getLinkedSearchModal(app))
 	r.Get("/reload-profiles", goToProfileList(app))
+	r.Post("/quest", finishQuest(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))
