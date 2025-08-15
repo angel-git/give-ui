@@ -123,8 +123,9 @@ type Location struct {
 }
 
 type Quest struct {
-	QID    string `json:"qid"`
-	Status int    `json:"status"`
+	QID                 string   `json:"qid"`
+	Status              int      `json:"status"`
+	CompletedConditions []string `json:"completedConditions"`
 }
 
 type Rotation string

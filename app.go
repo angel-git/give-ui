@@ -819,12 +819,26 @@ func getCurrentActiveQuests(app *App, profile models.SPTProfile) []models.ViewQu
 			location = locales.Data[fmt.Sprintf("%s Name", bsgQuest.Location)]
 		}
 
+		var conditions []models.ViewCondition
+		for _, bsgCondition := range bsgQuest.Conditions.AvailableForFinish {
+			questIdx := slices.IndexFunc(quest.CompletedConditions, func(i string) bool {
+				return i == bsgCondition.Id
+			})
+
+			condition := models.ViewCondition{
+				Name:        locales.Data[bsgCondition.Id],
+				IsCompleted: questIdx != -1,
+			}
+			conditions = append(conditions, condition)
+		}
+
 		questItem := models.ViewQuest{
-			QID:      quest.QID,
-			Name:     locales.Data[bsgQuest.Name],
-			Location: location,
-			Trader:   locales.Data[fmt.Sprintf("%s Nickname", bsgQuest.TraderId)],
-			Image:    bsgQuest.Image,
+			QID:        quest.QID,
+			Name:       locales.Data[bsgQuest.Name],
+			Location:   location,
+			Trader:     locales.Data[fmt.Sprintf("%s Nickname", bsgQuest.TraderId)],
+			Image:      bsgQuest.Image,
+			Conditions: conditions,
 		}
 		quests = append(quests, questItem)
 	}

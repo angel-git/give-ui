@@ -5,10 +5,20 @@ type BsqQuestResponse struct {
 }
 
 type BsgQuest struct {
-	Id        string `json:"_id"`
-	QuestName string `json:"QuestName"`
-	Image     string `json:"image"`
-	Location  string `json:"location"`
-	TraderId  string `json:"traderId"`
-	Name      string `json:"name"`
+	Id         string     `json:"_id"`
+	QuestName  string     `json:"QuestName"`
+	Image      string     `json:"image"`
+	Location   string     `json:"location"`
+	TraderId   string     `json:"traderId"`
+	Name       string     `json:"name"`
+	Conditions Conditions `json:"conditions"`
+}
+
+type Conditions struct {
+	AvailableForFinish []AvailableForFinish `json:"AvailableForFinish"`
+}
+
+type AvailableForFinish struct {
+	Id    string `json:"id"`
+	Value int    `json:"value"`
 }
