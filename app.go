@@ -823,6 +823,7 @@ func getCurrentActiveQuests(app *App, profile models.SPTProfile) []models.ViewQu
 			Name:     locales.Data[bsgQuest.Name],
 			Location: location,
 			Trader:   locales.Data[fmt.Sprintf("%s Nickname", bsgQuest.TraderId)],
+			Image:    bsgQuest.Image,
 		}
 		quests = append(quests, questItem)
 	}

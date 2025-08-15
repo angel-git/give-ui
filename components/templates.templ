@@ -604,18 +604,20 @@ templ Quests(profile *models.SPTProfile, quests []models.ViewQuest) {
 				<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/quest" hx-target="#quests" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
 			</div>
 			for _, quest := range quests {
-				<form class="pt-1 border-t-2 border-t-base-200" hx-post="/quest" hx-disabled-elt="this" hx-trigger="submit">
-					<div>{ quest.QID }</div>
-					<div>{ quest.Name }</div>
-					<div>{ quest.Location }</div>
-					<div>{ quest.Trader }</div>
-					<input name="id" hidden value={ quest.QID }/>
-					<button type="submit" class="btn btn-primary">
-						<div id="loader" class="button-loader">
-							<span class="loading loading-spinner"></span>
-							<span class="button-hide">Finish</span>
-						</div>
-					</button>
+				<form class="w-full p-2 card bg-base-300" hx-post="/quest" hx-disabled-elt="this" hx-trigger="submit">
+					<h2 class="divider">{ quest.Name }</h2>
+					<div class="flex flex-row justify-between items-center p-2 gap-2">
+						<img class="size-20 rounded-lg shadow-2xl" src={ fmt.Sprintf("/file?url=%s", quest.Image) }/>
+						<div class="text-xs uppercase font-semibold opacity-60">{ quest.Location }</div>
+						<div class="text-xs uppercase font-semibold opacity-60">{ quest.Trader }</div>
+						<input name="id" hidden value={ quest.QID }/>
+						<button type="submit" class="btn btn-primary">
+							<div id="loader" class="button-loader">
+								<span class="loading loading-spinner"></span>
+								<span class="button-hide">Finish</span>
+							</div>
+						</button>
+					</div>
 				</form>
 			}
 		}

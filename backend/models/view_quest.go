@@ -5,4 +5,5 @@ type ViewQuest struct {
 	Name     string
 	Location string
 	Trader   string
+	Image    string
 }
