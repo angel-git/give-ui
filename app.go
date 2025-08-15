@@ -842,6 +842,20 @@ func finishQuest(app *App) http.HandlerFunc {
 	}
 }
 
+func refreshQuest(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		err := reloadProfiles(app)
+		if err != nil {
+			redirectToErrorPage(app, err.Error())
+			return
+		}
+		profile := getProfileFromSession(app)
+		quests := getCurrentActiveQuests(app, profile)
+		templ.Handler(components.Quests(&profile, quests)).ServeHTTP(w, r)
+	}
+}
+
 func NewChiRouter(app *App) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -874,6 +888,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/linked-search/{id}", getLinkedSearchModal(app))
 	r.Get("/reload-profiles", goToProfileList(app))
 	r.Post("/quest", finishQuest(app))
+	r.Get("/quest", refreshQuest(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))

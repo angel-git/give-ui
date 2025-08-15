@@ -567,7 +567,7 @@ func gridSize(gridSizeX int) templ.Attributes {
 }
 
 templ Quests(profile *models.SPTProfile, quests []models.ViewQuest) {
-	<div class="flex flex-col flex-wrap gap-4 mb-2">
+	<div class="flex flex-col flex-wrap gap-4 mb-2" id="quests">
 		if len(quests) == 0 {
 			<div role="alert" class="alert alert-info p-2">
 				<svg
@@ -583,7 +583,7 @@ templ Quests(profile *models.SPTProfile, quests []models.ViewQuest) {
 						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 					></path>
 				</svg>
-				<span>TODO you don't have quests.</span>
+				<span>You don't have any active quests.</span>
 			</div>
 		} else {
 			<div role="alert" class="alert alert-info p-2">
@@ -600,7 +600,8 @@ templ Quests(profile *models.SPTProfile, quests []models.ViewQuest) {
 						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 					></path>
 				</svg>
-				<span>After finishing a quest don't forget to refresh, TODO ADD BUTTON</span>
+				<span>After finishing a quest don't forget to refresh.</span>
+				<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/quest" hx-target="#quests" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
 			</div>
 			for _, quest := range quests {
 				<form class="pt-1 border-t-2 border-t-base-200" hx-post="/quest" hx-disabled-elt="this" hx-trigger="submit">
