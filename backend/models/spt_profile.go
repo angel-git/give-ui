@@ -73,6 +73,7 @@ type PMC struct {
 	TradersInfo map[string]TraderProfile `json:"TradersInfo"`
 	Skills      Skills                   `json:"Skills"`
 	Inventory   Inventory                `json:"Inventory"`
+	Quests      []Quest                  `json:"Quests"`
 }
 
 type InfoPMC struct {
@@ -119,6 +120,12 @@ type Location struct {
 	X int      `json:"x"`
 	Y int      `json:"y"`
 	R Rotation `json:"r"`
+}
+
+type Quest struct {
+	QID                 string   `json:"qid"`
+	Status              int      `json:"status"`
+	CompletedConditions []string `json:"completedConditions"`
 }
 
 type Rotation string

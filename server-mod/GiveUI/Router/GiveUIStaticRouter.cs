@@ -4,6 +4,7 @@ using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Helpers.Dialogue;
 using SPTarkov.Server.Core.Models.Eft.Dialog;
+using SPTarkov.Server.Core.Models.Eft.Quests;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Spt.Mod;
 using SPTarkov.Server.Core.Servers;
@@ -24,7 +25,8 @@ public class GiveUIStaticRouter : StaticRouter
         DatabaseService databaseService,
         LauncherController launcherController,
         CommandoDialogChatBot commandoDialogChatBot,
-        SptDialogueChatBot sptDialogueChatBot
+        SptDialogueChatBot sptDialogueChatBot,
+        QuestHelper questHelper
     ) : base(
         jsonUtil, [
             new RouteAction(
@@ -122,6 +124,26 @@ public class GiveUIStaticRouter : StaticRouter
                     return await sptDialogueChatBot.HandleMessage(sessionId, message);
                 },
                 typeof(GiveUIMessageRequest)
+            )
+            ,
+            new RouteAction(
+                "/give-ui/quest",
+                async (
+                    url,
+                    info,
+                    sessionId,
+                    output
+                ) =>
+                {
+                    var questId = (info as GiveUIQuestRequest)?.QuestId ?? "";
+                    var completeQuestRequestData = new CompleteQuestRequestData
+                    {
+                        QuestId = questId
+                    };
+                    questHelper.CompleteQuest(saveServer.GetProfiles()[sessionId].CharacterData!.PmcData!, completeQuestRequestData, sessionId);
+                    return await new ValueTask<string>("{\"ok\": true}");
+                },
+                typeof(GiveUIQuestRequest)
             )
         ])
     {

@@ -70,6 +70,10 @@ func AddGearPreset(url string, sessionId string, presetId string) (e error) {
 	return sendToCommando(url, sessionId, commands.AddGearPreset(presetId))
 }
 
+func FinishQuest(url string, sessionId string, questId string) (e error) {
+	return sendFinishQuest(url, sessionId, questId)
+}
+
 func LoadSkills(profile models.SPTProfile, locales *models.Locales) (r []models.Skill, e error) {
 	var skills []models.Skill
 	// try to find skill in lowercase, Troubleshooting example
@@ -205,6 +209,19 @@ func getItemsFromServer(url string) (*models.ItemsResponse, error) {
 	return itemsMap, nil
 }
 
+func LoadQuests(url string, sessionId string) (r *[]models.BsgQuest, e error) {
+	bytes, err := util.GetRawBytes(fmt.Sprintf("%s/client/quest/list", url), sessionId)
+	if err != nil {
+		return nil, err
+	}
+	var response *models.BsqQuestResponse
+	err = util.ParseByteResponse(bytes, &response)
+	if err != nil {
+		return nil, err
+	}
+	return &response.Data, nil
+}
+
 func SetWinterSeason(url string, sessionId string) (e error) {
 	return sendToSpt(url, sessionId, commands.SetWinterSeason())
 }
@@ -324,5 +341,10 @@ func sendToCommando(url string, sessionId string, command models.Command) (e err
 
 func sendToSpt(url string, sessionId string, command models.Command) (e error) {
 	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/spt", url), sessionId, command)
+	return err
+}
+
+func sendFinishQuest(url string, sessionId string, questId string) (e error) {
+	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/quest", url), sessionId, models.FinishQuestCommand{QuestId: questId})
 	return err
 }

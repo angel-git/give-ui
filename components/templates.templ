@@ -68,7 +68,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	</div>
 }
 
-templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, serverInfo *models.ServerInfo) {
+templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, serverInfo *models.ServerInfo, quests []models.ViewQuest) {
 	@templ.JSONScript("profile-selected-username", profile.Info.Username)
 	<script>
         setUsernameOnFooter();
@@ -98,6 +98,10 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Traders"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Traders(profile, traders)
+			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Quests"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@Quests(profile, quests)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Other"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
@@ -301,7 +305,7 @@ templ _Items(allItems *models.AllItems, sessionId string, filterFavorites bool) 
 templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) {
 	<div class="h-full flex flex-col" id="user-weapons">
 		if len(weaponBuilds) == 0 {
-			<div role="alert" class="alert alert-info">
+			<div role="alert" class="alert alert-warning">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
@@ -562,6 +566,82 @@ func gridSize(gridSizeX int) templ.Attributes {
 	return templ.Attributes{"style": fmt.Sprintf("width: %s; grid-template-columns: %s", width, gridTemplateColumns)}
 }
 
+templ Quests(profile *models.SPTProfile, quests []models.ViewQuest) {
+	<div class="flex flex-col flex-wrap gap-4 mb-2" id="quests">
+		if len(quests) == 0 {
+			<div role="alert" class="alert alert-warning">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					class="h-6 w-6 shrink-0 stroke-current"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<span>You don't have any active quests.</span>
+			</div>
+		} else {
+			<div role="alert" class="alert alert-info">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					class="h-6 w-6 shrink-0 stroke-current"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<span>After finishing a quest you have to restart your game! Don't forget to press refresh to get latest changes from the server.</span>
+				<button class="btn btn-ghost btn-outline" hx-trigger="click" hx-get="/quest" hx-target="#quests" hx-disabled-elt="this, find button" hx-swap="outerHTML">Refresh</button>
+			</div>
+			for _, quest := range quests {
+				<div class="w-full p-2 card bg-base-300">
+					<h2 class="divider">{ quest.Name }</h2>
+					<table class="border-separate border-spacing-2">
+						<tr>
+							<td class="w-1/12"><img class="size-20 rounded-lg shadow-2xl" src={ fmt.Sprintf("/file?url=%s", quest.Image) }/></td>
+							<td class="w-6/12">
+								<div class="flex flex-col items-start gap-2 flex-[0_0_50%]">
+									for _, condition := range quest.Conditions {
+										<div class="flex flex-row items-center gap-2 text-start">
+											<div>- { condition.Name }</div>
+											if condition.IsCompleted {
+												<div class="badge badge-primary badge-outline">done</div>
+											}
+										</div>
+									}
+								</div>
+							</td>
+							<td class="w-2/12"><div class="text-left text-xs uppercase font-semibold opacity-60">{ quest.Location }</div></td>
+							<td class="w-2/12"><div class="text-left text-xs uppercase font-semibold opacity-60">{ quest.Trader }</div></td>
+							<td class="w-1/12">
+								<form class="w-full p-2 card bg-base-300" hx-post="/quest" hx-disabled-elt="this" hx-trigger="submit">
+									<input name="id" hidden value={ quest.QID }/>
+									<button type="submit" class="btn btn-primary">
+										<div id="loader" class="button-loader">
+											<span class="loading loading-spinner"></span>
+											<span class="button-hide">Finish</span>
+										</div>
+									</button>
+								</form>
+							</td>
+						</tr>
+					</table>
+				</div>
+			}
+		}
+	</div>
+}
+
 templ Stash(profile *models.SPTProfile) {
 	{{ stashItems, gridSizeX, _ := util.PrepareItemsForStash(profile) }}
 	<div class="w-full flex flex-col gap-2 items-center justify-center" id="stash">
@@ -689,7 +769,7 @@ templ Others(serverInfo *models.ServerInfo) {
 templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 	<div class="h-full flex flex-col">
 		if len(magazineLoadouts) == 0 {
-			<div role="alert" class="alert alert-info p-2">
+			<div role="alert" class="alert alert-info">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
@@ -749,7 +829,7 @@ templ _MagazineLoadouts(magazineLoadouts []models.MagazineBuild) {
 templ Kits(equipmentBuilds []models.EquipmentBuild, sessionId string) {
 	<div class="h-full flex flex-col" id="kits">
 		if len(equipmentBuilds) == 0 {
-			<div role="alert" class="alert alert-info p-2">
+			<div role="alert" class="alert alert-warning">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
