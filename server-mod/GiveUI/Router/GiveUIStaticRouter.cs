@@ -3,12 +3,9 @@ using SPTarkov.Server.Core.Controllers;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Helpers.Dialogue;
-using SPTarkov.Server.Core.Models.Common;
-using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Eft.Dialog;
 using SPTarkov.Server.Core.Models.Eft.Quests;
 using SPTarkov.Server.Core.Models.Enums;
-using SPTarkov.Server.Core.Models.Spt.Dialog;
 using SPTarkov.Server.Core.Models.Spt.Mod;
 using SPTarkov.Server.Core.Servers;
 using SPTarkov.Server.Core.Services;
@@ -29,8 +26,7 @@ public class GiveUIStaticRouter : StaticRouter
         LauncherController launcherController,
         CommandoDialogChatBot commandoDialogChatBot,
         SptDialogueChatBot sptDialogueChatBot,
-        QuestHelper questHelper,
-        MailSendService mailSendService
+        QuestHelper questHelper
     ) : base(
         jsonUtil, [
             new RouteAction(
@@ -145,29 +141,6 @@ public class GiveUIStaticRouter : StaticRouter
                         QuestId = questId
                     };
                     questHelper.CompleteQuest(saveServer.GetProfiles()[sessionId].CharacterData!.PmcData!, completeQuestRequestData, sessionId);
-                    var profileChangeEvent = new ProfileChangeEvent
-                    {
-                        Id = new MongoId(),
-                        Type = "ReloadProfile",
-                        Value = null,
-                        Entity = null,
-                    };
-                    mailSendService.SendSystemMessageToPlayer(
-                        sessionId,
-                        "A single ruble is being attached, required by BSG logic to refresh your profile.",
-                        [
-                            new Item
-                            {
-                                Id = new MongoId(),
-                                Template = Money.ROUBLES,
-                                Upd = new Upd { StackObjectsCount = 1 },
-                                ParentId = new MongoId(),
-                                SlotId = "main",
-                            },
-                        ],
-                        999999,
-                        [profileChangeEvent]
-                    );
                     return await new ValueTask<string>("{\"ok\": true}");
                 },
                 typeof(GiveUIQuestRequest)
