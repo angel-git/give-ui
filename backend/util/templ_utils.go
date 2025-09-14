@@ -218,13 +218,16 @@ func calculateBackgroundColor(item InventoryItem) string {
 
 // https://hub.sp-tarkov.com/files/file/2841-odt-s-item-info-3-11-update-added-colored-name
 func ApplyOdtColors(input string) string {
-	re := regexp.MustCompile(`(?i)<b><color=([#a-z0-9]+)>(.*?)</color></b>(.*)`)
-	output := re.ReplaceAllString(input, `<div style="color: $1">$2 $3</div>`)
+	if strings.Contains(input, "\n") {
+		input = strings.ReplaceAll(input, "\n", "<br>")
+	}
+	re := regexp.MustCompile(`(?i)<b><color=([#a-z0-9]+)>(.*?)</color></b>`)
+	output := re.ReplaceAllString(input, `<span style="color: $1">$2</span>`)
 	return output
 }
 
 func RemoveOdtColors(input string) string {
-	re := regexp.MustCompile(`(?i)<b><color=([#a-z0-9]+)>(.*?)</color></b>(.*)`)
+	re := regexp.MustCompile(`(?i)<b><color=([#a-z0-9]+)>(.*?)</color></b>`)
 	output := re.ReplaceAllString(input, `$2`)
 	return output
 }
