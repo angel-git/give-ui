@@ -167,7 +167,7 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 		<div class="card-body">
 			<div class="card-title">
 				<h2>
-					@templ.Raw(util.RemoveOdtCodes(item.Name))
+					@templ.Raw(util.ApplyOdtColors(item.Name))
 				</h2>
 				<label class="swap swap-rotate">
 					<input type="checkbox" class="focus:border-2 focus:border-primary focus:outline-none" checked?={ item.Favorite } hx-post={ fmt.Sprintf("/fav/%s", item.Id) } hx-trigger="change, keydown[key=='Enter'], keydown[ctrlKey&&shiftKey&&key=='F'] from:body" hx-target="#item-details" hx-swap="innerHTML"/>
@@ -238,7 +238,7 @@ func sortAndConvertItems(allItems *models.AllItems, filterFavorites bool) []mode
 		itemsSlice = append(itemsSlice, item)
 	}
 	sort.SliceStable(itemsSlice, func(i, j int) bool {
-		return itemsSlice[i].Name < itemsSlice[j].Name
+		return util.RemoveOdtColors(itemsSlice[i].Name) < util.RemoveOdtColors(itemsSlice[j].Name)
 	})
 	return itemsSlice
 }
@@ -281,7 +281,7 @@ templ _Items(allItems *models.AllItems, sessionId string, filterFavorites bool) 
 								for _, i := range sortedItems {
 									if i.Category == cat {
 										<li tabindex="0" class="text-left cursor-pointer hover:bg-primary hover:text-base-content focus:bg-base-300 focus:text-primary focus:outline-none" data-item-id={ i.Id } onkeydown="selectItemFromKeyboard(event, this)" onclick="selectItem(this)" hx-get={ fmt.Sprintf("/item/%s", i.Id) } hx-trigger="click, keydown[key=='Enter']" hx-target="#item-details" hx-swap="innerHTML">
-											@templ.Raw(util.RemoveOdtCodes(i.Name))
+											@templ.Raw(util.ApplyOdtColors(i.Name))
 										</li>
 									}
 								}
@@ -390,7 +390,7 @@ templ UserWeaponModal(allItems *models.AllItems, weaponBuild models.WeaponBuild)
 						}
 					</div>
 					<div class="pl-2 text-start table-cell align-middle">
-						@templ.Raw(util.RemoveOdtCodes(allItems.Items[item.Tpl].Name))
+						@templ.Raw(util.ApplyOdtColors(allItems.Items[item.Tpl].Name))
 					</div>
 				</div>
 			}
@@ -416,7 +416,7 @@ templ LinkedSearchModal(linked []models.ViewItem) {
 						}
 					</div>
 					<div class="pl-2 text-start grow">
-						@templ.Raw(util.RemoveOdtCodes(i.Name))
+						@templ.Raw(util.ApplyOdtColors(i.Name))
 					</div>
 					<form hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit">
 						<input name="quantity" hidden type="number" value={ fmt.Sprintf("%d", i.MaxStock) }/>

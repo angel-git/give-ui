@@ -386,7 +386,7 @@ func ItemDetail(item models.ViewItem, maybePresetId string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.Raw(util.RemoveOdtCodes(item.Name)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templ.Raw(util.ApplyOdtColors(item.Name)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -505,7 +505,7 @@ func sortAndConvertItems(allItems *models.AllItems, filterFavorites bool) []mode
 		itemsSlice = append(itemsSlice, item)
 	}
 	sort.SliceStable(itemsSlice, func(i, j int) bool {
-		return itemsSlice[i].Name < itemsSlice[j].Name
+		return util.RemoveOdtColors(itemsSlice[i].Name) < util.RemoveOdtColors(itemsSlice[j].Name)
 	})
 	return itemsSlice
 }
@@ -617,7 +617,7 @@ func _Items(allItems *models.AllItems, sessionId string, filterFavorites bool) t
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templ.Raw(util.RemoveOdtCodes(i.Name)).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = templ.Raw(util.ApplyOdtColors(i.Name)).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -947,7 +947,7 @@ func UserWeaponModal(allItems *models.AllItems, weaponBuild models.WeaponBuild) 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templ.Raw(util.RemoveOdtCodes(allItems.Items[item.Tpl].Name)).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = templ.Raw(util.ApplyOdtColors(allItems.Items[item.Tpl].Name)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1041,7 +1041,7 @@ func LinkedSearchModal(linked []models.ViewItem) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templ.Raw(util.RemoveOdtCodes(i.Name)).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = templ.Raw(util.ApplyOdtColors(i.Name)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
