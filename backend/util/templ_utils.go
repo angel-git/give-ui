@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"regexp"
 	"spt-give-ui/backend/models"
 	"strings"
 )
@@ -213,4 +214,11 @@ func calculateBackgroundColor(item InventoryItem) string {
 		color = "rgba(104, 102, 40, 0.3)"
 	}
 	return color
+}
+
+// https://hub.sp-tarkov.com/files/file/2841-odt-s-item-info-3-11-update-added-colored-name
+func RemoveOdtCodes(input string) string {
+	re := regexp.MustCompile(`(?i)<b><color=([#a-z0-9]+)>(.*?)</color></b>(.*)`)
+	output := re.ReplaceAllString(input, `<div style="color: $1">$2 $3</div>`)
+	return output
 }
