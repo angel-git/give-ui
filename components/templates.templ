@@ -215,8 +215,8 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 			<dialog id="linked-search" class="modal" hx-on::after-swap="showModal(this)"></dialog>
 			<button class="w-max p-0 btn btn-link" hx-trigger="click" hx-target="#linked-search" hx-get={ fmt.Sprintf("/linked-search/%s", item.Id) }>Linked search</button>
 			<p class="text-justify">
-			    @templ.Raw(util.ApplyOdtColors(item.Description))
-            </p>
+				@templ.Raw(util.ApplyOdtColors(item.Description))
+			</p>
 			<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit, keydown[ctrlKey&&shiftKey&&key=='A'] from:body">
 				<input name="quantity" type="number" min="1" max="2147483647" class="input input-bordered bg-base-200 max-w-24" value={ fmt.Sprintf("%d", item.MaxStock) }/>
 				<input name="id" hidden value={ item.Id }/>
