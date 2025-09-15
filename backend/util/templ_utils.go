@@ -194,7 +194,7 @@ func formatWithSpaces(n int) string {
 }
 
 func calculateBackgroundColor(item InventoryItem) string {
-	color := "rgba(127, 127, 127, 0.0)"
+	color := "rgba(127, 127, 127, 0.3)"
 	switch item.Item.BackgroundColor {
 	case "black":
 		color = "rgba(0, 0, 0, 0.3)"
@@ -212,6 +212,12 @@ func calculateBackgroundColor(item InventoryItem) string {
 		color = "rgba(76, 42, 85, 0.3)"
 	case "yellow":
 		color = "rgba(104, 102, 40, 0.3)"
+	case "tracerYellow":
+		color = "rgba(255, 255, 146, 0.3)"
+	case "tracerGreen":
+		color = "rgba(116, 255, 130, 0.3)"
+	case "tracerRed":
+		color = "rgba(255, 60, 60, 0.3)"
 	}
 	return color
 }
