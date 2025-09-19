@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"slices"
 	"sort"
@@ -29,6 +30,7 @@ func LoadProfiles(url string) (r []models.SPTProfile, e error) {
 	var sessionsMap map[string]models.SPTProfile
 	err = util.ParseByteResponse(profiles, &sessionsMap)
 	if err != nil {
+		log.Println(fmt.Errorf("unexpected /give-ui/profiles response: %w\nraw: %s", err, string(profiles)))
 		return nil, err
 	}
 	var sessions []models.SPTProfile
