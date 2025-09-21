@@ -27,6 +27,7 @@ func LoadProfiles(url string) (r []models.SPTProfile, e error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Println("Profiles response:", string(profiles))
 	var sessionsMap map[string]models.SPTProfile
 	err = util.ParseByteResponse(profiles, &sessionsMap)
 	if err != nil {
