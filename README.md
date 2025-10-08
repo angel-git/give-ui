@@ -62,6 +62,14 @@ Simple UI for the `SPT GIVE` command.
 
 ### Development
 
+#### Build server mod
+
+```shell
+dotnet build --configuration Release server-mod/GiveUISolution.sln
+```
+
+#### Run UI
+
 ```shell
 TEMPL_EXPERIMENT=rawgo templ fmt components/templates.templ && TEMPL_EXPERIMENT=rawgo templ generate && wails dev -devserver 0.0.0.0:34115
 ```
@@ -69,7 +77,7 @@ TEMPL_EXPERIMENT=rawgo templ fmt components/templates.templ && TEMPL_EXPERIMENT=
 ### Release
 
 - Update version in `wails.json`
-- Update version in `server-mod/package.json`
+- Update version in `server-mod/GiveUI/GiveUIModMetadata.cs`
 - commit and push (TODO: automate this in future)
 - Create a new release with proper tag
 - Github action will take over and upload the zip
