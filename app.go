@@ -4,11 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/a-h/templ"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/wailsapp/wails/v2/pkg/menu"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"net/http"
 	"net/url"
 	"slices"
@@ -24,6 +19,12 @@ import (
 	"spt-give-ui/components"
 	"strconv"
 	"strings"
+
+	"github.com/a-h/templ"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/wailsapp/wails/v2/pkg/menu"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // ctx variables
@@ -126,7 +127,7 @@ func getProfileList(app *App) http.HandlerFunc {
 			return
 		}
 
-		profiles, err := api.LoadProfiles(sptUrl)
+		profiles, err := api.LoadProfiles(app.config)
 		if err != nil {
 			redirectToErrorPage(app, err.Error())
 			return
@@ -151,7 +152,7 @@ func goToProfileList(app *App) http.HandlerFunc {
 			return
 		}
 
-		profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+		profiles, err := api.LoadProfiles(app.config)
 		if err != nil {
 			redirectToErrorPage(app, err.Error())
 			return
@@ -682,7 +683,7 @@ func addStashItem(app *App) http.HandlerFunc {
 }
 
 func reloadProfiles(app *App) error {
-	profiles, err := api.LoadProfiles(app.config.GetSptUrl())
+	profiles, err := api.LoadProfiles(app.config)
 	app.ctx = context.WithValue(app.ctx, contextProfiles, profiles)
 	return err
 }

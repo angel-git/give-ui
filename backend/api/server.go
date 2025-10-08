@@ -2,10 +2,12 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"slices"
 	"sort"
 	"spt-give-ui/backend/commands"
+	"spt-give-ui/backend/config"
 	"spt-give-ui/backend/http"
 	"spt-give-ui/backend/models"
 	"spt-give-ui/backend/util"
@@ -21,10 +23,13 @@ func ConnectToSptServer(url string) (r *models.ServerInfo, e error) {
 	return serverInfo, nil
 }
 
-func LoadProfiles(url string) (r []models.SPTProfile, e error) {
-	profiles, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/profiles", url), "")
+func LoadProfiles(config *config.Config) (r []models.SPTProfile, e error) {
+	profiles, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/profiles", config.GetSptUrl()), "")
 	if err != nil {
 		return nil, err
+	}
+	if config.GetLogResponses() {
+		log.Println("Profiles response:", string(profiles))
 	}
 	var sessionsMap map[string]models.SPTProfile
 	err = util.ParseByteResponse(profiles, &sessionsMap)
@@ -303,7 +308,6 @@ func parseItems(items *models.ItemsResponse, locales models.Locales) models.AllI
 func getHiddenCategories() []string {
 	return []string{
 		"55d720f24bdc2d88028b456d",
-		"62f109593b54472778797866",
 		"63da6da4784a55176c018dba",
 		"566abbb64bdc2d144c8b457d",
 		"566965d44bdc2d814c8b4571",

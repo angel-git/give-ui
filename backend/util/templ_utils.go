@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"regexp"
 	"spt-give-ui/backend/models"
 	"strings"
 )
@@ -193,7 +194,7 @@ func formatWithSpaces(n int) string {
 }
 
 func calculateBackgroundColor(item InventoryItem) string {
-	color := "rgba(127, 127, 127, 0.0)"
+	color := "rgba(127, 127, 127, 0.3)"
 	switch item.Item.BackgroundColor {
 	case "black":
 		color = "rgba(0, 0, 0, 0.3)"
@@ -211,6 +212,28 @@ func calculateBackgroundColor(item InventoryItem) string {
 		color = "rgba(76, 42, 85, 0.3)"
 	case "yellow":
 		color = "rgba(104, 102, 40, 0.3)"
+	case "tracerYellow":
+		color = "rgba(255, 255, 146, 0.3)"
+	case "tracerGreen":
+		color = "rgba(116, 255, 130, 0.3)"
+	case "tracerRed":
+		color = "rgba(255, 60, 60, 0.3)"
 	}
 	return color
+}
+
+// https://hub.sp-tarkov.com/files/file/2841-odt-s-item-info-3-11-update-added-colored-name
+func ApplyOdtColors(input string) string {
+	if strings.Contains(input, "\n") {
+		input = strings.ReplaceAll(input, "\n", "<br>")
+	}
+	re := regexp.MustCompile(`(?i)<b><color=([#a-z0-9]+)>(.*?)</color></b>`)
+	output := re.ReplaceAllString(input, `<span style="color: $1">$2</span>`)
+	return output
+}
+
+func RemoveOdtColors(input string) string {
+	re := regexp.MustCompile(`(?i)<b><color=([#a-z0-9]+)>(.*?)</color></b>`)
+	output := re.ReplaceAllString(input, `$2`)
+	return output
 }

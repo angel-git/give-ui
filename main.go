@@ -4,6 +4,10 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"net/http"
+	"runtime"
+	giveLogger "spt-give-ui/backend/logger"
+
 	"github.com/tidwall/gjson"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/logger"
@@ -13,9 +17,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
 	runtimeWails "github.com/wailsapp/wails/v2/pkg/runtime"
-	"net/http"
-	"runtime"
-	giveLogger "spt-give-ui/backend/logger"
 )
 
 //go:embed all:frontend/dist components
@@ -135,7 +136,8 @@ func (a *App) makeMenu() {
 	} else {
 		a.settingsMenu.Append(menu.Text("Use default cache folder", nil, a.clearCacheFolder))
 	}
-	a.settingsMenu.Append(menu.Radio("Load images from cache", a.config.GetUseCache(), nil, a.toggleUseCache))
+	a.settingsMenu.Append(menu.Checkbox("Load images from cache", a.config.GetUseCache(), nil, a.toggleUseCache))
+	a.settingsMenu.Append(menu.Checkbox("Log profiles response", a.config.GetLogResponses(), nil, a.toggleLogResponses))
 	a.settingsMenu.Append(menu.Text("Switch server", nil, a.switchServer))
 }
 
@@ -210,6 +212,17 @@ func (a *App) toggleUseCache(data *menu.CallbackData) {
 	runtimeWails.MenuSetApplicationMenu(a.ctx, a.menu)
 	runtimeWails.MenuUpdateApplicationMenu(a.ctx)
 
+	// refresh to main screen
+	runtimeWails.WindowReloadApp(a.ctx)
+}
+
+func (a *App) toggleLogResponses(data *menu.CallbackData) {
+	a.config.SetLogResponses(!a.config.GetLogResponses())
+	data.MenuItem.Checked = a.config.GetLogResponses()
+
+	// refresh menu with the selected locale
+	runtimeWails.MenuSetApplicationMenu(a.ctx, a.menu)
+	runtimeWails.MenuUpdateApplicationMenu(a.ctx)
 	// refresh to main screen
 	runtimeWails.WindowReloadApp(a.ctx)
 }
