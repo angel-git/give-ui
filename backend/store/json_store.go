@@ -13,6 +13,7 @@ type JsonDatabase struct {
 	CacheFolder    string   `json:"cacheFolder"`
 	FavoriteItems  []string `json:"favoriteItems"`
 	IgnoreCache    bool     `json:"ignoreCache"`
+	LogResponses   bool     `json:"logResponses"`
 	TimeoutSeconds uint16   `json:"timeoutSeconds"`
 }
 
@@ -22,6 +23,7 @@ const SptSeverDbKey = "sptUrl"
 const FavoriteItemsDbKey = "favoriteItems"
 const CacheFolderDbKey = "cacheFolder"
 const IgnoreCacheDbKey = "ignoreCache"
+const LogResponsesDbKey = "logResponses"
 
 const dbName = "give-ui.config.json"
 
