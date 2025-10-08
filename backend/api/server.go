@@ -7,6 +7,7 @@ import (
 	"slices"
 	"sort"
 	"spt-give-ui/backend/commands"
+	"spt-give-ui/backend/config"
 	"spt-give-ui/backend/http"
 	"spt-give-ui/backend/models"
 	"spt-give-ui/backend/util"
@@ -22,16 +23,17 @@ func ConnectToSptServer(url string) (r *models.ServerInfo, e error) {
 	return serverInfo, nil
 }
 
-func LoadProfiles(url string) (r []models.SPTProfile, e error) {
-	profiles, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/profiles", url), "")
+func LoadProfiles(config *config.Config) (r []models.SPTProfile, e error) {
+	profiles, err := util.GetRawBytes(fmt.Sprintf("%s/give-ui/profiles", config.GetSptUrl()), "")
 	if err != nil {
 		return nil, err
 	}
-	log.Println("Profiles response:", string(profiles))
+	if config.GetLogResponses() {
+		log.Println("Profiles response:", string(profiles))
+	}
 	var sessionsMap map[string]models.SPTProfile
 	err = util.ParseByteResponse(profiles, &sessionsMap)
 	if err != nil {
-		log.Println(fmt.Errorf("unexpected /give-ui/profiles response: %w\nraw: %s", err, string(profiles)))
 		return nil, err
 	}
 	var sessions []models.SPTProfile
