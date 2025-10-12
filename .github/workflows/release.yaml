@@ -40,7 +40,7 @@ jobs:
       - name: Package zip
         run: |
           mkdir "dist/SPT/user/mods/give-ui"
-          mv ./server-mod/GiveUI/bin/Release/net9.0/GiveUI.dll /dist/SPT/user/mods/give-ui/GiveUI.dll
+          mv ./server-mod/GiveUI/bin/Release/net9.0/GiveUI.dll ./dist/SPT/user/mods/give-ui/GiveUI.dll
           mv ./build/bin/spt-give-ui.exe ./dist/SPT/user/mods/give-ui/give-ui_x64-portable.exe
           Compress-Archive -Path ./dist/* -Destination ./give-ui-${{ github.event.release.tag_name }}.zip
       - name: Upload Portable Binaries (Windows)
