@@ -29,12 +29,19 @@ jobs:
           go-version: '1.23.1'
           build-name: spt-give-ui.exe
           build-platform: windows/amd64
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0
+
+      - name: Build .NET project
+        run: dotnet build --configuration Release ./server-mod/GiveUISolution.sln
+
       - name: Package zip
         run: |
-          mkdir "dist/user/mods/give-ui"
-          xcopy .\server-mod .\dist\user\mods\give-ui /e
-          Remove-Item -Path .\dist\user\mods\give-ui\types -Force -Recurse
-          mv ./build/bin/spt-give-ui.exe ./dist/user/mods/give-ui/give-ui_x64-portable.exe
+          mkdir "dist/SPT/user/mods/give-ui"
+          mv ./server-mod/GiveUI/bin/Release/net9.0/GiveUI.dll /dist/SPT/user/mods/give-ui/GiveUI.dll
+          mv ./build/bin/spt-give-ui.exe ./dist/SPT/user/mods/give-ui/give-ui_x64-portable.exe
           Compress-Archive -Path ./dist/* -Destination ./give-ui-${{ github.event.release.tag_name }}.zip
       - name: Upload Portable Binaries (Windows)
         run: bash -c 'gh release upload ${{ github.event.release.tag_name }} ./give-ui-${{ github.event.release.tag_name }}.zip --clobber'
