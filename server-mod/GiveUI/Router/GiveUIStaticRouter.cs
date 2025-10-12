@@ -41,7 +41,7 @@ public class GiveUIStaticRouter : StaticRouter
                     var modVersion = "-1";
                     if (loadedMods.ContainsKey("give-ui"))
                     {
-                        modVersion = loadedMods["give-ui"].Version;
+                        modVersion = loadedMods["give-ui"].Version.ToString();
                     }
 
                     var maxLevel = profileHelper.GetMaxLevel();
