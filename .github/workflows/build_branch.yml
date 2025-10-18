@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [windows-latest, ubuntu-latest]
+        platform: [windows-latest, ubuntu-22.04]
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -33,13 +33,13 @@ jobs:
           wails-build-webview2: embed
 
       - name: Add Ubuntu jammy source
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           echo "deb http://gb.archive.ubuntu.com/ubuntu jammy main" | sudo tee -a /etc/apt/sources.list
           sudo apt-get update
 
       - name: Build wails embed (Linux)
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.platform == 'ubuntu-22.04'
         uses: dAppServer/wails-build-action@756cb1ac7fe5611f1e3bac6f0d83225ff9e87421
         with:
           package: false
@@ -67,7 +67,7 @@ jobs:
 
       # Linux packaging
       - name: Package zip (Linux)
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           mkdir -p "dist/SPT/user/mods/give-ui-${{ github.sha }}"
           mv ./server-mod/GiveUI/bin/Release/net9.0/GiveUI.dll ./dist/SPT/user/mods/give-ui-${{ github.sha }}/GiveUI.dll
