@@ -32,12 +32,17 @@ jobs:
           build-platform: windows/amd64
           wails-build-webview2: embed
 
+      - name: Add Ubuntu jammy source
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          echo "deb http://gb.archive.ubuntu.com/ubuntu jammy main" | sudo tee -a /etc/apt/sources.list
+          sudo apt-get update
+
       - name: Build wails embed (Linux)
         if: matrix.platform == 'ubuntu-latest'
         uses: dAppServer/wails-build-action@756cb1ac7fe5611f1e3bac6f0d83225ff9e87421
         with:
           package: false
-          build-tags: 'webkit2_41'
           go-version: '1.23.1'
           build-name: spt-give-ui-embed
           build-platform: linux/amd64
