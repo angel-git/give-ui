@@ -12,13 +12,14 @@ const (
 )
 
 type Config struct {
-	errorLogger   *logger.FileLogger
+	errorLogger    *logger.FileLogger
 	locale         string
 	theme          string
 	sptUrl         string
 	cacheFolder    string
 	favoriteItems  []string
-	useCache      bool
+	useCache       bool
+	logResponses   bool
 	timeoutSeconds uint16
 }
 
@@ -27,10 +28,11 @@ func LoadConfig() *Config {
 	defaultJsonConfig := store.JsonDatabase{
 		Locale:         "English",
 		Theme:          defaultTheme,
-		SptUrl:        "https://127.0.0.1:6969",
+		SptUrl:         "https://127.0.0.1:6969",
 		CacheFolder:    "",
 		FavoriteItems:  []string{},
-		IgnoreCache:   false,
+		IgnoreCache:    false,
+		LogResponses:   false,
 		TimeoutSeconds: 10,
 	}
 	jsonConfig := store.CreateDatabase(defaultJsonConfig)
@@ -42,7 +44,8 @@ func LoadConfig() *Config {
 		sptUrl:         jsonConfig.SptUrl,
 		favoriteItems:  jsonConfig.FavoriteItems,
 		cacheFolder:    jsonConfig.CacheFolder,
-		useCache:      !jsonConfig.IgnoreCache,
+		useCache:       !jsonConfig.IgnoreCache,
+		logResponses:   jsonConfig.LogResponses,
 		timeoutSeconds: jsonConfig.TimeoutSeconds,
 	}
 }
@@ -114,6 +117,15 @@ func (c *Config) GetUseCache() bool {
 func (c *Config) SetUseCache(cache bool) {
 	c.useCache = cache
 	store.SaveValue(store.IgnoreCacheDbKey, !cache)
+}
+
+func (c *Config) GetLogResponses() bool {
+	return c.logResponses
+}
+
+func (c *Config) SetLogResponses(log bool) {
+	c.logResponses = log
+	store.SaveValue(store.LogResponsesDbKey, log)
 }
 
 func (c *Config) GetTimeoutSeconds() uint16 {
