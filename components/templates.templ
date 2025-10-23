@@ -68,7 +68,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	</div>
 }
 
-templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, bundles []models.Bundle, serverInfo *models.ServerInfo) {
+templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, bundles []models.Bundle, currentBundleName string, serverInfo *models.ServerInfo) {
 	@templ.JSONScript("profile-selected-username", profile.Info.Username)
 	<script>
         setUsernameOnFooter();
@@ -101,7 +101,7 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="My bundles"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
-				@Bundles(allItems, bundles)
+				@Bundles(allItems, bundles, currentBundleName)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Other"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
@@ -157,7 +157,7 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 	</div>
 }
 
-templ ItemDetail(item models.ViewItem, maybePresetId string) {
+templ ItemDetail(item models.ViewItem, maybePresetId string, selectedBundleName string) {
 	<div class="card w-full">
 		<figure class="bg-base-300 min-h-[6rem] p-4">
 			if item.ImageBase64 != "" {
@@ -213,7 +213,7 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 						></path>
 					</svg>
-					<span>This item is part of a bundle. It <em>may</em> include all the necessary attachments to be functional.</span>
+					<span>This item is part of a preset. It <em>may</em> include all the necessary attachments to be functional.</span>
 				</div>
 			}
 			<dialog id="linked-search" class="modal" hx-on::after-swap="showModal(this)"></dialog>
@@ -221,15 +221,28 @@ templ ItemDetail(item models.ViewItem, maybePresetId string) {
 			<p class="text-justify">
 				@templ.Raw(util.ApplyOdtColors(item.Description))
 			</p>
-			<form class="card-actions justify-end" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit, keydown[ctrlKey&&shiftKey&&key=='A'] from:body">
-				<input name="quantity" type="number" min="1" max="2147483647" class="input input-bordered bg-base-200 max-w-24" value={ fmt.Sprintf("%d", item.MaxStock) }/>
-				<input name="id" hidden value={ item.Id }/>
-				<button type="submit" class="btn btn-primary">
-					<div id="loader" class="button-loader">
-						<span class="loading loading-spinner"></span>
-						<span class="button-hide">Give</span>
-					</div>
-				</button>
+			<form class="card-actions justify-between" hx-swap="none" hx-post="/item" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit, keydown[ctrlKey&&shiftKey&&key=='A'] from:body">
+				<div>
+					if selectedBundleName == "" {
+						<div class="tooltip" data-tip="Select a bundle first">
+							<button type="button" disabled class="btn btn-secondary" hx-target="#bundles" hx-swap="outerHTML" hx-put="/bundle">Add to bundle</button>
+						</div>
+					} else {
+						<div class="tooltip" data-tip={ selectedBundleName }>
+							<button type="button" class="btn btn-secondary" hx-target="#bundles" hx-swap="outerHTML" hx-put="/bundle">Add to bundle</button>
+						</div>
+					}
+				</div>
+				<div>
+					<input name="quantity" type="number" min="1" max="2147483647" class="input input-bordered bg-base-200 max-w-24" value={ fmt.Sprintf("%d", item.MaxStock) }/>
+					<input name="id" hidden value={ item.Id }/>
+					<button type="submit" class="btn btn-primary">
+						<div id="loader" class="button-loader">
+							<span class="loading loading-spinner"></span>
+							<span class="button-hide">Give</span>
+						</div>
+					</button>
+				</div>
 			</form>
 		</div>
 	</div>
@@ -637,7 +650,7 @@ templ Stash(profile *models.SPTProfile) {
 	</div>
 }
 
-templ Bundles(allItems *models.AllItems, bundles []models.Bundle) {
+templ Bundles(allItems *models.AllItems, bundles []models.Bundle, currentBundleName string) {
 	<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="bundles">
 		<dialog id="new_bundle" class="modal">
 			<div class="modal-box">
@@ -701,7 +714,7 @@ templ Bundles(allItems *models.AllItems, bundles []models.Bundle) {
 					></path>
 				</svg>
 				<span>
-					Here you can create pre-packaged item bundles to receive multiple items at once. Click the button to create one.
+					Here you can create pre-packaged item bundles to receive multiple items at once. Click the button to create one. Once created you can select it and start adding items into it.
 				</span>
 				<button class="btn btn-ghost btn-outline" onclick="new_bundle.showModal()">New bundle</button>
 			</div>
@@ -740,9 +753,10 @@ templ Bundles(allItems *models.AllItems, bundles []models.Bundle) {
 							} else {
 								<p class="mt-2 italic">This bundle is empty.<br/> Add items from the "Items" tab</p>
 							}
-							<form class="card-actions justify-end" hx-swap="none" hx-post="/give-bundle" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit">
+							<form class="card-actions justify-end mt-6" hx-swap="none" hx-post="/bundle/give" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit">
 								<input type="hidden" name="name" required value={ bundle.Name }/>
-								<div class="form-control mt-6">
+								<button type="button" disabled?={ currentBundleName == bundle.Name } class="btn btn-secondary" hx-post="/bundle/select" hx-disabled-elt="this" hx-target="#bundles" hx-swap="outerHTML">Select bundle</button>
+								<div class="form-control">
 									<button type="submit" disabled?={ len(bundle.Items) == 0 } class="btn btn-primary">Give</button>
 								</div>
 							</form>

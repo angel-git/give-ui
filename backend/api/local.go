@@ -29,9 +29,29 @@ func CreateNewBundle(name string, description string, config *config.Config) (e 
 	newBundle := models.Bundle{
 		Name:        name,
 		Description: description,
-		Items:       map[string]uint16{},
+		Items:       map[string]int{},
 	}
 	currentBundles = append(currentBundles, newBundle)
 	config.SetBundles(currentBundles)
+	return nil
+}
+
+func AddItemToBundle(bundleName string, itemID string, quantity int, config *config.Config) (e error) {
+	bundles := config.GetBundles()
+	bundleIndex := slices.IndexFunc(bundles, func(bundle models.Bundle) bool {
+		return bundle.Name == bundleName
+	})
+	if bundleIndex == -1 {
+		return fmt.Errorf("No Bundle found with the name '%s'", bundleName)
+	}
+
+	bundle := &bundles[bundleIndex]
+	if existingQty, exists := bundle.Items[itemID]; exists {
+		bundle.Items[itemID] = existingQty + quantity
+	} else {
+		bundle.Items[itemID] = quantity
+	}
+
+	config.SetBundles(bundles)
 	return nil
 }
