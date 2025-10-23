@@ -164,9 +164,7 @@ window.runtime.EventsOn('clean_profile', (_e) => {
 })
 
 function showToast(id, message, timeout = 2000) {
-    if (previousToast) {
-        clearTimeout(previousToast)
-    }
+    closeToast()
     const toastElement = document.getElementById(id);
     previousToastElement = toastElement;
     const toastBody = toastElement.children.item(0).children.item(0);
