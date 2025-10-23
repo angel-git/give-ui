@@ -68,7 +68,7 @@ templ ProfileList(appName string, appVersion string, profiles []models.SPTProfil
 	</div>
 }
 
-templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, serverInfo *models.ServerInfo) {
+templ MainPage(appName string, appVersion string, allItems *models.AllItems, filterFavorites bool, profile *models.SPTProfile, traders []models.Trader, skills []models.Skill, bundles []models.Bundle, serverInfo *models.ServerInfo) {
 	@templ.JSONScript("profile-selected-username", profile.Info.Username)
 	<script>
         setUsernameOnFooter();
@@ -98,6 +98,10 @@ templ MainPage(appName string, appVersion string, allItems *models.AllItems, fil
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Traders"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
 				@Traders(profile, traders)
+			</div>
+			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="My bundles"/>
+			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
+				@Bundles(allItems, bundles)
 			</div>
 			<input type="radio" name="my_tabs_1" role="tab" class="tab" aria-label="Other"/>
 			<div role="tabpanel" class="tab-content p-1 overflow-y-auto">
@@ -630,6 +634,123 @@ templ Stash(profile *models.SPTProfile) {
 				</div>
 			}
 		</div>
+	</div>
+}
+
+templ Bundles(allItems *models.AllItems, bundles []models.Bundle) {
+	<div class="flex flex-wrap gap-2 h-full content-start overflow-y-auto" id="bundles">
+		<dialog id="new_bundle" class="modal">
+			<div class="modal-box">
+				<h3 class="text-lg font-bold">New bundle</h3>
+				<form hx-post="/bundle" hx-indicator="#loader" hx-disabled-elt="this" hx-target="#bundles" hx-swap="outerHTML">
+					<label class="label">
+						<span class="label-text">Name *</span>
+					</label>
+					<input type="text" name="name" class="input input-bordered w-full mb-4" required/>
+					<label class="label">
+						<span class="label-text">Description</span>
+					</label>
+					<textarea rows="5" name="description" class="textarea textarea-bordered w-full mb-4"></textarea>
+					<button type="submit" class="btn btn-primary">
+						<div id="loader" class="button-loader">
+							<span class="loading loading-spinner"></span>
+							<span class="button-hide">Create</span>
+						</div>
+					</button>
+				</form>
+			</div>
+			<form method="dialog" class="modal-backdrop">
+				<button>close</button>
+			</form>
+		</dialog>
+		if len(bundles) == 0 {
+			<div role="alert" class="alert alert-info">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					class="h-6 w-6 shrink-0 stroke-current"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<span>
+					You don’t have any bundles yet. If you had some before and they’re missing, try restoring your old give-ui.config.json file.
+					<br/>
+					Here you can create pre-packaged item bundles to receive multiple items at once. Click "New Bundle" to create your first one.
+				</span>
+				<button class="btn btn-ghost btn-outline" onclick="new_bundle.showModal()">New bundle</button>
+			</div>
+		} else {
+			<div role="alert" class="alert alert-info">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					class="h-6 w-6 shrink-0 stroke-current"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+				<span>
+					Here you can create pre-packaged item bundles to receive multiple items at once. Click the button to create one.
+				</span>
+				<button class="btn btn-ghost btn-outline" onclick="new_bundle.showModal()">New bundle</button>
+			</div>
+			for _, bundle := range bundles {
+				{{ bundleId := strings.ReplaceAll(bundle.Name, " ", "_") }}
+				{{ onClickBundleFn := fmt.Sprintf("%s.showModal()", bundleId) }}
+				{{ onClickBundle := templ.ComponentScript{Name: onClickBundleFn, Call: onClickBundleFn} }}
+				<dialog id={ bundleId } class="modal">
+					<div class="modal-box">
+						<h3 class="text-lg font-bold">{ bundle.Name }</h3>
+						<ul class="list-disc list-inside text-justify mb-4">
+							for k, v := range bundle.Items {
+								{{ name := "!!! ITEM NOT FOUND !!!" }}
+								{{if item, ok := allItems.Items[k]; ok {
+	name = item.Name
+}
+								}}
+								<li>{ fmt.Sprintf("%s x %d", name, v) }</li>
+							}
+						</ul>
+					</div>
+					<form method="dialog" class="modal-backdrop">
+						<button tabIndex="-1">close</button>
+					</form>
+				</dialog>
+				<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
+					<div class="hero-content flex-col">
+						<div class="card-body w-full">
+							<h2 class="card-title">{ bundle.Name }</h2>
+							<p class="text-left">{ bundle.Description }</p>
+							if len(bundle.Items) > 0 {
+								<button class="btn size-fit btn-sm" onclick={ onClickBundle }>
+									Show content
+									<div class="badge badge-secondary">{ fmt.Sprintf("%d", len(bundle.Items)) }</div>
+								</button>
+							} else {
+								<p class="mt-2 italic">This bundle is empty.<br/> Add items from the "Items" tab</p>
+							}
+							<form class="card-actions justify-end" hx-swap="none" hx-post="/give-bundle" hx-indicator="#loader" hx-disabled-elt="this" hx-trigger="submit">
+								<input type="hidden" name="name" required value={ bundle.Name }/>
+								<div class="form-control mt-6">
+									<button type="submit" disabled?={ len(bundle.Items) == 0 } class="btn btn-primary">Give</button>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			}
+		}
 	</div>
 }
 

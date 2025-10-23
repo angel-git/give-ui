@@ -239,7 +239,7 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 		addImageToWeaponBuild(app, &profile.UserBuilds.WeaponBuilds)
 		addUIPropertiesToInventoryItems(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
 
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo)).ServeHTTP(w, r)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, app.config.GetBundles(), serverInfo)).ServeHTTP(w, r)
 	}
 }
 
@@ -783,6 +783,46 @@ func addImageToWeaponBuildAttachments(app *App, weaponBuild *models.WeaponBuild)
 	}
 }
 
+func createNewBundle(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+
+		bundleName := r.FormValue("name")
+		bundleDescription := r.FormValue("description")
+
+		err := api.CreateNewBundle(bundleName, bundleDescription, app.config)
+		if err != nil {
+			runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+			return
+		}
+		runtime.EventsEmit(app.ctx, "toast.info", "Bundle created")
+		templ.Handler(components.Bundles(allItems, app.config.GetBundles())).ServeHTTP(w, r)
+	}
+}
+
+func giveBundle(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		bundleName := r.FormValue("name")
+
+		bundles := app.config.GetBundles()
+		bundleIdx := slices.IndexFunc(bundles, func(bundle models.Bundle) bool {
+			return bundle.Name == bundleName
+		})
+		if bundleIdx == -1 {
+			runtime.EventsEmit(app.ctx, "toast.error", "Bundle with name '"+bundleName+"' not found")
+			return
+		}
+
+		err := api.AddBundle(app.config.GetSptUrl(), sessionId, bundles[bundleIdx])
+		if err != nil {
+			runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+		} else {
+			runtime.EventsEmit(app.ctx, "toast.info", "Your bundle has been sent")
+		}
+	}
+}
+
 func NewChiRouter(app *App) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -814,6 +854,8 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/file", getFile(app))
 	r.Get("/linked-search/{id}", getLinkedSearchModal(app))
 	r.Get("/reload-profiles", goToProfileList(app))
+	r.Post("/bundle", createNewBundle(app))
+	r.Post("/give-bundle", giveBundle(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))

@@ -4,17 +4,19 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"spt-give-ui/backend/models"
 )
 
 type JsonDatabase struct {
-	Locale         string   `json:"locale"`
-	Theme          string   `json:"theme"`
-	SptUrl         string   `json:"sptUrl"`
-	CacheFolder    string   `json:"cacheFolder"`
-	FavoriteItems  []string `json:"favoriteItems"`
-	IgnoreCache    bool     `json:"ignoreCache"`
-	LogResponses   bool     `json:"logResponses"`
-	TimeoutSeconds uint16   `json:"timeoutSeconds"`
+	Locale         string          `json:"locale"`
+	Theme          string          `json:"theme"`
+	SptUrl         string          `json:"sptUrl"`
+	CacheFolder    string          `json:"cacheFolder"`
+	FavoriteItems  []string        `json:"favoriteItems"`
+	IgnoreCache    bool            `json:"ignoreCache"`
+	LogResponses   bool            `json:"logResponses"`
+	TimeoutSeconds uint16          `json:"timeoutSeconds"`
+	MyBundles      []models.Bundle `json:"myBundles"`
 }
 
 const LocaleDbKey = "locale"
@@ -24,6 +26,7 @@ const FavoriteItemsDbKey = "favoriteItems"
 const CacheFolderDbKey = "cacheFolder"
 const IgnoreCacheDbKey = "ignoreCache"
 const LogResponsesDbKey = "logResponses"
+const BundlesDbKey = "myBundles"
 
 const dbName = "give-ui.config.json"
 

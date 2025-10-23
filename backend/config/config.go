@@ -3,6 +3,7 @@ package config
 import (
 	"slices"
 	"spt-give-ui/backend/logger"
+	"spt-give-ui/backend/models"
 	"spt-give-ui/backend/store"
 )
 
@@ -21,6 +22,7 @@ type Config struct {
 	useCache       bool
 	logResponses   bool
 	timeoutSeconds uint16
+	myBundles      []models.Bundle
 }
 
 func LoadConfig() *Config {
@@ -34,6 +36,7 @@ func LoadConfig() *Config {
 		IgnoreCache:    false,
 		LogResponses:   false,
 		TimeoutSeconds: 10,
+		MyBundles:      []models.Bundle{},
 	}
 	jsonConfig := store.CreateDatabase(defaultJsonConfig)
 	return &Config{
@@ -47,6 +50,7 @@ func LoadConfig() *Config {
 		useCache:       !jsonConfig.IgnoreCache,
 		logResponses:   jsonConfig.LogResponses,
 		timeoutSeconds: jsonConfig.TimeoutSeconds,
+		myBundles:      jsonConfig.MyBundles,
 	}
 }
 
@@ -130,6 +134,14 @@ func (c *Config) SetLogResponses(log bool) {
 
 func (c *Config) GetTimeoutSeconds() uint16 {
 	return c.timeoutSeconds
+}
+
+func (c *Config) GetBundles() []models.Bundle {
+	return c.myBundles
+}
+func (c *Config) SetBundles(bundles []models.Bundle) {
+	c.myBundles = bundles
+	store.SaveValue(store.BundlesDbKey, bundles)
 }
 
 func (c *Config) Close() error {
