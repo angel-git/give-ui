@@ -225,11 +225,11 @@ templ ItemDetail(item models.ViewItem, maybePresetId string, selectedBundleName 
 				<div>
 					if selectedBundleName == "" {
 						<div class="tooltip" data-tip="Select a bundle first">
-							<button type="button" disabled class="btn btn-secondary" hx-target="#bundles" hx-swap="outerHTML" hx-put="/bundle">Add to bundle</button>
+							<button type="button" disabled class="btn btn-secondary">Add to bundle</button>
 						</div>
 					} else {
 						<div class="tooltip" data-tip={ selectedBundleName }>
-							<button type="button" class="btn btn-secondary" hx-target="#bundles" hx-swap="outerHTML" hx-put="/bundle">Add to bundle</button>
+							<button type="button" class="btn btn-secondary" hx-target="#bundles" hx-swap="outerHTML" hx-put="/bundle/item">Add to bundle</button>
 						</div>
 					}
 				</div>
@@ -724,6 +724,9 @@ templ Bundles(allItems *models.AllItems, bundles []models.Bundle, currentBundleN
 				{{ onClickBundle := templ.ComponentScript{Name: onClickBundleFn, Call: onClickBundleFn} }}
 				<dialog id={ bundleId } class="modal">
 					<div class="modal-box">
+						<form method="dialog">
+							<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 !outline-none">✕</button>
+						</form>
 						<h3 class="text-lg font-bold">{ bundle.Name }</h3>
 						<ul class="list-disc list-inside text-justify mb-4">
 							for k, v := range bundle.Items {
@@ -732,16 +735,33 @@ templ Bundles(allItems *models.AllItems, bundles []models.Bundle, currentBundleN
 	name = item.Name
 }
 								}}
-								<li>{ fmt.Sprintf("%s x %d", name, v) }</li>
+								<li class="mb-2">
+									<div class="flex flex-row justify-between items-center">
+										<div>{ fmt.Sprintf("%s x %d", name, v) }</div>
+										<button class="btn btn-sm btn-square btn-outline" hx-delete={ fmt.Sprintf("/bundle/item/%s", k) } hx-vals={ fmt.Sprintf("js:{name: \"%s\"}", bundle.Name) } hx-target="#bundles" hx-swap="outerHTML">
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												class="h-6 w-6"
+												fill="none"
+												viewBox="0 0 24 24"
+												stroke="currentColor"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M6 18L18 6M6 6l12 12"
+												></path>
+											</svg>
+										</button>
+									</div>
+								</li>
 							}
 						</ul>
 					</div>
-					<form method="dialog" class="modal-backdrop">
-						<button tabIndex="-1">close</button>
-					</form>
 				</dialog>
 				<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
-					<div class="hero-content flex-col">
+					<div class="hero-content flex-col h-full">
 						<div class="card-body w-full">
 							<h2 class="card-title">{ bundle.Name }</h2>
 							<p class="text-left">{ bundle.Description }</p>

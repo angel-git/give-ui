@@ -838,6 +838,30 @@ func addItemToBundle(app *App) http.HandlerFunc {
 	}
 }
 
+func deleteItemFromBundle(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		itemId := chi.URLParam(r, "id")
+		bundleName := r.FormValue("name")
+		if bundleName == "" {
+			runtime.EventsEmit(app.ctx, "toast.error", "No bundle selected")
+			return
+		}
+
+		err := api.RemoveItemFromBundle(bundleName, itemId, app.config)
+		if err != nil {
+			runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+			return
+		}
+		var selectedBundleName string
+		if v, ok := app.ctx.Value(contextSelectedBundleName).(string); ok && v != "" {
+			selectedBundleName = v
+		}
+		runtime.EventsEmit(app.ctx, "toast.info", "Bundle updated")
+		templ.Handler(components.Bundles(allItems, app.config.GetBundles(), selectedBundleName)).ServeHTTP(w, r)
+	}
+}
+
 func giveBundle(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sessionId := app.ctx.Value(contextSessionId).(string)
@@ -903,9 +927,10 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/linked-search/{id}", getLinkedSearchModal(app))
 	r.Get("/reload-profiles", goToProfileList(app))
 	r.Post("/bundle", createNewBundle(app))
-	r.Put("/bundle", addItemToBundle(app))
 	r.Post("/bundle/give", giveBundle(app))
 	r.Post("/bundle/select", setBundleInContext(app))
+	r.Put("/bundle/item", addItemToBundle(app))
+	r.Delete("/bundle/item/{id}", deleteItemFromBundle(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))

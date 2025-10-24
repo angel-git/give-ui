@@ -55,3 +55,22 @@ func AddItemToBundle(bundleName string, itemID string, quantity int, config *con
 	config.SetBundles(bundles)
 	return nil
 }
+
+func RemoveItemFromBundle(bundleName string, itemID string, config *config.Config) (e error) {
+	bundles := config.GetBundles()
+	bundleIndex := slices.IndexFunc(bundles, func(bundle models.Bundle) bool {
+		return bundle.Name == bundleName
+	})
+	if bundleIndex == -1 {
+		return fmt.Errorf("No Bundle found with the name '%s'", bundleName)
+	}
+
+	bundle := &bundles[bundleIndex]
+	if _, exists := bundle.Items[itemID]; !exists {
+		return fmt.Errorf("Item with ID '%s' not found in Bundle '%s'", itemID, bundleName)
+	}
+
+	delete(bundle.Items, itemID)
+	config.SetBundles(bundles)
+	return nil
+}
