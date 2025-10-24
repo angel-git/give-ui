@@ -722,6 +722,8 @@ templ Bundles(allItems *models.AllItems, bundles []models.Bundle, currentBundleN
 				{{ bundleId := strings.ReplaceAll(bundle.Name, " ", "_") }}
 				{{ onClickBundleFn := fmt.Sprintf("%s.showModal()", bundleId) }}
 				{{ onClickBundle := templ.ComponentScript{Name: onClickBundleFn, Call: onClickBundleFn} }}
+				{{ onDeleteClickBundleFn := fmt.Sprintf("delete_%s.showModal()", bundleId) }}
+				{{ onDeleteClickBundle := templ.ComponentScript{Name: onDeleteClickBundleFn, Call: onDeleteClickBundleFn} }}
 				<dialog id={ bundleId } class="modal">
 					<div class="modal-box">
 						<form method="dialog">
@@ -761,7 +763,26 @@ templ Bundles(allItems *models.AllItems, bundles []models.Bundle, currentBundleN
 					</div>
 				</dialog>
 				<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
+					<dialog id={ fmt.Sprintf("delete_%s", bundleId) } class="modal">
+						<div class="modal-box">
+							<h3 class="text-lg font-bold">Delete bundle</h3>
+							<p class="py-4">Are you sure you want to delete the bundle <strong>{ bundle.Name }</strong>?<br/> This action cannot be undone.</p>
+							<div class="modal-action">
+								<form method="dialog">
+									<button class="btn">Close</button>
+								</form>
+								<button class="btn btn-error" hx-delete={ fmt.Sprintf("/bundle/%s", bundle.Name) } hx-target="#bundles" hx-swap="outerHTML">
+									Delete
+								</button>
+							</div>
+						</div>
+					</dialog>
 					<div class="hero-content flex-col h-full">
+						<div class="absolute right-2 top-2">
+							<div class="tooltip" data-tip="Delete bundle">
+								<button class="btn btn-sm btn-ghost btn-error" onclick={ onDeleteClickBundle }>✕</button>
+							</div>
+						</div>
 						<div class="card-body w-full">
 							<h2 class="card-title">{ bundle.Name }</h2>
 							<p class="text-left">{ bundle.Description }</p>

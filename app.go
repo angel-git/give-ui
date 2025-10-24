@@ -815,6 +815,30 @@ func createNewBundle(app *App) http.HandlerFunc {
 	}
 }
 
+func deleteBundle(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		bundleName := chi.URLParam(r, "name")
+
+		err := api.DeleteBundle(bundleName, app.config)
+		if err != nil {
+			runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+			return
+		}
+		var bundleNameStr string
+		if v, ok := app.ctx.Value(contextSelectedBundleName).(string); ok && v != "" {
+			bundleNameStr = v
+		}
+		// remove selected if it was the same
+		if bundleNameStr == bundleName {
+			bundleNameStr = ""
+			app.ctx = context.WithValue(app.ctx, contextSelectedBundleName, "")
+		}
+		runtime.EventsEmit(app.ctx, "toast.info", "Bundle deleted")
+		templ.Handler(components.Bundles(allItems, app.config.GetBundles(), bundleNameStr)).ServeHTTP(w, r)
+	}
+}
+
 func addItemToBundle(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
@@ -927,6 +951,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/linked-search/{id}", getLinkedSearchModal(app))
 	r.Get("/reload-profiles", goToProfileList(app))
 	r.Post("/bundle", createNewBundle(app))
+	r.Delete("/bundle/{name}", deleteBundle(app))
 	r.Post("/bundle/give", giveBundle(app))
 	r.Post("/bundle/select", setBundleInContext(app))
 	r.Put("/bundle/item", addItemToBundle(app))

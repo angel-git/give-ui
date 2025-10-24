@@ -74,3 +74,17 @@ func RemoveItemFromBundle(bundleName string, itemID string, config *config.Confi
 	config.SetBundles(bundles)
 	return nil
 }
+
+func DeleteBundle(bundleName string, config *config.Config) (e error) {
+	bundles := config.GetBundles()
+	bundleIndex := slices.IndexFunc(bundles, func(bundle models.Bundle) bool {
+		return bundle.Name == bundleName
+	})
+	if bundleIndex == -1 {
+		return fmt.Errorf("No Bundle found with the name '%s'", bundleName)
+	}
+
+	bundles = append(bundles[:bundleIndex], bundles[bundleIndex+1:]...)
+	config.SetBundles(bundles)
+	return nil
+}
