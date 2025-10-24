@@ -377,7 +377,10 @@ templ UserWeapons(allItems *models.AllItems, weaponBuilds []models.WeaponBuild) 
 						</figure>
 						<div class="card-body overflow-y-auto">
 							<h2 class="card-title text-start">{ weaponBuild.Name }</h2>
-							<button class="w-max p-0 btn btn-link" hx-trigger="click" hx-target={ fmt.Sprintf("#wb-%s", weaponBuild.Id) } hx-get={ fmt.Sprintf("/user-weapons-modal/%s", weaponBuild.Id) }>{ fmt.Sprintf("See %d parts", len(*weaponBuild.Items)) }</button>
+							<button class="btn size-fit btn-sm" hx-trigger="click" hx-target={ fmt.Sprintf("#wb-%s", weaponBuild.Id) } hx-get={ fmt.Sprintf("/user-weapons-modal/%s", weaponBuild.Id) }>
+								See parts
+								<div class="badge badge-secondary">{ fmt.Sprintf("%d", len(*weaponBuild.Items)) }</div>
+							</button>
 							<div class="card-actions justify-end items-end grow">
 								<dialog id={ fmt.Sprintf("wb-%s", weaponBuild.Id) } class="modal" hx-on::after-swap="showModal(this)"></dialog>
 								<button class="btn btn-primary" hx-post={ fmt.Sprintf("/user-weapons/%s", weaponBuild.Id) } hx-target="#main" hx-trigger="click" hx-disabled-elt="this" hx-indicator="#loader">
