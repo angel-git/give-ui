@@ -72,7 +72,7 @@ func SaveValue(key string, value any) {
 		log.Fatalf("Error writing key [%s] with value [%s]: %s", key, value, err)
 	}
 	jsonConfig[key] = value
-	newContent, err := json.Marshal(jsonConfig)
+	newContent, err := json.MarshalIndent(jsonConfig, "", "  ")
 	err = os.WriteFile(dbName, newContent, 0600)
 	if err != nil {
 		log.Fatalf("Error writing key [%s] with value [%s]: %s", key, value, err)
