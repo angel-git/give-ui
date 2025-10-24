@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using SPTarkov.DI.Annotations;
@@ -10,6 +11,7 @@ using SPTarkov.Server.Core.Models.Eft.Dialog;
 using SPTarkov.Server.Core.Models.Eft.Profile;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Services;
+using SPTarkov.Server.Core.Utils.Cloners;
 
 namespace GiveUI.Command;
 
@@ -17,9 +19,19 @@ namespace GiveUI.Command;
 public class GiveBundleSptCommand(
     ISptLogger<GiveBundleSptCommand> logger,
     MailSendService mailSendService,
+    PresetHelper presetHelper,
+    ICloner cloner,
     ItemHelper itemHelper) : ISptCommand
 {
     private static readonly Regex _commandRegex = new(@"^spt give-bundle\s+((\{[^}]+\}\s*)+)$");
+
+    // Exception for flares
+    protected static readonly FrozenSet<MongoId> _excludedPresetItems =
+    [
+        ItemTpl.FLARE_RSP30_REACTIVE_SIGNAL_CARTRIDGE_RED,
+        ItemTpl.FLARE_RSP30_REACTIVE_SIGNAL_CARTRIDGE_GREEN,
+        ItemTpl.FLARE_RSP30_REACTIVE_SIGNAL_CARTRIDGE_YELLOW,
+    ];
 
 
     string ISptCommand.Command => "give-bundle";
@@ -43,21 +55,79 @@ public class GiveBundleSptCommand(
         var itemsToSend = new List<Item>();
         // Extract the items string
         var json = match.Groups[1].Value;
-        var items = JsonSerializer.Deserialize<Dictionary<string, int>>(json);
-        if (items != null)
-            foreach (var (itemId, quantity) in items)
+        var itemsFromBundle = JsonSerializer.Deserialize<Dictionary<string, int>>(json);
+        if (itemsFromBundle != null)
+            foreach (var (itemId, quantity) in itemsFromBundle)
             {
-                var item = itemHelper.GetItem(itemId);
-                if (item.Key)
+                var checkedItem = itemHelper.GetItem(itemId);
+                if (checkedItem.Key)
                 {
-                    var itemToSend = new Item
+                    var preset = presetHelper.GetDefaultPreset(checkedItem.Value.Id);
+                    if (preset is not null && !_excludedPresetItems.Contains(checkedItem.Value.Id))
                     {
-                        Id = new MongoId(),
-                        Template = item.Value.Id,
-                        Upd = itemHelper.GenerateUpdForItem(item.Value),
-                    };
-                    itemToSend.Upd.StackObjectsCount = quantity;
-                    itemsToSend.Add(itemToSend);
+                        for (var i = 0; i < quantity; i++)
+                        {
+                            var items = cloner.Clone(preset.Items);
+                            items = items.ReplaceIDs().ToList();
+                            itemsToSend.AddRange(items);
+                        }
+                    }
+                    else if (itemHelper.IsOfBaseclass(checkedItem.Value.Id, BaseClasses.AMMO_BOX))
+                    {
+                        for (var i = 0; i < quantity; i++)
+                        {
+                            List<Item> ammoBoxArray =
+                            [
+                                new() { Id = new MongoId(), Template = checkedItem.Value.Id },
+                                // DO NOT generate the ammo box cartridges, the mail service does it for us! :)
+                                // _itemHelper.addCartridgesToAmmoBox(ammoBoxArray, checkedItem[1]);
+                            ];
+                            // DO NOT generate the ammo box cartridges, the mail service does it for us! :)
+                            // _itemHelper.addCartridgesToAmmoBox(ammoBoxArray, checkedItem[1]);
+                            itemsToSend.AddRange(ammoBoxArray);
+                        }
+                    }
+                    else
+                    {
+                        if (checkedItem.Value.Properties.StackMaxSize == 1)
+                        {
+                            for (var i = 0; i < quantity; i++)
+                            {
+                                itemsToSend.Add(
+                                    new Item
+                                    {
+                                        Id = new MongoId(),
+                                        Template = checkedItem.Value.Id,
+                                        Upd = itemHelper.GenerateUpdForItem(checkedItem.Value),
+                                    }
+                                );
+                            }
+                        }
+                        else
+                        {
+                            var itemToSend = new Item
+                            {
+                                Id = new MongoId(),
+                                Template = checkedItem.Value.Id,
+                                Upd = itemHelper.GenerateUpdForItem(checkedItem.Value),
+                            };
+                            itemToSend.Upd.StackObjectsCount = quantity;
+                            try
+                            {
+                                itemsToSend.AddRange(itemHelper.SplitStack(itemToSend));
+                            }
+                            catch
+                            {
+                                mailSendService.SendUserMessageToPlayer(
+                                    sessionId,
+                                    commandHandler,
+                                    "Too many items requested. Please lower the amount and try again."
+                                );
+
+                                return new ValueTask<string>(request.DialogId);
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -73,7 +143,7 @@ public class GiveBundleSptCommand(
         {
             itemsToSend = itemsToSend.ReplaceIDs().ToList();
             itemHelper.SetFoundInRaid(itemsToSend);
-            mailSendService.SendSystemMessageToPlayer(sessionId, "SPT GIVE", itemsToSend);
+            mailSendService.SendSystemMessageToPlayer(sessionId, "BUNDLE SENT", itemsToSend);
         }
 
         return new ValueTask<string>(request.DialogId);
