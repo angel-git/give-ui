@@ -862,27 +862,34 @@ func addItemToBundle(app *App) http.HandlerFunc {
 	}
 }
 
-func deleteItemFromBundle(app *App) http.HandlerFunc {
+func updateItemFromBundle(app *App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
 		itemId := chi.URLParam(r, "id")
 		bundleName := r.FormValue("name")
-		if bundleName == "" {
-			runtime.EventsEmit(app.ctx, "toast.error", "No bundle selected")
-			return
+		amount, _ := strconv.Atoi(r.FormValue("quantity"))
+
+		if amount <= 0 {
+			err := api.RemoveItemFromBundle(bundleName, itemId, app.config)
+			if err != nil {
+				runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+				return
+			}
+		} else {
+			err := api.UpdateItemFromBundle(bundleName, itemId, amount, app.config)
+			if err != nil {
+				runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+				return
+			}
 		}
 
-		err := api.RemoveItemFromBundle(bundleName, itemId, app.config)
+		bundle, err := api.GetBundleByName(bundleName, app.config)
 		if err != nil {
 			runtime.EventsEmit(app.ctx, "toast.error", err.Error())
 			return
 		}
-		var selectedBundleName string
-		if v, ok := app.ctx.Value(contextSelectedBundleName).(string); ok && v != "" {
-			selectedBundleName = v
-		}
 		runtime.EventsEmit(app.ctx, "toast.info", "Bundle updated")
-		templ.Handler(components.Bundles(allItems, app.config.GetBundles(), selectedBundleName)).ServeHTTP(w, r)
+		templ.Handler(components.BundleDialogContent(allItems, *bundle, true)).ServeHTTP(w, r)
 	}
 }
 
@@ -955,7 +962,7 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Post("/bundle/give", giveBundle(app))
 	r.Post("/bundle/select", setBundleInContext(app))
 	r.Put("/bundle/item", addItemToBundle(app))
-	r.Delete("/bundle/item/{id}", deleteItemFromBundle(app))
+	r.Put("/bundle/item/{id}", updateItemFromBundle(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))

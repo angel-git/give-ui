@@ -727,43 +727,8 @@ templ Bundles(allItems *models.AllItems, bundles []models.Bundle, currentBundleN
 				{{ onClickBundle := templ.ComponentScript{Name: onClickBundleFn, Call: onClickBundleFn} }}
 				{{ onDeleteClickBundleFn := fmt.Sprintf("delete_%s.showModal()", bundleId) }}
 				{{ onDeleteClickBundle := templ.ComponentScript{Name: onDeleteClickBundleFn, Call: onDeleteClickBundleFn} }}
-				<dialog id={ bundleId } class="modal">
-					<div class="modal-box">
-						<form method="dialog">
-							<button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 !outline-none">✕</button>
-						</form>
-						<h3 class="text-lg font-bold">{ bundle.Name }</h3>
-						<ul>
-							for k, v := range bundle.Items {
-								{{ name := "!!! ITEM NOT FOUND !!!" }}
-								{{if item, ok := allItems.Items[k]; ok {
-	name = item.Name
-}
-								}}
-								<li class="mb-2">
-									<div class="flex flex-row justify-between items-center">
-										<div>{ fmt.Sprintf("%s x %d", name, v) }</div>
-										<button class="btn btn-sm btn-square btn-outline" hx-delete={ fmt.Sprintf("/bundle/item/%s", k) } hx-vals={ fmt.Sprintf("js:{name: \"%s\"}", bundle.Name) } hx-target="#bundles" hx-swap="outerHTML">
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												class="h-6 w-6"
-												fill="none"
-												viewBox="0 0 24 24"
-												stroke="currentColor"
-											>
-												<path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="2"
-													d="M6 18L18 6M6 6l12 12"
-												></path>
-											</svg>
-										</button>
-									</div>
-								</li>
-							}
-						</ul>
-					</div>
+				<dialog id={ bundleId } class="modal" hx-on::after-swap={ onClickBundle }>
+					@BundleDialogContent(allItems, bundle, false)
 				</dialog>
 				<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">
 					<dialog id={ fmt.Sprintf("delete_%s", bundleId) } class="modal">
@@ -792,7 +757,7 @@ templ Bundles(allItems *models.AllItems, bundles []models.Bundle, currentBundleN
 							if len(bundle.Items) > 0 {
 								<button class="btn size-fit btn-sm" onclick={ onClickBundle }>
 									Show content
-									<div class="badge badge-secondary">{ fmt.Sprintf("%d", len(bundle.Items)) }</div>
+									<div id={ fmt.Sprintf("bundle_badge_%s", bundleId) } class="badge badge-secondary">{ fmt.Sprintf("%d", len(bundle.Items)) }</div>
 								</button>
 							} else {
 								<p class="mt-2 italic">This bundle is empty.<br/> Add items from the "Items" tab</p>
@@ -810,6 +775,38 @@ templ Bundles(allItems *models.AllItems, bundles []models.Bundle, currentBundleN
 			}
 		}
 	</div>
+}
+
+templ BundleDialogContent(allItems *models.AllItems, bundle models.Bundle, oob bool) {
+	{{ bundleId := strings.ReplaceAll(bundle.Name, " ", "_") }}
+	<div class="modal-box">
+		<h3 class="text-lg font-bold">{ bundle.Name }</h3>
+		<ul>
+			for _, i := range bundle.SortedItems() {
+				{{ name := "!!! ITEM NOT FOUND !!!" }}
+				{{if item, ok := allItems.Items[i.Id]; ok {
+	name = item.Name
+}
+				}}
+				<li class="mb-2">
+					<div class="flex flex-row justify-between items-center">
+						<div>{ name }</div>
+						<form hx-put={ fmt.Sprintf("/bundle/item/%s", i.Id) } hx-target={ fmt.Sprintf("#%s", bundleId) } hx-swap="innerHTML" hx-trigger="submit">
+							<input name="quantity" type="number" min="0" max="2147483647" class="input input-bordered bg-base-200 max-w-24" value={ fmt.Sprintf("%d", i.Quantity) }/>
+							<input name="name" type="hidden" value={ bundle.Name }/>
+							<button type="submit" class="btn btn-secondary">Update</button>
+						</form>
+					</div>
+				</li>
+			}
+		</ul>
+	</div>
+	<form method="dialog" class="modal-backdrop">
+		<button tabIndex="-1">close</button>
+	</form>
+	if oob {
+		<div id={ fmt.Sprintf("bundle_badge_%s", bundleId) } hx-swap-oob="true" class="badge badge-secondary">{ fmt.Sprintf("%d", len(bundle.Items)) }</div>
+	}
 }
 
 templ Others(serverInfo *models.ServerInfo) {

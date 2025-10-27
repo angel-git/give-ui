@@ -38,14 +38,10 @@ func CreateNewBundle(name string, description string, config *config.Config) (e 
 
 func AddItemToBundle(bundleName string, itemID string, quantity int, config *config.Config) (e error) {
 	bundles := config.GetBundles()
-	bundleIndex := slices.IndexFunc(bundles, func(bundle models.Bundle) bool {
-		return bundle.Name == bundleName
-	})
-	if bundleIndex == -1 {
-		return fmt.Errorf("No Bundle found with the name '%s'", bundleName)
+	bundle, e := GetBundleByName(bundleName, config)
+	if e != nil {
+		return e
 	}
-
-	bundle := &bundles[bundleIndex]
 	if existingQty, exists := bundle.Items[itemID]; exists {
 		bundle.Items[itemID] = existingQty + quantity
 	} else {
@@ -58,14 +54,10 @@ func AddItemToBundle(bundleName string, itemID string, quantity int, config *con
 
 func RemoveItemFromBundle(bundleName string, itemID string, config *config.Config) (e error) {
 	bundles := config.GetBundles()
-	bundleIndex := slices.IndexFunc(bundles, func(bundle models.Bundle) bool {
-		return bundle.Name == bundleName
-	})
-	if bundleIndex == -1 {
-		return fmt.Errorf("No Bundle found with the name '%s'", bundleName)
+	bundle, e := GetBundleByName(bundleName, config)
+	if e != nil {
+		return e
 	}
-
-	bundle := &bundles[bundleIndex]
 	if _, exists := bundle.Items[itemID]; !exists {
 		return fmt.Errorf("Item with ID '%s' not found in Bundle '%s'", itemID, bundleName)
 	}
@@ -87,4 +79,32 @@ func DeleteBundle(bundleName string, config *config.Config) (e error) {
 	bundles = append(bundles[:bundleIndex], bundles[bundleIndex+1:]...)
 	config.SetBundles(bundles)
 	return nil
+}
+
+func UpdateItemFromBundle(bundleName string, itemID string, newQuantity int, config *config.Config) (e error) {
+	bundles := config.GetBundles()
+	bundle, e := GetBundleByName(bundleName, config)
+	if e != nil {
+		return e
+	}
+
+	if _, exists := bundle.Items[itemID]; !exists {
+		return fmt.Errorf("Item with ID '%s' not found in Bundle '%s'", itemID, bundleName)
+	}
+
+	bundle.Items[itemID] = newQuantity
+	config.SetBundles(bundles)
+	return nil
+}
+
+func GetBundleByName(bundleName string, config *config.Config) (*models.Bundle, error) {
+	bundles := config.GetBundles()
+	bundleIndex := slices.IndexFunc(bundles, func(bundle models.Bundle) bool {
+		return bundle.Name == bundleName
+	})
+	if bundleIndex == -1 {
+		return nil, fmt.Errorf("No Bundle found with the name '%s'", bundleName)
+	}
+
+	return &bundles[bundleIndex], nil
 }
