@@ -922,6 +922,7 @@ func setBundleInContext(app *App) http.HandlerFunc {
 		bundleName := r.FormValue("name")
 		app.ctx = context.WithValue(app.ctx, contextSelectedBundleName, bundleName)
 		runtime.EventsEmit(app.ctx, "toast.info", "Bundle selected: '"+bundleName+"'. You can add items now")
+		runtime.EventsEmit(app.ctx, "set_bundle", bundleName)
 		templ.Handler(components.Bundles(allItems, app.config.GetBundles(), bundleName)).ServeHTTP(w, r)
 	}
 }

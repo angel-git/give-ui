@@ -727,7 +727,7 @@ templ Bundles(allItems *models.AllItems, bundles []models.Bundle, currentBundleN
 				{{ onClickBundle := templ.ComponentScript{Name: onClickBundleFn, Call: onClickBundleFn} }}
 				{{ onDeleteClickBundleFn := fmt.Sprintf("delete_%s.showModal()", bundleId) }}
 				{{ onDeleteClickBundle := templ.ComponentScript{Name: onDeleteClickBundleFn, Call: onDeleteClickBundleFn} }}
-				<dialog id={ bundleId } class="modal" hx-on::after-swap={ onClickBundle }>
+				<dialog id={ bundleId } class="modal">
 					@BundleDialogContent(allItems, bundle, false)
 				</dialog>
 				<div class="card bg-base-300 min-w-72 max-w-96 flex-auto">

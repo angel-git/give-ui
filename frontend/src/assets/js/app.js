@@ -6,7 +6,7 @@ let previousToastElement = null;
 function setUsernameOnFooter() {
     const username = JSON.parse(document.getElementById("profile-selected-username").textContent);
     const el = document.getElementById('profile-selected');
-    el.innerHTML = `<span>: ${username}</span><button class="btn btn-xs btn-link" hx-get="/reload-profiles" hx-target="#main" hx-swap="innerHTML" hx-disabled-elt="this">Switch profile</button>`;
+    el.innerHTML = `<span>: ${username}</span><button class="btn btn-xs btn-link" hx-get="/reload-profiles" hx-target="#main" hx-swap="innerHTML" hx-disabled-elt="this">Switch profile</button><div id="selectedBundle" class="hidden badge badge-secondary"></div>`;
     window.htmx.process(el);
 }
 
@@ -54,6 +54,10 @@ function selectItem(element) {
     }
     element.classList.add(classToToggle);
     previousSelectedItem = element;
+}
+
+function callMe(arg) {
+    console.log(arg)
 }
 
 function selectKit(element) {
@@ -139,6 +143,7 @@ window.filterKits = filterKits;
 window.showModal = showModal;
 window.filterMagazineLoadout = filterMagazineLoadout;
 window.selectKit = selectKit;
+window.callMe = callMe;
 window.closeToast = function () {
     if (previousToast) {
         clearTimeout(previousToast)
@@ -161,6 +166,11 @@ window.runtime.EventsOn('toast.error', (e) => {
 })
 window.runtime.EventsOn('clean_profile', (_e) => {
     document.getElementById('profile-selected').innerText = '';
+})
+
+window.runtime.EventsOn('set_bundle', (e) => {
+    document.getElementById('selectedBundle').innerText = e;
+    document.getElementById('selectedBundle').classList.remove('hidden');
 })
 
 function showToast(id, message, timeout = 2000) {
