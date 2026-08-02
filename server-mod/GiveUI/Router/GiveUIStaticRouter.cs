@@ -1,13 +1,13 @@
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.Controllers;
 using SPTarkov.Server.Core.DI;
-using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Helpers.Dialogue;
+using SPTarkov.Server.Core.Helpers.Profile;
 using SPTarkov.Server.Core.Models.Eft.Dialog;
 using SPTarkov.Server.Core.Models.Enums;
-using SPTarkov.Server.Core.Models.Spt.Mod;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Servers;
-using SPTarkov.Server.Core.Services;
+using SPTarkov.Server.Core.Services.Commerce;
 using SPTarkov.Server.Core.Utils;
 
 namespace GiveUI.Router;
@@ -21,8 +21,9 @@ public class GiveUIStaticRouter : StaticRouter
         ProfileHelper profileHelper,
         GiftService giftService,
         SaveServer saveServer,
-        DatabaseService databaseService,
-        LauncherController launcherController,
+        TemplateTable templateTable,
+        GlobalTable globalTable,
+        LauncherV2Controller launcherController,
         CommandoDialogChatBot commandoDialogChatBot,
         SptDialogueChatBot sptDialogueChatBot
     ) : base(
@@ -33,11 +34,12 @@ public class GiveUIStaticRouter : StaticRouter
                     url,
                     info,
                     sessionId,
+                    cancellationToken,
                     output
                 ) =>
                 {
                     var version = watermark.GetVersionTag();
-                    var loadedMods = launcherController.GetLoadedServerMods();
+                    var loadedMods = launcherController.LoadedMods();
                     var modVersion = "-1";
                     if (loadedMods.ContainsKey("give-ui"))
                     {
@@ -61,6 +63,7 @@ public class GiveUIStaticRouter : StaticRouter
                     url,
                     info,
                     sessionId,
+                    cancellationToken,
                     output
                 ) => await new ValueTask<string>(jsonUtil.Serialize(saveServer.GetProfiles()) ?? "{}")
             ),
@@ -70,11 +73,12 @@ public class GiveUIStaticRouter : StaticRouter
                     url,
                     info,
                     sessionId,
+                    cancellationToken,
                     output
                 ) =>
                 {
-                    var items = databaseService.GetTemplates().Items;
-                    var globalPresets = databaseService.GetGlobals().ItemPresets;
+                    var items = templateTable.Items;
+                    var globalPresets = globalTable.ItemPresets;
                     return await new ValueTask<string>(jsonUtil.Serialize(new
                     {
                         items,
@@ -87,6 +91,7 @@ public class GiveUIStaticRouter : StaticRouter
                     url,
                     info,
                     sessionId,
+                    cancellationToken,
                     output
                 ) =>
                 {
@@ -108,6 +113,7 @@ public class GiveUIStaticRouter : StaticRouter
                     url,
                     info,
                     sessionId,
+                    cancellationToken,
                     output
                 ) =>
                 {
