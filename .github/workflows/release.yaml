@@ -32,7 +32,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0
+          dotnet-version: 10.0
 
       - name: Build .NET project
         run: dotnet build --configuration Release ./server-mod/GiveUISolution.sln
@@ -40,7 +40,7 @@ jobs:
       - name: Package zip
         run: |
           mkdir "dist/SPT/user/mods/give-ui"
-          mv ./server-mod/GiveUI/bin/Release/net9.0/GiveUI.dll ./dist/SPT/user/mods/give-ui/GiveUI.dll
+          mv ./server-mod/GiveUI/bin/Release/net10.0/GiveUI.dll ./dist/SPT/user/mods/give-ui/GiveUI.dll
           mv ./build/bin/spt-give-ui.exe ./dist/SPT/user/mods/give-ui/give-ui_x64-portable.exe
           Compress-Archive -Path ./dist/* -Destination ./give-ui-${{ github.event.release.tag_name }}.zip
       - name: Upload Portable Binaries (Windows)
