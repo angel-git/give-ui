@@ -18,6 +18,7 @@ public class GiveUIDynamicRouter : DynamicRouter
                 url,
                 info,
                 sessionId,
+                cancellationToken,
                 output
             ) =>
             {
