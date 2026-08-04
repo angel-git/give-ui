@@ -31,6 +31,7 @@ import (
 const contextSessionId = "sessionId"
 const contextProfiles = "profiles"
 const contextAllItems = "allItems"
+const contextSelectedBundleName = "selectedBundleName"
 const contextAllBSGItems = "AllBSGItems"
 const contextFavoriteSearch = "contextFavoriteSearch"
 const contextServerInfo = "contextServerInfo"
@@ -108,6 +109,7 @@ func getLoginPage(app *App) http.HandlerFunc {
 		app.ctx = context.WithValue(app.ctx, contextFavoriteSearch, false)
 		app.ctx = context.WithValue(app.ctx, contextServerInfo, nil)
 		app.ctx = context.WithValue(app.ctx, contextLocales, nil)
+		app.ctx = context.WithValue(app.ctx, contextSelectedBundleName, nil)
 		templ.Handler(components.LoginPage(app.name, app.version, app.config.GetTheme(), app.config.GetSptUrl())).ServeHTTP(w, r)
 	}
 }
@@ -234,12 +236,16 @@ func getMainPageForProfile(app *App) http.HandlerFunc {
 			redirectToErrorPage(app, err.Error())
 			return
 		}
+		var bundleNameStr string
+		if v, ok := app.ctx.Value(contextSelectedBundleName).(string); ok && v != "" {
+			bundleNameStr = v
+		}
 		serverInfo := app.ctx.Value(contextServerInfo).(*models.ServerInfo)
 		traders, err := api.LoadTraders(app.config.GetSptUrl(), profile, sessionId, locales)
 		addImageToWeaponBuild(app, &profile.UserBuilds.WeaponBuilds)
 		addUIPropertiesToInventoryItems(app, profile.Characters.PMC.Inventory.Stash, &profile.Characters.PMC.Inventory.Items)
 
-		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, serverInfo)).ServeHTTP(w, r)
+		templ.Handler(components.MainPage(app.name, app.version, allItems, isFavorite, &profile, traders, skills, app.config.GetBundles(), bundleNameStr, serverInfo)).ServeHTTP(w, r)
 	}
 }
 
@@ -270,7 +276,12 @@ func getItemDetails(app *App) http.HandlerFunc {
 			item.ImageBase64 = imageBase64
 		}
 
-		templ.Handler(components.ItemDetail(item, maybePresetId)).ServeHTTP(w, r)
+		var bundleNameStr string
+		if v, ok := app.ctx.Value(contextSelectedBundleName).(string); ok && v != "" {
+			bundleNameStr = v
+		}
+
+		templ.Handler(components.ItemDetail(item, maybePresetId, bundleNameStr)).ServeHTTP(w, r)
 	}
 }
 
@@ -783,6 +794,139 @@ func addImageToWeaponBuildAttachments(app *App, weaponBuild *models.WeaponBuild)
 	}
 }
 
+func createNewBundle(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+
+		bundleName := r.FormValue("name")
+		bundleDescription := r.FormValue("description")
+
+		err := api.CreateNewBundle(bundleName, bundleDescription, app.config)
+		if err != nil {
+			runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+			return
+		}
+		var bundleNameStr string
+		if v, ok := app.ctx.Value(contextSelectedBundleName).(string); ok && v != "" {
+			bundleNameStr = v
+		}
+		runtime.EventsEmit(app.ctx, "toast.info", "Bundle created")
+		templ.Handler(components.Bundles(allItems, app.config.GetBundles(), bundleNameStr)).ServeHTTP(w, r)
+	}
+}
+
+func deleteBundle(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		bundleName := chi.URLParam(r, "name")
+
+		err := api.DeleteBundle(bundleName, app.config)
+		if err != nil {
+			runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+			return
+		}
+		var bundleNameStr string
+		if v, ok := app.ctx.Value(contextSelectedBundleName).(string); ok && v != "" {
+			bundleNameStr = v
+		}
+		// remove selected if it was the same
+		if bundleNameStr == bundleName {
+			bundleNameStr = ""
+			app.ctx = context.WithValue(app.ctx, contextSelectedBundleName, "")
+		}
+		runtime.EventsEmit(app.ctx, "toast.info", "Bundle deleted")
+		templ.Handler(components.Bundles(allItems, app.config.GetBundles(), bundleNameStr)).ServeHTTP(w, r)
+	}
+}
+
+func addItemToBundle(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		var bundleNameStr string
+		if v, ok := app.ctx.Value(contextSelectedBundleName).(string); ok && v != "" {
+			bundleNameStr = v
+		} else {
+			runtime.EventsEmit(app.ctx, "toast.error", "No bundle selected")
+			return
+		}
+		itemId := r.FormValue("id")
+		amount, _ := strconv.Atoi(r.FormValue("quantity"))
+
+		err := api.AddItemToBundle(bundleNameStr, itemId, amount, app.config)
+		if err != nil {
+			runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+			return
+		}
+		runtime.EventsEmit(app.ctx, "toast.info", "Bundle updated")
+		templ.Handler(components.Bundles(allItems, app.config.GetBundles(), bundleNameStr)).ServeHTTP(w, r)
+	}
+}
+
+func updateItemFromBundle(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		itemId := chi.URLParam(r, "id")
+		bundleName := r.FormValue("name")
+		amount, _ := strconv.Atoi(r.FormValue("quantity"))
+
+		if amount <= 0 {
+			err := api.RemoveItemFromBundle(bundleName, itemId, app.config)
+			if err != nil {
+				runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+				return
+			}
+		} else {
+			err := api.UpdateItemFromBundle(bundleName, itemId, amount, app.config)
+			if err != nil {
+				runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+				return
+			}
+		}
+
+		bundle, err := api.GetBundleByName(bundleName, app.config)
+		if err != nil {
+			runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+			return
+		}
+		runtime.EventsEmit(app.ctx, "toast.info", "Bundle updated")
+		templ.Handler(components.BundleDialogContent(allItems, *bundle, true)).ServeHTTP(w, r)
+	}
+}
+
+func giveBundle(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionId := app.ctx.Value(contextSessionId).(string)
+		bundleName := r.FormValue("name")
+
+		bundles := app.config.GetBundles()
+		bundleIdx := slices.IndexFunc(bundles, func(bundle models.Bundle) bool {
+			return bundle.Name == bundleName
+		})
+		if bundleIdx == -1 {
+			runtime.EventsEmit(app.ctx, "toast.error", "Bundle with name '"+bundleName+"' not found")
+			return
+		}
+
+		err := api.AddBundle(app.config.GetSptUrl(), sessionId, bundles[bundleIdx])
+		if err != nil {
+			runtime.EventsEmit(app.ctx, "toast.error", err.Error())
+		} else {
+			runtime.EventsEmit(app.ctx, "toast.info", "Your bundle has been sent")
+		}
+	}
+}
+
+func setBundleInContext(app *App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		allItems := app.ctx.Value(contextAllItems).(*models.AllItems)
+		bundleName := r.FormValue("name")
+		app.ctx = context.WithValue(app.ctx, contextSelectedBundleName, bundleName)
+		runtime.EventsEmit(app.ctx, "toast.info", "Bundle selected: '"+bundleName+"'. You can add items now")
+		runtime.EventsEmit(app.ctx, "set_bundle", bundleName)
+		templ.Handler(components.Bundles(allItems, app.config.GetBundles(), bundleName)).ServeHTTP(w, r)
+	}
+}
+
 func NewChiRouter(app *App) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -814,6 +958,12 @@ func NewChiRouter(app *App) *chi.Mux {
 	r.Get("/file", getFile(app))
 	r.Get("/linked-search/{id}", getLinkedSearchModal(app))
 	r.Get("/reload-profiles", goToProfileList(app))
+	r.Post("/bundle", createNewBundle(app))
+	r.Delete("/bundle/{name}", deleteBundle(app))
+	r.Post("/bundle/give", giveBundle(app))
+	r.Post("/bundle/select", setBundleInContext(app))
+	r.Put("/bundle/item", addItemToBundle(app))
+	r.Put("/bundle/item/{id}", updateItemFromBundle(app))
 	// this is not used as it is disabled in the template
 	// https://github.com/angel-git/give-ui/issues/49
 	r.Post("/magazine-loadouts/{id}", addMagazineLoadout(app))

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
 	"spt-give-ui/backend/models"
 )
@@ -86,5 +87,13 @@ func AddRowsToStash() models.Command {
 func Gift(gifId string) models.Command {
 	return models.Command{
 		Message: gifId,
+	}
+}
+
+func AddBundle(bundle models.Bundle) models.Command {
+	itemsJSON, _ := json.Marshal(bundle.Items)
+	cmdStr := fmt.Sprintf("spt give-bundle %s", string(itemsJSON))
+	return models.Command{
+		Message: cmdStr,
 	}
 }

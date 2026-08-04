@@ -4,17 +4,19 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"spt-give-ui/backend/models"
 )
 
 type JsonDatabase struct {
-	Locale         string   `json:"locale"`
-	Theme          string   `json:"theme"`
-	SptUrl         string   `json:"sptUrl"`
-	CacheFolder    string   `json:"cacheFolder"`
-	FavoriteItems  []string `json:"favoriteItems"`
-	IgnoreCache    bool     `json:"ignoreCache"`
-	LogResponses   bool     `json:"logResponses"`
-	TimeoutSeconds uint16   `json:"timeoutSeconds"`
+	Locale         string          `json:"locale"`
+	Theme          string          `json:"theme"`
+	SptUrl         string          `json:"sptUrl"`
+	CacheFolder    string          `json:"cacheFolder"`
+	FavoriteItems  []string        `json:"favoriteItems"`
+	IgnoreCache    bool            `json:"ignoreCache"`
+	LogResponses   bool            `json:"logResponses"`
+	TimeoutSeconds uint16          `json:"timeoutSeconds"`
+	MyBundles      []models.Bundle `json:"myBundles"`
 }
 
 const LocaleDbKey = "locale"
@@ -24,6 +26,7 @@ const FavoriteItemsDbKey = "favoriteItems"
 const CacheFolderDbKey = "cacheFolder"
 const IgnoreCacheDbKey = "ignoreCache"
 const LogResponsesDbKey = "logResponses"
+const BundlesDbKey = "myBundles"
 
 const dbName = "give-ui.config.json"
 
@@ -69,7 +72,7 @@ func SaveValue(key string, value any) {
 		log.Fatalf("Error writing key [%s] with value [%s]: %s", key, value, err)
 	}
 	jsonConfig[key] = value
-	newContent, err := json.Marshal(jsonConfig)
+	newContent, err := json.MarshalIndent(jsonConfig, "", "  ")
 	err = os.WriteFile(dbName, newContent, 0600)
 	if err != nil {
 		log.Fatalf("Error writing key [%s] with value [%s]: %s", key, value, err)
