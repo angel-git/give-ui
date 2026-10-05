@@ -8,18 +8,11 @@ import (
 )
 
 func GetJson(url string, sessionId string, target interface{}) error {
-	r, err := http.DoGetCompressed(url, sessionId)
+	data, err := GetRawBytes(url, sessionId)
 	if err != nil {
 		return err
 	}
-	defer r.Body.Close()
-
-	reader, err := zlib.NewReader(r.Body)
-	if err != nil {
-		return err
-	}
-	defer reader.Close()
-	return json.NewDecoder(reader).Decode(target)
+	return json.Unmarshal(data, target)
 }
 
 func GetRawBytes(url string, sessionId string) ([]byte, error) {
