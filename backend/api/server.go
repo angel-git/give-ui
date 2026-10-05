@@ -322,11 +322,19 @@ func getHiddenItems() []string {
 }
 
 func sendToCommando(url string, sessionId string, command models.Command) (e error) {
-	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/commando", url), sessionId, command)
-	return err
+	r, err := http.DoPost(fmt.Sprintf("%s/give-ui/commando", url), sessionId, command)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+	return nil
 }
 
 func sendToSpt(url string, sessionId string, command models.Command) (e error) {
-	_, err := http.DoPost(fmt.Sprintf("%s/give-ui/spt", url), sessionId, command)
-	return err
+	r, err := http.DoPost(fmt.Sprintf("%s/give-ui/spt", url), sessionId, command)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+	return nil
 }

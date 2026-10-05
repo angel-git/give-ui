@@ -24,6 +24,7 @@ func GetRawBytes(url string, sessionId string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer r.Body.Close()
 	return data, nil
 }
 
@@ -36,6 +37,7 @@ func GetRawBytesCompressed(url string, sessionId string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer r.Body.Close()
 	return data, nil
 }
 
