@@ -1,30 +1,33 @@
 package util
 
 import (
+	"compress/zlib"
 	"encoding/json"
 	"io"
 	"spt-give-ui/backend/http"
 )
 
 func GetJson(url string, sessionId string, target interface{}) error {
-	r, err := http.DoGet(url, sessionId)
+	data, err := GetRawBytes(url, sessionId)
 	if err != nil {
 		return err
 	}
-	defer r.Body.Close()
-	return json.NewDecoder(r.Body).Decode(target)
+	return json.Unmarshal(data, target)
 }
 
 func GetRawBytes(url string, sessionId string) ([]byte, error) {
-	r, err := http.DoGet(url, sessionId)
+	r, err := http.DoGetCompressed(url, sessionId)
 	if err != nil {
 		return nil, err
 	}
-	data, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
+
+	reader, err := zlib.NewReader(r.Body)
 	if err != nil {
 		return nil, err
 	}
-	return data, nil
+	defer reader.Close()
+	return io.ReadAll(reader)
 }
 
 func GetRawBytesCompressed(url string, sessionId string) ([]byte, error) {
@@ -36,6 +39,7 @@ func GetRawBytesCompressed(url string, sessionId string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer r.Body.Close()
 	return data, nil
 }
 
